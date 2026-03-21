@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dr. Fitness — Trainer Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0a1628;--navy2:#0e1e36;--navy3:#142444;--blue2:#1e4a8a;
+  --gold:#f0a500;--gold2:#ffb820;--gold-dim:rgba(240,165,0,0.12);--gold-dim2:rgba(240,165,0,0.06);
+  --red:#e63946;--red-dim:rgba(230,57,70,0.15);--green:#2dc653;--green-dim:rgba(45,198,83,0.12);
+  --amber:#f4a261;--teal:#2dd4bf;
+  --text:#e8edf5;--text2:#8fa3c0;--text3:#4a6080;
+  --border:rgba(240,165,0,0.18);--border2:rgba(255,255,255,0.07);
+  --radius:10px;--radius-sm:6px;
+}
+html{font-size:16px;}
+body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;font-weight:300;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(-55deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 28px);pointer-events:none;z-index:0;}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--navy);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;}
+.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:0.04em;color:var(--gold);line-height:1;margin-bottom:0.2rem;}
+.splash-sub{font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text2);margin-bottom:2.5rem;}
+.splash-disc{background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:var(--radius);padding:1.25rem 1.5rem;max-width:480px;margin-bottom:2rem;text-align:left;}
+.splash-disc h3{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.6rem;display:flex;align-items:center;gap:6px;}
+.splash-disc p{font-size:0.82rem;color:var(--text2);line-height:1.65;}
+.splash-disc strong{color:var(--text);font-weight:500;}
+.splash-enter{background:var(--gold);color:var(--navy);border:none;padding:14px 40px;border-radius:var(--radius);font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+.splash-enter:hover{background:var(--gold2);transform:translateY(-1px);}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:rgba(10,22,40,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1.25rem;}
+.hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.05em;color:var(--gold);line-height:1;}
+.hdr-tagline{font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);}
+.hdr-right{display:flex;align-items:center;gap:6px;}
+.cert-badge{padding:3px 8px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:1px solid;}
+.cert-nasm{background:rgba(30,74,138,0.25);border-color:rgba(30,74,138,0.5);color:#60a5fa;}
+.cert-ace{background:rgba(45,198,83,0.1);border-color:rgba(45,198,83,0.35);color:#2dc653;}
+.cert-issa{background:rgba(240,165,0,0.1);border-color:rgba(240,165,0,0.35);color:var(--gold);}
+.cert-epi{background:rgba(230,57,70,0.1);border-color:rgba(230,57,70,0.35);color:var(--red);}
+
+/* NAV */
+.nav-tabs{display:flex;overflow-x:auto;scrollbar-width:none;background:var(--navy2);border-bottom:1px solid var(--border2);padding:0 0.5rem;position:sticky;top:57px;z-index:90;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{white-space:nowrap;padding:0.75rem 1rem;border:none;background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;flex-shrink:0;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
+.panel{display:none;flex:1;flex-direction:column;}
+.panel.active{display:flex;}
+
+/* CHAT */
+.chat-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 115px);}
+.qa-sidebar{width:210px;flex-shrink:0;border-right:1px solid var(--border2);overflow-y:auto;padding:0.6rem;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.qa-section{font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);padding:0.5rem 0.25rem 0.15rem;margin-top:4px;}
+.qa-btn{width:100%;padding:7px 9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:'Barlow',sans-serif;font-size:0.76rem;font-weight:400;text-align:left;cursor:pointer;transition:all 0.12s;line-height:1.3;}
+.qa-btn:hover{background:var(--gold-dim);border-color:var(--border);color:var(--text);}
+.qa-btn.inj{border-left:2px solid var(--red);}
+.qa-btn.nut{border-left:2px solid var(--green);}
+.qa-btn.wrk{border-left:2px solid var(--gold);}
+.qa-btn.wrm{border-left:2px solid #60a5fa;}
+.qa-btn.spc{border-left:2px solid var(--amber);}
+.qa-btn.oli{border-left:2px solid var(--teal);}
+.qa-btn.rec{border-left:2px solid #a78bfa;}
+
+.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.messages{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:1.25rem;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.msg{display:flex;gap:10px;max-width:100%;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{width:30px;height:30px;border-radius:var(--radius-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.04em;}
+.msg.user .msg-avatar{background:var(--gold);color:var(--navy);}
+.msg.ai .msg-avatar{background:var(--navy3);border:1px solid var(--border);}
+.msg-body{flex:1;min-width:0;}
+.msg-label{font-family:'Barlow Condensed',sans-serif;font-size:0.66rem;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.msg.user .msg-label{text-align:right;}
+.msg-bubble{padding:0.875rem 1.1rem;border-radius:var(--radius);font-size:0.875rem;line-height:1.75;font-weight:300;}
+.msg.user .msg-bubble{background:var(--blue2);border:1px solid rgba(30,74,138,0.5);color:var(--text);border-radius:var(--radius) var(--radius) 4px var(--radius);}
+.msg.ai .msg-bubble{background:var(--navy2);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius) var(--radius) var(--radius) 4px;}
+.msg-bubble strong{font-weight:600;color:var(--gold);}
+.msg-bubble h3{font-family:'Barlow Condensed',sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:0.05em;color:var(--text);margin:0.9rem 0 0.3rem;text-transform:uppercase;}
+.msg-bubble h3:first-child{margin-top:0;}
+.msg-bubble ul,.msg-bubble ol{margin:0.4rem 0 0.4rem 1.1rem;display:flex;flex-direction:column;gap:3px;}
+.msg-bubble li{color:var(--text2);font-size:0.85rem;}
+.msg-bubble p{margin-bottom:0.45rem;}
+.msg-bubble p:last-child{margin-bottom:0;}
+.disc-box{margin-top:0.75rem;padding:0.6rem 0.875rem;background:var(--red-dim);border:1px solid rgba(230,57,70,0.25);border-radius:var(--radius-sm);font-size:0.78rem;color:rgba(230,57,70,0.9);line-height:1.5;display:flex;align-items:flex-start;gap:6px;}
+
+.typing{display:flex;align-items:center;gap:4px;padding:0.75rem 1rem;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);width:fit-content;}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:tdot 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s;}
+.typing span:nth-child(3){animation-delay:0.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:0.3;}30%{transform:translateY(-5px);opacity:1;}}
+
+.input-area{padding:0.875rem 1.5rem 1rem;border-top:1px solid var(--border2);background:rgba(10,22,40,0.92);}
+.mode-row{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
+.mode-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.12s;}
+.mode-chip:hover,.mode-chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim2);}
+.input-row{display:flex;gap:8px;align-items:flex-end;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 9px 9px 14px;transition:border-color 0.15s;}
+.input-row:focus-within{border-color:var(--border);}
+#qi{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.9rem;font-weight:300;resize:none;max-height:120px;min-height:22px;line-height:1.5;}
+#qi::placeholder{color:var(--text3);}
+.send-btn{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
+.send-btn:hover{background:var(--gold2);}
+.send-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.input-hint{margin-top:5px;font-size:0.67rem;color:var(--text3);text-align:center;}
+
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;}
+.welcome-logo{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:0.06em;color:var(--gold);line-height:1;margin-bottom:0.15rem;}
+.welcome-sub{font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:1.75rem;}
+.welcome-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:660px;}
+.w-card{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:0.9rem;cursor:pointer;text-align:left;transition:all 0.15s;position:relative;overflow:hidden;}
+.w-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);opacity:0;transition:opacity 0.15s;}
+.w-card:hover{border-color:var(--border);background:var(--navy3);}
+.w-card:hover::after{opacity:1;}
+.w-card-icon{font-size:1.3rem;margin-bottom:5px;}
+.w-card-title{font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.05em;}
+.w-card-text{font-size:0.74rem;color:var(--text2);line-height:1.45;}
+
+/* REF PANELS */
+.ref-panel{padding:1.5rem;overflow-y:auto;display:flex;flex-direction:column;gap:1.2rem;}
+.ref-header{border-bottom:1px solid var(--border2);padding-bottom:1rem;}
+.ref-header h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:0.05em;color:var(--gold);margin-bottom:0.2rem;}
+.ref-header p{font-size:0.83rem;color:var(--text2);line-height:1.6;margin-top:0.25rem;}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;}
+.ref-card{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.2rem;}
+.ref-card:hover{border-color:var(--border);}
+.ref-card-label{font-family:'Barlow Condensed',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:0.3rem;}
+.ref-card h3{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.5rem;}
+.ref-card p,.ref-card li{font-size:0.81rem;color:var(--text2);line-height:1.6;}
+.ref-card ul{margin-left:1rem;display:flex;flex-direction:column;gap:2px;}
+.ref-card strong{color:var(--gold);font-weight:600;}
+.ref-card em{color:var(--text3);font-style:normal;font-size:0.77rem;}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:0.66rem;font-weight:700;letter-spacing:0.05em;font-family:'Barlow Condensed',sans-serif;margin-right:4px;margin-bottom:5px;}
+.tag-r{background:var(--red-dim);color:var(--red);border:1px solid rgba(230,57,70,0.3);}
+.tag-g{background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);}
+.tag-b{background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);}
+.tag-t{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.3);}
+
+.phase-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
+.phase-card{background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:0.875rem 1rem;border-top:3px solid var(--gold);}
+.phase-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);opacity:0.25;line-height:1;}
+.phase-name{font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:6px;}
+.phase-detail{font-size:0.77rem;color:var(--text2);line-height:1.55;}
+.phase-detail strong{color:var(--gold);font-weight:600;}
+
+.accord{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;}
+.accord-hdr{width:100%;padding:0.875rem 1.1rem;display:flex;align-items:center;justify-content:space-between;background:transparent;border:none;cursor:pointer;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:0.92rem;font-weight:700;letter-spacing:0.05em;text-align:left;text-transform:uppercase;transition:background 0.12s;}
+.accord-hdr:hover{background:var(--gold-dim2);}
+.accord-hdr svg{flex-shrink:0;transition:transform 0.2s;color:var(--gold);}
+.accord-hdr.open svg{transform:rotate(180deg);}
+.accord-body{display:none;padding:0.25rem 1.1rem 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;}
+.accord-body.open{display:block;}
+.accord-body ul{margin-left:1rem;display:flex;flex-direction:column;gap:4px;margin-top:4px;}
+.accord-body strong{color:var(--gold);font-weight:600;}
+.sub-lbl{font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:0.8rem 0 0.25rem;display:block;}
+
+.alert-box{background:var(--red-dim);border:1px solid rgba(230,57,70,0.25);border-radius:var(--radius);padding:0.875rem 1.1rem;font-size:0.82rem;color:rgba(230,57,70,0.9);line-height:1.6;display:flex;gap:8px;}
+
+/* CALORIE CALCULATOR */
+.calc-wrap{background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;}
+.calc-wrap h3{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:1rem;letter-spacing:0.05em;text-transform:uppercase;}
+.calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:1rem;}
+.calc-field label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.calc-field input,.calc-field select{width:100%;padding:9px 12px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'Barlow',sans-serif;font-size:0.875rem;font-weight:300;outline:none;transition:border-color 0.15s;}
+.calc-field input:focus,.calc-field select:focus{border-color:var(--border);}
+.calc-field select option{background:var(--navy3);}
+.calc-btn{padding:10px 24px;background:var(--gold);border:none;border-radius:var(--radius-sm);color:var(--navy);font-family:'Barlow Condensed',sans-serif;font-size:0.875rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+.calc-btn:hover{background:var(--gold2);}
+.calc-results{display:none;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border2);}
+.calc-results.show{display:block;}
+.calc-results h4{font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;}
+.result-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:1rem;}
+.result-card{background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.875rem;text-align:center;}
+.result-card .rc-val{font-family:'Bebas Neue',sans-serif;font-size:1.75rem;color:var(--gold);line-height:1;}
+.result-card .rc-unit{font-size:0.7rem;color:var(--text3);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;}
+.result-card .rc-label{font-size:0.78rem;color:var(--text2);margin-top:4px;}
+.macro-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.macro-card{background:var(--navy3);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border:1px solid var(--border2);}
+.macro-card .mv{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;line-height:1;}
+.macro-card .ml{font-size:0.72rem;color:var(--text2);margin-top:2px;}
+.mc-p{color:#60a5fa;border-top:2px solid #60a5fa;}
+.mc-c{color:var(--amber);border-top:2px solid var(--amber);}
+.mc-f{color:var(--green);border-top:2px solid var(--green);}
+.goal-tabs{display:flex;gap:6px;margin-bottom:0.75rem;flex-wrap:wrap;}
+.goal-tab{padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer;transition:all 0.12s;}
+.goal-tab.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim2);}
+.calc-note{font-size:0.77rem;color:var(--text3);line-height:1.6;margin-top:0.5rem;}
+
+/* OPT DRILL TABLE */
+.drill-table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+.drill-table th{background:var(--navy3);color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border2);}
+.drill-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text2);vertical-align:top;}
+.drill-table tr:last-child td{border-bottom:none;}
+.drill-table tr:hover td{background:rgba(255,255,255,0.02);}
+.drill-table strong{color:var(--gold);font-weight:600;}
+.drill-phase-hdr{background:rgba(240,165,0,0.08);color:var(--gold)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;letter-spacing:0.05em!important;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.hidden{display:none!important;}
+
+@media(max-width:680px){
+  .qa-sidebar{display:none;}
+  .welcome-grid{grid-template-columns:1fr 1fr;}
+  .cards-grid{grid-template-columns:1fr;}
+  .phase-row{grid-template-columns:1fr 1fr;}
+  header{padding:0.6rem 1rem;}
+  .cert-badge{display:none;}
+  .ref-panel,.messages{padding:1rem;}
+  .input-area{padding:0.75rem 1rem 0.875rem;}
+  .macro-row{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo">Dr. Fitness</div>
+  <div class="splash-sub">Trainer Reference System — EPI · NASM · ACE · ISSA</div>
+  <div class="splash-disc">
+    <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Scope of Practice Notice</h3>
+    <p>This tool provides <strong>trainer reference guidance only</strong> and does not replace medical diagnosis or treatment. Always advise clients with pain, injury, or health concerns to <strong>consult a licensed physician or physical therapist</strong> before continuing exercise. Calorie estimates are educational — refer detailed dietary planning to a Registered Dietitian.</p>
+  </div>
+  <button class="splash-enter" onclick="document.getElementById('splash').style.display='none'">I Understand — Enter Dr. Fitness</button>
+</div>
+
+<header>
+  <div><div class="hdr-logo">Dr. Fitness</div><div class="hdr-tagline">Trainer Reference System</div></div>
+  <div class="hdr-right">
+    <span class="cert-badge cert-epi">EPI</span>
+    <span class="cert-badge cert-nasm">NASM</span>
+    <span class="cert-badge cert-ace">ACE</span>
+    <span class="cert-badge cert-issa">ISSA</span>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" data-tab="ask">Ask Dr. Fitness</button>
+  <button class="nav-tab" data-tab="calories">Calorie & Macro Calculator</button>
+  <button class="nav-tab" data-tab="opt">OPT Model</button>
+  <button class="nav-tab" data-tab="olympic">Olympic Lifting</button>
+  <button class="nav-tab" data-tab="recovery">Recovery Methods</button>
+  <button class="nav-tab" data-tab="strength">Strength & Power</button>
+  <button class="nav-tab" data-tab="injury">Injury Guide</button>
+  <button class="nav-tab" data-tab="nutrition">Nutrition</button>
+  <button class="nav-tab" data-tab="warmup">Warmups</button>
+  <button class="nav-tab" data-tab="special">Special Populations</button>
+  <button class="nav-tab" data-tab="qref">Quick Ref</button>
+</div>
+
+<main>
+
+<!-- ══ ASK PANEL ══ -->
+<div class="panel active" data-panel="ask" style="height:calc(100vh - 115px);">
+  <div class="chat-layout">
+    <aside class="qa-sidebar">
+      <div class="qa-section">Injury Mods</div>
+      <button class="qa-btn inj" data-p="My client has knee pain when squatting. What modifications can I make to keep them training safely?">Knee pain — squat mods</button>
+      <button class="qa-btn inj" data-p="Client has lower back pain during deadlifts. What are the safest modifications and exercise swaps?">Low back pain — deadlift</button>
+      <button class="qa-btn inj" data-p="Client has shoulder impingement. What movements to avoid and what substitutes?">Shoulder impingement</button>
+      <button class="qa-btn inj" data-p="Client has plantar fasciitis. How do I modify their cardio and lower body training?">Plantar fasciitis mods</button>
+      <div class="qa-section">Nutrition & Calories</div>
+      <button class="qa-btn nut" data-p="What are the protein recommendations for a GLP-1/AOM client trying to preserve muscle during weight loss?">GLP-1 protein targets</button>
+      <button class="qa-btn nut" data-p="Give me pre-workout and post-workout nutrition guidelines for a general fat loss client.">Pre/post workout nutrition</button>
+      <button class="qa-btn nut" data-p="What are daily hydration recommendations for a client training 4–5 days per week?">Hydration guidelines</button>
+      <button class="qa-btn nut" data-p="What supplements are evidence-based and safe for a trainer to educate general clients about?">Evidence-based supps</button>
+      <div class="qa-section">Workouts</div>
+      <button class="qa-btn wrk" data-p="Generate a complete 60-minute beginner resistance training session for NASM OPT Phase 1 Stabilization Endurance. Include warm-up, exercises with sets/reps/tempo/rest, and cool-down.">Beginner OPT Phase 1</button>
+      <button class="qa-btn wrk" data-p="Build a 50-minute intermediate full-body workout for OPT Phase 3 Muscular Development. Include compound lifts with progressive overload guidance.">Intermediate OPT Phase 3</button>
+      <button class="qa-btn wrk" data-p="Design a 45-minute circuit training session for a general weight loss client. Moderate intensity, standard gym equipment.">Weight loss circuit</button>
+      <button class="qa-btn wrk" data-p="Build a strength training session for a client over 65 with no major injuries. Prioritize functional strength, joint safety, and balance.">Older adult strength</button>
+      <button class="qa-btn wrk" data-p="Create a resistance training session for a GLP-1/AOM client focused on muscle preservation. They may have lower energy due to medication.">GLP-1 muscle preservation</button>
+      <div class="qa-section">Warmups</div>
+      <button class="qa-btn wrm" data-p="Give me a complete OPT-aligned dynamic warm-up protocol for a lower body training day. Include SMR, stretching, activation, and dynamic prep.">Lower body OPT warmup</button>
+      <button class="qa-btn wrm" data-p="Give me a 10-minute upper body pressing day warmup including shoulder mobility and rotator cuff activation.">Upper body pressing warmup</button>
+      <div class="qa-section">Olympic Lifting</div>
+      <button class="qa-btn oli" data-p="Explain the snatch coaching model phases. How do I teach the snatch to a novice lifter step by step?">Snatch coaching model</button>
+      <button class="qa-btn oli" data-p="What are the most common errors in the snatch start position and second pull, and how do I correct them?">Snatch common errors & cues</button>
+      <button class="qa-btn oli" data-p="What is complex training and post-activation potentiation (PAP)? How should I program it?">Complex training / PAP</button>
+      <div class="qa-section">Recovery</div>
+      <button class="qa-btn rec" data-p="What does the research say about cold water immersion (CWI) and contrast water therapy (CWT) for recovery? Include protocols.">CWI & CWT protocols</button>
+      <button class="qa-btn rec" data-p="What are the most effective evidence-based recovery methods? Rank them and give practical protocols.">Recovery methods ranked</button>
+      <div class="qa-section">Special Pop.</div>
+      <button class="qa-btn spc" data-p="What are NASM and ACE guidelines for training clients over 65? Cover intensity, rest, exercise selection, and fall prevention.">Training clients 65+</button>
+      <button class="qa-btn spc" data-p="A post-rehab client has been cleared by their PT. How do I structure their first 4 weeks back?">Post-rehab return plan</button>
+    </aside>
+
+    <div class="chat-main">
+      <div class="welcome" id="welcomeEl">
+        <div class="welcome-logo">Dr. Fitness</div>
+        <div class="welcome-sub">Trainer Reference System — EPI · NASM · ACE · ISSA</div>
+        <div class="welcome-grid">
+          <div class="w-card" data-p="My client has knee pain when squatting. What safe modifications can I make?" data-m="injury"><div class="w-card-icon">🦵</div><div class="w-card-title">Injury Modifications</div><div class="w-card-text">Symptom-based swaps within scope of practice</div></div>
+          <div class="w-card" data-p="Generate a complete 60-minute NASM OPT Phase 1 beginner resistance training session." data-m="workout"><div class="w-card-icon">🏋️</div><div class="w-card-title">Workout Generation</div><div class="w-card-text">OPT, ACE IFT, and EPI-aligned sessions</div></div>
+          <div class="w-card" data-p="Explain the snatch coaching model phases and how to teach a novice lifter step by step." data-m="general"><div class="w-card-icon">🏅</div><div class="w-card-title">Olympic Lifting</div><div class="w-card-text">Snatch & clean coaching models, common errors</div></div>
+          <div class="w-card" data-p="What recovery methods are most effective for athletes? Include CWI, CWT, and active recovery protocols." data-m="general"><div class="w-card-icon">🧊</div><div class="w-card-title">Recovery Science</div><div class="w-card-text">Hydrotherapy, compression, active recovery</div></div>
+          <div class="w-card" data-p="What are the protein targets and nutrition priorities for a GLP-1 client trying to preserve muscle during weight loss?" data-m="nutrition"><div class="w-card-icon">🥗</div><div class="w-card-title">Nutrition Guidance</div><div class="w-card-text">Macros, timing, GLP-1, older adult specifics</div></div>
+          <div class="w-card" data-p="Explain strength and power development: force-velocity curve, motor unit recruitment, and how to train RFD." data-m="general"><div class="w-card-icon">⚡</div><div class="w-card-title">Strength & Power</div><div class="w-card-text">S&P science, hypertrophy, complex training</div></div>
+        </div>
+      </div>
+      <div class="messages hidden" id="msgsEl"></div>
+      <div class="input-area">
+        <div class="mode-row">
+          <button class="mode-chip active" data-m="general">General</button>
+          <button class="mode-chip" data-m="injury">Injury</button>
+          <button class="mode-chip" data-m="nutrition">Nutrition</button>
+          <button class="mode-chip" data-m="workout">Workout</button>
+          <button class="mode-chip" data-m="warmup">Warmup</button>
+          <button class="mode-chip" data-m="olympic">Olympic</button>
+          <button class="mode-chip" data-m="recovery">Recovery</button>
+          <button class="mode-chip" data-m="glp1">GLP-1</button>
+          <button class="mode-chip" data-m="older">55+</button>
+        </div>
+        <div class="input-row">
+          <textarea id="qi" placeholder="Ask about a client situation, injury, nutrition, workout generation, Olympic lifting, recovery…" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+        <div class="input-hint">Enter to send · Shift+Enter for new line</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CALORIE & MACRO CALCULATOR ══ -->
+<div class="panel" data-panel="calories">
+  <div class="ref-panel">
+    <div class="ref-header">
+      <h2>Calorie & Macro Calculator</h2>
+      <p>Evidence-based calorie and macronutrient targets using the Mifflin-St Jeor equation — the most validated formula for RMR estimation. Results are educational estimates. Refer detailed meal planning to a Registered Dietitian (RD).</p>
+    </div>
+
+    <div class="calc-wrap">
+      <h3>Client Profile</h3>
+      <div class="calc-grid">
+        <div class="calc-field"><label>Sex</label><select id="c-sex"><option value="m">Male</option><option value="f">Female</option></select></div>
+        <div class="calc-field"><label>Age (years)</label><input type="number" id="c-age" placeholder="35" min="16" max="100"></div>
+        <div class="calc-field"><label>Height (inches)</label><input type="number" id="c-height" placeholder="68" min="48" max="96"></div>
+        <div class="calc-field"><label>Weight (lbs)</label><input type="number" id="c-weight" placeholder="175" min="80" max="500"></div>
+        <div class="calc-field"><label>Activity Level</label>
+          <select id="c-activity">
+            <option value="1.2">Sedentary (desk job, no exercise)</option>
+            <option value="1.375">Lightly active (1–3 days/week)</option>
+            <option value="1.55" selected>Moderately active (3–5 days/week)</option>
+            <option value="1.725">Very active (6–7 days/week)</option>
+            <option value="1.9">Extremely active (2× daily training)</option>
+          </select>
+        </div>
+        <div class="calc-field"><label>Primary Goal</label>
+          <select id="c-goal">
+            <option value="loss">Fat Loss</option>
+            <option value="maintain">Maintenance / Recomp</option>
+            <option value="gain">Muscle Gain</option>
+            <option value="glp1">GLP-1/AOM Client</option>
+          </select>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcCalories()">Calculate Targets</button>
+
+      <div class="calc-results" id="calcResults">
+        <h4>Results</h4>
+        <div class="result-cards" id="resultCards"></div>
+        <div class="goal-tabs" id="goalTabs"></div>
+        <h4 id="macroLabel">Daily Macros</h4>
+        <div class="macro-row" id="macroRow"></div>
+        <div id="calcNotes" class="calc-note"></div>
+      </div>
+    </div>
+
+    <div class="accord">
+      <button class="accord-hdr open" onclick="tog(this)">How to Use These Numbers with Clients <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <span class="sub-lbl">Trainer's Role vs. RD's Role</span>
+        Trainers provide <strong>general nutrition education</strong> — calorie awareness, protein priority, hydration. They do not prescribe meal plans, diagnose deficiencies, or provide therapeutic diets. Refer to a Registered Dietitian for clinical nutrition work.
+        <span class="sub-lbl">Practical Coaching Points</span>
+        <ul>
+          <li>Use the number to <strong>educate, not prescribe</strong> — "Research suggests someone your size and activity level needs approximately X calories"</li>
+          <li>Always emphasize <strong>protein first</strong> — it's the most impactful single variable for body composition</li>
+          <li>Remind clients that calculators estimate TDEE based on averages — individual variance is ±10–15%</li>
+          <li>For GLP-1 clients: appetite suppression often drives intake well below targets — protein shakes are frequently necessary to hit minimums</li>
+          <li>For older adults: protein distribution (30–40g per meal) matters as much as total protein</li>
+        </ul>
+        <span class="sub-lbl">Mifflin-St Jeor Formula</span>
+        Men: RMR = (10 × kg) + (6.25 × cm) − (5 × age) + 5<br>
+        Women: RMR = (10 × kg) + (6.25 × cm) − (5 × age) − 161<br>
+        TDEE = RMR × Activity Factor. This is the most validated equation for general populations.
+      </div>
+    </div>
+
+    <div class="accord">
+      <button class="accord-hdr" onclick="tog(this)">Macronutrient Targets by Goal — Reference Table <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <table class="drill-table" style="margin-top:0.5rem;">
+          <tr><th>Goal</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calorie Adjust</th></tr>
+          <tr><td><strong>Fat Loss</strong></td><td>1.6–2.2 g/kg</td><td>3–5 g/kg</td><td>0.8–1.2 g/kg</td><td>−300–500 kcal below TDEE</td></tr>
+          <tr><td><strong>Maintenance/Recomp</strong></td><td>1.6–2.0 g/kg</td><td>4–6 g/kg</td><td>1.0–1.5 g/kg</td><td>At TDEE</td></tr>
+          <tr><td><strong>Muscle Gain</strong></td><td>1.6–2.2 g/kg</td><td>5–7 g/kg</td><td>1.0–1.5 g/kg</td><td>+200–400 kcal above TDEE</td></tr>
+          <tr><td><strong>GLP-1/AOM</strong></td><td>1.8–2.4 g/kg</td><td>3–4 g/kg</td><td>0.8–1.0 g/kg</td><td>Varies — may be 1,000–1,400 kcal</td></tr>
+          <tr><td><strong>Older Adults 55+</strong></td><td>1.6–2.0 g/kg</td><td>4–5 g/kg</td><td>1.0–1.3 g/kg</td><td>At TDEE or slight deficit</td></tr>
+        </table>
+        <br><em>1 g protein = 4 kcal · 1 g carbohydrate = 4 kcal · 1 g fat = 9 kcal</em>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">Pre-Workout Timing</div><h3>Fueling Before Training</h3><ul><li><strong>1–3 hours before:</strong> Carbs 1–4 g/kg + Protein 20–40g + Low fat</li><li><strong>30–60 min before:</strong> Small carb snack if needed (banana, rice cake)</li><li><strong>Examples:</strong> Oats + whey, rice + chicken, banana + PB</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Post-Workout Timing</div><h3>Recovery Nutrition</h3><ul><li><strong>Within 30–60 min:</strong> 20–40g protein + 0.5–1.5 g/kg carbs</li><li><strong>Low fat</strong> immediately post-exercise (slows digestion)</li><li><strong>Examples:</strong> Whey + banana, Greek yogurt + fruit, chocolate milk</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Hydration</div><h3>Daily & Exercise Targets</h3><ul><li><strong>Baseline:</strong> 35–45 ml/kg body weight daily</li><li><strong>Pre-exercise:</strong> 400–600 ml (2 hrs before)</li><li><strong>During:</strong> 150–250 ml every 15–20 min</li><li><strong>Post:</strong> 500 ml per lb sweat lost</li><li><strong>Electrolytes:</strong> Required for sessions &gt;60 min</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OPT MODEL ══ -->
+<div class="panel" data-panel="opt">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>NASM OPT Model</h2><p>Optimum Performance Training — the foundational periodization framework. Determine client phase, then prescribe appropriate volume, intensity, and progression. Always progress through phases in sequence.</p></div>
+    <div class="phase-row">
+      <div class="phase-card"><div class="phase-num">1</div><div class="phase-name">Stabilization Endurance</div><div class="phase-detail"><strong>Sets:</strong> 1–3 &nbsp;|&nbsp; <strong>Reps:</strong> 12–20<br><strong>Intensity:</strong> 50–70% 1RM<br><strong>Tempo:</strong> 4-2-1<br><strong>Rest:</strong> 0–90 sec<br><strong>Duration:</strong> 4 weeks<br><br>Proprioception, joint stability, neuromuscular efficiency. Unstable surfaces, slow tempo. Best for deconditioned, post-rehab, new clients.</div></div>
+      <div class="phase-card" style="border-top-color:#60a5fa;"><div class="phase-num" style="color:#60a5fa;">2</div><div class="phase-name">Strength Endurance</div><div class="phase-detail"><strong>Sets:</strong> 2–4 &nbsp;|&nbsp; <strong>Reps:</strong> 8–12<br><strong>Intensity:</strong> 70–80% 1RM<br><strong>Tempo:</strong> 2-0-2<br><strong>Rest:</strong> 0–60 sec<br><strong>Superset:</strong> Strength + Stabilization<br><br>Muscular endurance + strength. Superset strength exercise with stabilization move. Bridge between Phases 1 and 3.</div></div>
+      <div class="phase-card" style="border-top-color:var(--green);"><div class="phase-num" style="color:var(--green);">3</div><div class="phase-name">Muscular Development</div><div class="phase-detail"><strong>Sets:</strong> 3–5 &nbsp;|&nbsp; <strong>Reps:</strong> 6–12<br><strong>Intensity:</strong> 75–85% 1RM<br><strong>Tempo:</strong> 2-0-2<br><strong>Rest:</strong> 0–60 sec<br><strong>Duration:</strong> 4+ weeks<br><br>Hypertrophy via mechanical tension, metabolic stress, and muscle damage. High volume, moderate rest.</div></div>
+      <div class="phase-card" style="border-top-color:var(--amber);"><div class="phase-num" style="color:var(--amber);">4</div><div class="phase-name">Maximal Strength</div><div class="phase-detail"><strong>Sets:</strong> 4–6 &nbsp;|&nbsp; <strong>Reps:</strong> 1–5<br><strong>Intensity:</strong> 85–100% 1RM<br><strong>Tempo:</strong> Explosive<br><strong>Rest:</strong> 3–5 min<br><br>Maximal motor unit recruitment. Heavy compound lifts. Performance-focused clients. Not typical for general fitness.</div></div>
+      <div class="phase-card" style="border-top-color:var(--red);"><div class="phase-num" style="color:var(--red);">5</div><div class="phase-name">Power</div><div class="phase-detail"><strong>Sets:</strong> 3–5 &nbsp;|&nbsp; <strong>Reps:</strong> 1–10<br><strong>Intensity:</strong> 30–45% 1RM (speed-based)<br><strong>Tempo:</strong> Explosive<br><strong>Rest:</strong> 3–5 min<br><br>Rate of force development. Superset heavy strength + explosive power. Athletes and advanced clients only.</div></div>
+    </div>
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">OPT Warm-Up Sequence (All Phases) <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <span class="sub-lbl">Step 1 — Inhibit (SMR)</span>Foam roll overactive muscles identified in postural assessment. Hold tender spots 30–90 sec.
+        <span class="sub-lbl">Step 2 — Lengthen (Static Stretch)</span>Stretch same overactive muscles. Hold 20–30 sec each.
+        <span class="sub-lbl">Step 3 — Activate (Isolated Activation)</span>Activate underactive muscles. 1–2 sets × 10–15 reps. Controlled, isolated movements.
+        <span class="sub-lbl">Step 4 — Integrate (Dynamic Movement)</span>Multi-joint dynamic exercises reinforcing new movement patterns.
+        <span class="sub-lbl">Common Postural Patterns</span>
+        <ul><li><strong>Pronation distortion:</strong> Overactive calves/adductors → Underactive glutes/tibialis anterior</li><li><strong>Lower crossed:</strong> Overactive hip flexors/lumbar extensors → Underactive glutes/core</li><li><strong>Upper crossed:</strong> Overactive upper traps/pecs → Underactive mid/lower traps/deep cervical flexors</li></ul>
+      </div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">ACE IFT Model Reference <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">ACE Integrated Fitness Training model — 4 phases. Never advance until client demonstrates competency.
+        <span class="sub-lbl">Phase 1 — Stability & Mobility</span>Restore joint mobility/stability. Correct imbalances before loading.
+        <span class="sub-lbl">Phase 2 — Movement</span>Build foundational patterns: squat, hinge, push, pull, rotate, locomotion.
+        <span class="sub-lbl">Phase 3 — Load</span>Progressive resistance training with external load. Introduce periodization.
+        <span class="sub-lbl">Phase 4 — Performance</span>Power, speed, agility, sport-specific. Advanced clients and athletes only.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OLYMPIC LIFTING ══ -->
+<div class="panel" data-panel="olympic">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Olympic Weightlifting</h2><p>Snatch coaching model from EPI Phase 2 NCSC course. Always begin with Phase 1 (bar only). Allow 3–4 sessions per phase before progressing. Olympic lifts produce some of the highest power outputs of any exercise modality — during the second pull of the clean and snatch, an average of 52 W/kg body weight is produced vs. ~12 W/kg in powerlifting.</p></div>
+
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">Snatch Set-Up & Key Positions <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <span class="sub-lbl">Hook Grip</span>Wrap thumb around bar first, then hook index and middle fingers over the thumb.
+        <span class="sub-lbl">Grip Width</span>Wide enough so bar sits in lower abdominal region (above pubic symphysis, below ASIS) when arms are straight standing.
+        <span class="sub-lbl">Jump Stance (Start)</span>Feet hip-width apart, pointing straight. This is the power position.
+        <span class="sub-lbl">Catch Stance</span>Feet shoulder-width apart, turned outward (11 & 1 o'clock positions).
+        <span class="sub-lbl">Overhead Position</span>Bar above crown of head, arms locked, face through the bar.
+        <span class="sub-lbl">Sit Position (Pre-lift)</span>Slight flex through ankle, knee, hip. Bar in upper thigh. This is the launch position.
+        <span class="sub-lbl">Start Position Key Points (from floor)</span>
+        <ul><li>Feet hip-width, bar over big toe knuckle, shins close</li><li>Hook grip, wide enough for crease-of-hip bar position when standing</li><li>Hips slightly higher than knees but lower than Clean start</li><li>Shoulders in front of bar, back flat, scapulae retracted, elbows pointing outward</li><li>Weight distribution: mid to forefoot</li></ul>
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Snatch Coaching Model — Phase 1, 2 & 3 Drills <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <table class="drill-table">
+          <tr><th>Phase</th><th>Drill</th><th>Key Points</th><th>Sets/Reps</th></tr>
+          <tr><td colspan="4" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">PHASE 1 — Crease of Hip Position (Sessions 1–4)</td></tr>
+          <tr><td>1</td><td><strong>Shrug & Triple Extend</strong></td><td>Begin in sit position, jump stance. Triple extend ankle/knee/hip whilst shrugging. Focus on hip drive — not arm pull.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>2</td><td><strong>Elbows High</strong></td><td>Same as above + simultaneously drive hips and pull bar. Elbows high throughout.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>3</td><td><strong>Muscle Snatch</strong></td><td>Triple extend + pull + receive bar overhead with legs straight.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>4</td><td><strong>Overhead Squat</strong></td><td>Bar overhead, catch stance. Lower into deep squat, drive knees out over toes, maintain upright torso.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>5</td><td><strong>Snatch Land</strong></td><td>From overhead position, drop and land in quarter squat. Feet shift jump → catch stance.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>6</td><td><strong>Snatch Drop</strong></td><td>Same as land but receive in deep squat position.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>7</td><td><strong>Jump & Catch</strong></td><td>From sit position, triple extend + pull, drop and catch bar overhead. Full integration of Phase 1.</td><td>3×6 + 1×4 circuit, bar only</td></tr>
+          <tr><td colspan="4" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">PHASE 2 — Hang Position / Mid-Thigh (Sessions 5–8)</td></tr>
+          <tr><td>1</td><td><strong>Hang Slides</strong></td><td>From sit position, slide bar down front of thighs to mid-lower thigh. Keep shoulders in front of bar. Stand to repeat.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>2</td><td><strong>Hang Shrug & Triple Extend</strong></td><td>From hang position: triple extend + shrug. Focus on hip drive.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>3</td><td><strong>Muscle Snatch (Hang)</strong></td><td>From hang: triple extend + pull + receive overhead with legs straight.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>4</td><td><strong>Hang Snatch</strong></td><td>From mid-lower thigh: triple extend + pull, drop and catch bar overhead in catch stance. Full hang version.</td><td>3×6 + 1×4 circuit, bar only</td></tr>
+          <tr><td colspan="4" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">PHASE 3 — Floor Position (Sessions 9–12)</td></tr>
+          <tr><td>1</td><td><strong>Snatch Pull</strong></td><td>Bar at mid-shin, jump stance. Rise hips and shoulders at same rate (clear the knee). Contact hip at crease by triple extending + shrugging simultaneously.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>2</td><td><strong>Power Snatch</strong></td><td>Full lift from floor. Receive bar overhead in quarter squat, catch stance. First loaded progression.</td><td>3×6, 30s rest, bar only</td></tr>
+          <tr><td>3</td><td><strong>Squat Snatch</strong></td><td>Full lift from floor. Receive bar overhead in deep squat, catch stance. Full technical snatch.</td><td>3×6 + 1×4 circuit, bar only</td></tr>
+        </table>
+        <br><strong>Supplementary Drills:</strong> Sott's Press (overhead squat with press), Snatch Balance (drop + press overhead from behind neck).
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Snatch Technical Model — Common Errors & Cues <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <table class="drill-table">
+          <tr><th>Error</th><th>Coaching Cue</th><th>Root Cause</th></tr>
+          <tr><td colspan="3" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">START POSITION ERRORS</td></tr>
+          <tr><td><strong>Rounded back</strong></td><td>"Back straight" / "Spread the chest"</td><td>Lack of T-spine extension / hip anterior pelvic tilt mobility</td></tr>
+          <tr><td><strong>Hips too high</strong></td><td>"Hips down — chest up" / "Show me your logo"</td><td>Lack of ankle dorsiflexion / hip extension mobility</td></tr>
+          <tr><td colspan="3" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">FIRST PULL ERRORS</td></tr>
+          <tr><td><strong>Butt shoot (hips rise faster than shoulders)</strong></td><td>"Stay tall" / "Chest up"</td><td>Athlete pulling bar too fast from floor — first pull should be slow and controlled</td></tr>
+          <tr><td><strong>Shoulders/back rounds</strong></td><td>"Stay tight" / "Shoulders square"</td><td>Using upper body to pull instead of driving with legs; brace upper body to maintain posture</td></tr>
+          <tr><td colspan="3" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">SECOND PULL ERRORS</td></tr>
+          <tr><td><strong>No heel lift (incomplete triple extension)</strong></td><td>"Heel lift" / "Finish pull"</td><td>Athlete drops into catch too early; must complete triple extension before descending</td></tr>
+          <tr><td><strong>Bar too far from body</strong></td><td>"Drive upwards" / "Pull upwards"</td><td>Driving outward instead of upward; bar should stay close to body throughout</td></tr>
+          <tr><td colspan="3" class="drill-phase-hdr" style="padding:6px 12px;font-size:0.72rem;letter-spacing:0.1em;">CATCH PHASE ERRORS</td></tr>
+          <tr><td><strong>Knees buckle inward</strong></td><td>"Knees out" in catch stance</td><td>Weak glutes/hip abductors; prioritize glute activation exercises and CMJ with knees-out focus</td></tr>
+          <tr><td><strong>Bar caught too far in front</strong></td><td>"Arms back" / "Face through bar" / "Spread chest"</td><td>Need to release grip after 2nd pull and punch hands overhead; check shoulder/T-spine mobility</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RECOVERY METHODS ══ -->
+<div class="panel" data-panel="recovery">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Recovery Methods</h2><p>Evidence-based recovery modalities from EPI Phase 2. Adequate recovery restores physiological and psychological processes so athletes can train or compete at the required level. Mechanical stress (sprinting, lifting) and metabolic stress (endurance) require different recovery approaches.</p></div>
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">Hydrotherapy</div><h3>Cold Water Immersion (CWI)</h3><span class="tag tag-g">Strong Evidence</span><ul><li><strong>Protocol:</strong> 1 × 5 min @ 10°C (50°F)</li><li>Immersion depth: waist to shoulder</li><li>Reduces DOMS, speeds muscle function recovery</li><li>Outperforms hot water immersion and passive recovery for sprint and time trial performance</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Hydrotherapy</div><h3>Contrast Water Therapy (CWT)</h3><span class="tag tag-g">Strong Evidence</span><ul><li><strong>Protocol:</strong> 4 min @ 40°C + 2 min @ 10°C × 2 rounds (always finish cold)</li><li>Alternates hot and cold immersion to create "pump" effect</li><li>Comparable to CWI for performance recovery</li><li>Most popular in elite sports settings</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Active Recovery</div><h3>Low-Intensity Active Recovery</h3><span class="tag tag-b">Moderate Evidence</span><ul><li><strong>Protocol:</strong> Stationary bike 1 × 15 min @ 50–60% MaxHR</li><li>Most common recovery method used by athletes</li><li>Role in lactate clearance — evidence incomplete but anecdotally effective</li><li>No detrimental effects vs. passive recovery</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Compression</div><h3>Compression Garments</h3><span class="tag tag-b">Moderate Evidence</span><ul><li><strong>Protocol:</strong> Wear immediately after training for remainder of day</li><li>Improves venous return via graduated compression (proximal → distal)</li><li>Moderate benefit: reduces muscle soreness and CK levels</li><li>Improves recovery of muscle strength and power</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Manual Therapy</div><h3>Massage</h3><span class="tag tag-r">Limited Performance Evidence</span><ul><li>Beneficial for <strong>psychological</strong> recovery and perceived soreness</li><li>Limited evidence for improving functional performance recovery</li><li>Valuable for injury prevention — improves muscle tone and resting length</li><li>Should be included in programs for reasons beyond recovery</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Flexibility</div><h3>Stretching</h3><span class="tag tag-r">Inconclusive Evidence</span><ul><li>Research is mixed — not conclusively effective as recovery modality</li><li>Some studies show improved power output 15 hrs post-match</li><li>Others show no benefit vs. CWT or active recovery</li><li>Implement case-by-case — if client feels it helps, allow it</li></ul></div>
+    </div>
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">Recovery Method Hierarchy — Evidence Summary <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <strong>Ranked by evidence for performance recovery:</strong>
+        <ul>
+          <li><strong>1. CWI / CWT (Hydrotherapy):</strong> Strongest evidence for reducing DOMS and improving next-day performance. CWT slightly preferred by athletes. Use post-high-intensity or competition days.</li>
+          <li><strong>2. Active Recovery:</strong> Most widely used. No harm, some benefit. Best for metabolic stress recovery (high-intensity cardio/conditioning).</li>
+          <li><strong>3. Compression Garments:</strong> Moderate evidence. Practical and passive — good for travel or post-session without access to pools.</li>
+          <li><strong>4. Massage:</strong> Psychological benefit is real. Physical performance benefit is limited. Still valuable for muscle tone and injury prevention.</li>
+          <li><strong>5. Stretching:</strong> Trainer and athlete preference. Implement case-by-case. Not harmful. May have minor post-match benefit.</li>
+        </ul>
+        <span class="sub-lbl">Sleep — The Overlooked Priority</span>
+        Sleep is the most powerful recovery intervention and often the most neglected. 7–9 hours of quality sleep per night is the foundation all other modalities build on. Prioritize sleep education with every client before implementing recovery modalities.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STRENGTH & POWER ══ -->
+<div class="panel" data-panel="strength">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Strength & Power</h2><p>EPI Phase 2 Strength & Power content — neuromuscular system, hypertrophy mechanisms, force-velocity curve, and training methods. Strength (Force = Mass × Acceleration) is the prerequisite for Power (Force × Velocity).</p></div>
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">Neuromuscular</div><h3>Motor Unit Recruitment</h3><ul><li><strong>Size Principle:</strong> CNS recruits smallest (Type I) units first, progresses to larger (Type II) as force demands increase</li><li>Jogging = low threshold Type I recruitment; Sprinting = high threshold Type II</li><li>Two factors determining muscle recruitment: <strong>level of force</strong> and <strong>rate of force development (RFD)</strong></li><li>Lifting lighter loads fast recruits most motor units at loads as low as 33% 1RM</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Neuromuscular</div><h3>Rate Coding & Synchronisation</h3><ul><li><strong>Rate Coding:</strong> Increasing frequency of neural impulses to already-recruited motor units — force increases without additional recruitment</li><li>Explosive exercises (Olympic lifts) increase rate coding of higher-threshold motor units</li><li><strong>Motor Unit Synchronisation:</strong> Simultaneous activation of 2+ motor units — more related to RFD</li><li>Heavy strength training may increase synchronisation, contributing to force production</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Muscle Fiber Types</div><h3>Type I vs Type II</h3><ul><li><strong>Type I (Slow Twitch):</strong> Fatigue resistant, peak tension ~110ms, oxidative fuel, endurance</li><li><strong>Type II (Fast Twitch):</strong> Peak tension ~50ms, glycolytic, strength and power, fatigues quickly</li><li>Type IIa = intermediate; Type IIx = most powerful, most fatigable</li><li>Average human: ~equal Type I and II, with large interindividual variability</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Hypertrophy</div><h3>3 Mechanisms of Muscle Growth</h3><ul><li><strong>1. Mechanical Tension:</strong> Primary driver — load applied to muscle stimulates mTOR signalling and protein synthesis</li><li><strong>2. Metabolic Stress:</strong> "The pump" — lactate/H+ accumulation causes cell swelling, hormonal response, anabolic signalling</li><li><strong>3. Muscle Damage (EIMD):</strong> Eccentric actions cause most damage — structural changes drive adaptation and hypertrophy</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Hypertrophy Techniques</div><h3>Advanced Training Methods</h3><ul><li><strong>Cluster Sets:</strong> Short intraset rests (10–30s) between mini-reps — better mechanical tension, less metabolic stress. Best for functional hypertrophy.</li><li><strong>Supersets:</strong> Two exercises back-to-back. Can target same or opposing muscle groups. Increases metabolic stress + volume.</li><li><strong>Drop Sets:</strong> Reduce load ~10% immediately at fatigue and continue. High metabolic stress.</li><li><strong>Pre-Exhaustion:</strong> Isolation exercise first to pre-fatigue agonist before compound lift. Maximizes metabolic stress on target muscle.</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Power Development</div><h3>Complex Training & PAP</h3><ul><li><strong>Complex Training:</strong> Pair heavy loaded exercise with biomechanically similar plyometric exercise in same set</li><li><strong>Post-Activation Potentiation (PAP):</strong> Prior heavy contraction enhances explosive capability — neural excitability + myosin phosphorylation</li><li><strong>Intracomplex rest:</strong> 1–4 minutes between loaded and plyometric exercise</li><li>Requires: &gt;2 years RT, &gt;1.8 relative 1RM lower body, &gt;1.4 relative 1RM upper body</li><li><strong>Example:</strong> Back Squat 3×3 @ 90% → (rest 1–2 min) → CMJ 3×4</li></ul></div>
+    </div>
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">Force-Velocity Curve & Programming Roadmap <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        The FV curve is the S&C coach's roadmap. Maximum strength is expressed at low velocities; maximum speed at low loads. An inverse relationship exists between force and velocity.
+        <span class="sub-lbl">FV Zones</span>
+        <table class="drill-table" style="margin-top:0.5rem;">
+          <tr><th>Zone</th><th>Load</th><th>Method</th></tr>
+          <tr><td><strong>Max Strength</strong></td><td>90–100% 1RM</td><td>Heavy compound lifts (Back Squat, Deadlift, Bench Press) — 1–5 reps</td></tr>
+          <tr><td><strong>Strength-Speed</strong></td><td>80–90% 1RM</td><td>Olympic lifts (Squat Clean, Squat Snatch, Clean/Snatch Pull) — 1–3 reps</td></tr>
+          <tr><td><strong>Peak Power</strong></td><td>30–80% 1RM</td><td>Power Clean, Power Snatch, Loaded Squat Jumps — 1–4 reps</td></tr>
+          <tr><td><strong>Speed-Strength</strong></td><td>30–60% 1RM</td><td>Hang Clean, Hang Snatch, Plyometrics — 3–4 reps</td></tr>
+          <tr><td><strong>Max Speed</strong></td><td>&lt;30% 1RM</td><td>Reactive plyometrics: pogos, depth jumps, rebound hurdles — 1–6 reps</td></tr>
+        </table>
+        <span class="sub-lbl">Programming Principle</span>
+        Develop all areas of the FV curve across the training cycle. Initially build max strength, then exploit those adaptations through explosive/ballistic work. Strength training must be maintained throughout (reduced frequency in-season). The <strong>intent to move explosively</strong> is critical at any load.
+        <span class="sub-lbl">Ballistic Training & RFD</span>
+        Most athletic movements occur in &lt;0.3 seconds. Train RFD by lifting lighter loads at maximal velocity intent, plyometrics, and Olympic lifts. Olympic lifts produce ~52 W/kg vs. ~12 W/kg in powerlifting during equivalent phases.
+      </div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Variable Resistance Training (Bands & Chains) <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        Variable resistance training alters external resistance through the range of motion to maximize muscle force production at all joint angles.
+        <span class="sub-lbl">Band Set-Up</span>
+        <ul><li>Anchor to stable surfaces (squat rack pegs, heavy dumbbells, bench)</li><li>Bands must never go slack during any portion of the lift</li><li>Keep bands vertically oriented to the floor</li></ul>
+        <span class="sub-lbl">Chain Set-Up</span>
+        <ul><li>Use lighter lead chain to attach heavy chains to barbell</li><li>Hang heavy chain doubled over lead chain from midline (not end to end)</li><li>Heavy chain must remain in contact with floor at all times</li><li>Some links must stay grounded at the top of the range</li></ul>
+        <strong>Purpose:</strong> Induces varied stimuli → neural adaptations improving strength and power. Bands also increase eccentric stimulus during the lowering phase.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ INJURY GUIDE ══ -->
+<div class="panel" data-panel="injury">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Injury Modification Guide</h2><p>Exercise modifications for common client complaints. Trainers modify — not diagnose. Always advise clients to consult a physician or PT for diagnosis.</p></div>
+    <div class="alert-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>Scope of practice:</strong> Stop training and advise physician/PT consult if client reports sharp, radiating, sudden-onset, or worsening pain.</span></div>
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">Lower Body</div><h3>Knee Pain / Anterior Knee</h3><span class="tag tag-r">Avoid</span>Deep knee flexion past 90°, plyometrics, forward-knee lunges<br><br><span class="tag tag-g">Modify To</span><ul><li>Box squat (controlled depth, sit back)</li><li>Leg press (foot position high)</li><li>Seated leg extension (pain-free arc)</li><li>Step-ups (6–8 inch box)</li><li>Romanian deadlift / hip hinge</li><li>Lying or seated hamstring curls</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Lower Body</div><h3>Low Back Pain</h3><span class="tag tag-r">Avoid</span>Loaded spinal flexion, heavy deadlifts, sit-ups, good mornings<br><br><span class="tag tag-g">Modify To</span><ul><li>Bird dog (core anti-extension)</li><li>Dead bug progressions</li><li>Glute bridges / hip thrusts</li><li>Pallof press (anti-rotation)</li><li>Cable pull-throughs</li><li>Trap bar deadlift if pain-free</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Upper Body</div><h3>Shoulder Impingement</h3><span class="tag tag-r">Avoid</span>Overhead press, upright rows, behind-neck movements, internal rotation under load<br><br><span class="tag tag-g">Modify To</span><ul><li>Landmine press</li><li>Cable face pulls</li><li>Band external rotation</li><li>Neutral-grip DB press</li><li>Seated cable row (horizontal)</li><li>Scapular pushups</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Lower Body</div><h3>Plantar Fasciitis</h3><span class="tag tag-r">Avoid</span>Running, jumping, high-impact cardio, prolonged standing on hard surfaces<br><br><span class="tag tag-g">Modify To</span><ul><li>Seated stationary bike</li><li>Swimming / aqua walking</li><li>Upper body or seated resistance</li><li>Foot rolling pre-session</li><li>Calf stretching 3×30s each session</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Upper Body</div><h3>Tennis / Golfer's Elbow</h3><span class="tag tag-r">Avoid</span>Barbell curls supinated, heavy gripping, wrist curls<br><br><span class="tag tag-g">Modify To</span><ul><li>Neutral/hammer curls</li><li>TRX rows (reduced grip)</li><li>Machine-based pulling</li><li>Wrist flexor/extensor stretches</li><li>Eccentric wrist exercises</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Core / Hip</div><h3>Hip Flexor Strain</h3><span class="tag tag-r">Avoid</span>Sprinting, high-knee drills, hanging leg raises<br><br><span class="tag tag-g">Modify To</span><ul><li>Glute bridges (hip extension focus)</li><li>Prone hip extensions</li><li>Side-lying clamshells</li><li>Short-stride walking lunges</li><li>Stationary bike (low resistance)</li></ul></div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Red Flag Symptoms — Stop & Refer Immediately <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">Stop the session. If cardiac symptoms are present, call 911. Notify the Fitness Director. Document the incident.<ul><li><strong>Chest pain, pressure, or tightness</strong> during or after exercise</li><li><strong>Pain radiating</strong> down the arm, leg, or into the jaw</li><li><strong>Sudden dizziness, loss of balance, or fainting</strong></li><li><strong>Acute joint swelling</strong> appearing during activity</li><li><strong>Numbness or tingling</strong> in any extremity</li><li><strong>Severe shortness of breath</strong> disproportionate to effort</li><li><strong>Sharp, stabbing pain</strong> that doesn't resolve with rest</li><li>Pain rated <strong>7/10 or higher</strong></li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NUTRITION ══ -->
+<div class="panel" data-panel="nutrition">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Nutrition Reference</h2><p>Evidence-based nutrition guidance. Trainers provide general education — refer detailed dietary planning to a Registered Dietitian. Use the Calorie & Macro Calculator tab for client-specific estimates.</p></div>
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">Fat Loss</div><h3>Weight Loss Macros</h3><ul><li><strong>Protein:</strong> 1.6–2.2 g/kg BW</li><li><strong>Carbs:</strong> 3–5 g/kg</li><li><strong>Fat:</strong> 0.8–1.2 g/kg</li><li><strong>Deficit:</strong> 300–500 kcal below TDEE</li><li><strong>Key:</strong> Protein is top priority — preserves lean mass in deficit</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Muscle Gain</div><h3>Hypertrophy Macros</h3><ul><li><strong>Protein:</strong> 1.6–2.2 g/kg BW</li><li><strong>Carbs:</strong> 5–7 g/kg</li><li><strong>Fat:</strong> 1.0–1.5 g/kg</li><li><strong>Surplus:</strong> 200–400 kcal above TDEE</li><li><strong>Key:</strong> Carb timing around training windows matters</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Supplements</div><h3>Evidence-Based Only</h3><ul><li><strong>Creatine monohydrate:</strong> 3–5g/day — strength, power, recovery</li><li><strong>Whey protein:</strong> Complete, fast-digesting source</li><li><strong>Caffeine:</strong> 3–6 mg/kg, 30–60 min pre-exercise</li><li><strong>Vitamin D3:</strong> 1,000–2,000 IU/day (especially indoor athletes)</li><li><strong>Omega-3:</strong> 1–3g/day — anti-inflammatory, joint support</li><li><strong>Magnesium:</strong> 300–400mg/day — sleep, muscle recovery</li></ul></div>
+    </div>
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">GLP-1 / AOM Client Nutrition Protocols <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <span class="sub-lbl">The Core Problem</span>Without adequate resistance training and protein, <strong>25–40% of weight lost on GLP-1 medications is lean muscle mass.</strong> Protein intake is the nutritional intervention.
+        <span class="sub-lbl">Protein Priority</span><ul><li>Target <strong>1.8–2.4 g/kg</strong> BW — higher due to appetite suppression and anabolic resistance</li><li>Distribute across 4–5 small meals — large meals often not tolerable</li><li><strong>Protein-first eating</strong> at every meal</li><li>Whey or casein shakes when appetite too low to hit targets from food</li></ul>
+        <span class="sub-lbl">Trainer's Actions</span><ul><li>Reinforce resistance training as non-negotiable</li><li>Educate on protein targets at every session</li><li>Adjust training intensity on high-nausea/low-energy days</li><li>Refer to RD for meal planning</li></ul>
+      </div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Older Adult Nutrition (55+) <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">Protein — Higher Needs Due to Anabolic Resistance</span><ul><li>Target <strong>1.6–2.0 g/kg</strong> BW — need more than younger adults for same MPS response</li><li>Minimum <strong>30–40g per meal</strong> to maximally stimulate MPS</li><li>Leucine-rich sources: eggs, dairy, poultry, fish, legumes</li></ul>
+        <span class="sub-lbl">Key Micronutrients</span><ul><li><strong>Calcium:</strong> 1,200 mg/day (women 51+), 1,000 mg (men 51+)</li><li><strong>Vitamin D:</strong> 800–2,000 IU/day</li><li><strong>B12:</strong> Absorption decreases with age — supplementation often necessary</li></ul>
+        <span class="sub-lbl">Hydration Alert</span>Diminished thirst response — older adults may be dehydrated before feeling thirsty. Encourage consistent intake throughout the day, not just during exercise.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WARMUPS ══ -->
+<div class="panel" data-panel="warmup">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Warmup Protocols</h2><p>OPT model-aligned and movement-specific warmup libraries. A proper warmup reduces injury risk, improves movement quality, and primes the nervous system for training performance.</p></div>
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">Lower Body Day</div><h3>Dynamic Warmup — Legs/Hips</h3><ul><li>Foam roll: quads, IT band, glutes, calves (60 sec each)</li><li>Hip flexor stretch: 30 sec per side</li><li>Glute bridges: 2×15</li><li>Lateral band walks: 2×15 per direction</li><li>Leg swings (front-back + lateral): 2×10 per leg</li><li>Bodyweight squats: 2×10 (controlled)</li><li>Hip circles: 10 per direction</li><li>Inchworm + hip flexor stretch: 5 reps</li></ul><em>Total: 10–12 min</em></div>
+      <div class="ref-card"><div class="ref-card-label">Upper Body Day</div><h3>Dynamic Warmup — Push/Press</h3><ul><li>Foam roll: thoracic spine, lats, pecs (60 sec each)</li><li>Doorway chest stretch: 30 sec</li><li>Band pull-aparts: 2×15</li><li>Y-T-W raises (light): 2×10 each</li><li>Arm circles: 10 forward, 10 back</li><li>Scapular pushups: 2×10</li><li>External rotation with band: 2×12 per arm</li><li>Light warmup sets on main movement</li></ul><em>Total: 10 min</em></div>
+      <div class="ref-card"><div class="ref-card-label">Olympic Lifting</div><h3>Barbell Warmup — Snatch/Clean</h3><ul><li>T-spine foam rolling: 90 sec</li><li>Lat/shoulder mobility: band stretches 30s each side</li><li>Overhead squat with dowel/bar: 2×10</li><li>Hang slides (bar only): 2×8</li><li>Shrug & triple extend (bar only): 2×6</li><li>Muscle snatch (bar only): 2×4</li><li>Phase 1 circuit (bar only): 1×4 each drill</li></ul><em>Total: 12–15 min</em></div>
+      <div class="ref-card"><div class="ref-card-label">Older Adults 55+</div><h3>Low-Impact Warmup Protocol</h3><ul><li>5–8 min recumbent bike (very low intensity)</li><li>Gentle foam rolling: 4–5 min</li><li>Ankle circles + wrist circles: 10 each direction</li><li>Seated hip flexor marches: 15 reps</li><li>Standing heel raises (with support): 2×15</li><li>Shoulder rolls + neck mobility: 10 each</li><li>Bodyweight mini squats (chair assist): 2×10</li></ul><em>Total: 12–15 min — do not rush</em></div>
+    </div>
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">NASM OPT Warmup — Step-by-Step Detail <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <span class="sub-lbl">Step 1 — Inhibit (SMR)</span>Target overactive muscles. Hold tender spots 30–90 sec. Tolerable discomfort — not sharp pain.
+        <span class="sub-lbl">Step 2 — Lengthen (Static Stretch)</span>Same overactive muscles. Hold 20–30 sec. Match to postural assessment.
+        <span class="sub-lbl">Step 3 — Activate</span>Target underactive muscles. 1–2 sets × 10–15 reps isolated. Glute bridges, prone cobras, clamshells.
+        <span class="sub-lbl">Step 4 — Integrate</span>Multi-joint dynamic movements. Squat-to-row, step-up to balance, med ball chops.
+        <span class="sub-lbl">Pattern Reference</span><ul><li><strong>Pronation distortion:</strong> SMR calves + IT band → Stretch hip flexors → Activate glutes + tib anterior</li><li><strong>Lower crossed:</strong> SMR hip flexors + lumbar → Stretch hip flexors → Activate glutes + core</li><li><strong>Upper crossed:</strong> SMR upper traps + pecs → Stretch pecs → Activate mid/lower traps (Y-T-W)</li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SPECIAL POPULATIONS ══ -->
+<div class="panel" data-panel="special">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Special Populations</h2><p>Programming considerations for the most common client populations. Always obtain PAR-Q+ and physician clearance where indicated.</p></div>
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">GLP-1 / AOM Clients <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <span class="sub-lbl">Priority — Muscle Preservation</span>Without resistance training, <strong>25–40% of weight lost is lean muscle mass</strong>. Resistance training is the intervention.
+        <span class="sub-lbl">Training</span><ul><li>Resistance training: 3–4 days/week minimum</li><li>OPT Phase 1–2 for beginners, Phase 2–3 for intermediate</li><li>Limit cardio to 2–3 days/week — excessive cardio accelerates muscle loss</li><li>Check in on nausea and energy before every session — adjust intensity accordingly</li></ul>
+      </div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Older Adults (55+) <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">Primary Goals</span>Functional independence → fall prevention → bone density → cardiovascular health.
+        <span class="sub-lbl">Programming</span><ul><li>Frequency: 2–3 days resistance + 2–3 days moderate cardio</li><li>Intensity: Start 40–60% 1RM — joint integrity over load</li><li>Rest: 90–120 sec — recovery takes longer</li><li>Tempo: Controlled (2-2-2) — no ballistic movements</li><li>Balance: Include in every session (single-leg, BOSU, perturbation)</li></ul>
+        <span class="sub-lbl">Exercise Selection</span><ul><li>Functional: sit-to-stand, step-ups, overhead reach, loaded carries</li><li>Grip strength training — strong predictor of longevity</li><li>Avoid: high-impact plyos, heavy spinal loading, rapid direction changes</li></ul>
+      </div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">Post-Rehab / Cleared for Exercise <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">Prerequisites</span><ul><li>Written physician or PT clearance</li><li>Completed PAR-Q+ reviewed</li><li>Specific restrictions documented</li><li>Communication channel with PT if concurrent care ongoing</li></ul>
+        <span class="sub-lbl">Return Timeline</span><ul><li><strong>Week 1–2:</strong> OPT Phase 1 only — stability, proprioception, no loading</li><li><strong>Week 3–4:</strong> Bodyweight + minimal resistance, pain-free ROM only</li><li><strong>Week 5–8:</strong> +5–10% load weekly if pain &lt;3/10</li><li>Pain ≥3/10 = stop, modify or skip</li></ul>
+        Document pain levels (0–10 scale), movements modified, and any symptoms each session. Notify the Fitness Director of any regression.
+      </div>
+    </div>
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">General Fitness & Behavior Change <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">FITT-VP Framework</span><ul><li><strong>Frequency:</strong> 3–5 days/week</li><li><strong>Intensity:</strong> 60–80% MHR cardio; OPT Phase 1–3 resistance</li><li><strong>Time:</strong> 30–60 min</li><li><strong>Type:</strong> Mix resistance + cardio + flexibility</li><li><strong>Volume:</strong> Increase no more than 10%/week</li><li><strong>Progression:</strong> Advance OPT phase every 4–6 weeks</li></ul>
+        <span class="sub-lbl">Stages of Change (ACE)</span><ul><li><strong>Precontemplation:</strong> Build trust — ask questions, don't push</li><li><strong>Contemplation:</strong> Explore ambivalence, highlight benefits they've voiced</li><li><strong>Preparation:</strong> SMART goal setting together</li><li><strong>Action:</strong> Reinforce consistency, celebrate small wins loudly</li><li><strong>Maintenance:</strong> Address plateaus proactively, vary programming</li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUICK REFERENCE ══ -->
+<div class="panel" data-panel="qref">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>Quick Reference</h2><p>Fast-access cards for mid-session lookups.</p></div>
+    <div class="cards-grid">
+      <div class="ref-card"><div class="ref-card-label">FITT-VP</div><h3>Programming Principle</h3><ul><li><strong>F</strong>requency — how often per week</li><li><strong>I</strong>ntensity — % 1RM, HR zone, or RPE</li><li><strong>T</strong>ime — session duration</li><li><strong>T</strong>ype — resistance, cardio, flexibility, combo</li><li><strong>V</strong>olume — total sets × reps × load</li><li><strong>P</strong>rogression — advance every 4–6 weeks</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">Heart Rate Zones</div><h3>Cardio Intensity Guide</h3><ul><li><strong>Zone 1 (50–60% MHR):</strong> Recovery, warm-up</li><li><strong>Zone 2 (60–70% MHR):</strong> Fat oxidation, aerobic base</li><li><strong>Zone 3 (70–80% MHR):</strong> Aerobic capacity</li><li><strong>Zone 4 (80–90% MHR):</strong> Anaerobic threshold</li><li><strong>Zone 5 (90–100% MHR):</strong> Max effort / HIIT peaks</li></ul><em>MHR estimate: 220 − age (±10–12 bpm)</em></div>
+      <div class="ref-card"><div class="ref-card-label">NASM Assessment</div><h3>Overhead Squat — Deviations</h3><ul><li><strong>Feet turn out:</strong> Overactive calves / hip ext. rotators</li><li><strong>Knees cave in:</strong> Overactive adductors / underactive glutes</li><li><strong>Forward lean:</strong> Tight hip flexors / weak core</li><li><strong>Arms fall forward:</strong> Tight lats/pecs / weak mid-traps</li><li><strong>Low back arch:</strong> Overactive hip flexors / lumbar extensors</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">RPE Scale</div><h3>Perceived Exertion</h3><ul><li><strong>1–2:</strong> Very easy — rest</li><li><strong>3–4:</strong> Light — full conversation</li><li><strong>5–6:</strong> Moderate — short sentences</li><li><strong>7–8:</strong> Hard — difficult to speak</li><li><strong>9:</strong> Very hard — a few words only</li><li><strong>10:</strong> Maximum — cannot speak</li></ul></div>
+      <div class="ref-card"><div class="ref-card-label">NASM CEx Sequence</div><h3>Corrective Exercise</h3><ul><li><strong>1. Inhibit:</strong> SMR on overactive muscles</li><li><strong>2. Lengthen:</strong> Static stretch overactive muscles</li><li><strong>3. Activate:</strong> Isolate underactive muscles</li><li><strong>4. Integrate:</strong> Compound movement pattern</li></ul><em>Apply after assessment identifies imbalances</em></div>
+      <div class="ref-card"><div class="ref-card-label">Behavior Change</div><h3>Motivational Coaching Keys</h3><ul><li><strong>SMART goals</strong> at every goal-setting conversation</li><li><strong>Autonomy support:</strong> "What would work for you?"</li><li><strong>Process praise</strong> over outcome praise</li><li>Identify <strong>stage of change</strong> — meet clients where they are</li><li>Stack <strong>small wins</strong> to build self-efficacy</li></ul></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ══ SYSTEM PROMPT ══ */
+const SYS = `You are Dr. Fitness, an elite trainer reference AI built for certified personal trainers and strength coaches.
+
+Your knowledge base includes EPI (Elite Performance Institute) Phase 2 course materials covering:
+- Recovery Methods: hydrotherapy (CWI protocol: 1×5min@10°C; CWT: 4min@40°C + 2min@10°C × 2 finish cold), active recovery (bike 1×15min @50-60% MHR), compression garments (wear post-session all day), massage (psychological benefit, limited performance evidence), stretching (case-by-case basis)
+- Strength & Power: Force=Mass×Acceleration, Power=Force×Velocity, motor unit recruitment (size principle), rate coding, motor unit synchronisation, fiber types (Type I slow/oxidative/fatigue resistant; Type IIa/IIx fast twitch/glycolytic/power), hypertrophy mechanisms (mechanical tension, metabolic stress, EIMD), hypertrophy techniques (cluster sets, supersets, drop sets, pre-exhaustion), force-velocity curve (max strength 90-100% → strength-speed 80-90% → peak power 30-80% → speed-strength 30-60% → max speed <30%), complex training/PAP (intracomplex rest 1-4min, requires >1.8 rel 1RM lower body, >1.4 upper), variable resistance (bands/chains setup protocols), ballistic training/RFD
+- Olympic Weightlifting Snatch: hook grip, grip width (bar at crease of hip), jump stance (hip-width, straight), catch stance (shoulder-width, 11&1 o'clock), overhead position (above crown, arms locked, face through bar), sit position (slight flex ankle/knee/hip, bar upper thigh). Phase 1 drills (crease of hip): shrug & triple extend, elbows high, muscle snatch, overhead squat, snatch land, snatch drop, jump & catch. Phase 2 (hang): hang slides, hang shrug & triple extend, muscle snatch, hang snatch. Phase 3 (floor): snatch pull, power snatch, squat snatch. Supplementary: Sott's press, snatch balance. Program: 3×6 bar only, 30s rest, 3-4 sessions per phase. Common errors and cues all documented.
+- NASM OPT Model: Phase 1 (Stabilization Endurance: 1-3 sets, 12-20 reps, 50-70% 1RM, 4-2-1 tempo, 0-90s rest), Phase 2 (Strength Endurance: 2-4 sets, 8-12 reps, 70-80% 1RM, superset), Phase 3 (Muscular Development: 3-5 sets, 6-12 reps, 75-85% 1RM), Phase 4 (Maximal Strength: 4-6 sets, 1-5 reps, 85%+), Phase 5 (Power: explosive, 30-45% 1RM). OPT warmup: Inhibit→Lengthen→Activate→Integrate. Postural patterns: pronation distortion, lower crossed, upper crossed.
+- ACE IFT Model, ISSA programming, behavior change (Transtheoretical Model), FITT-VP
+
+CLIENT POPULATIONS:
+- General fitness / weight loss
+- GLP-1/AOM clients (semaglutide, tirzepatide, liraglutide) — 25-40% of weight lost is lean mass without resistance training; protein 1.8-2.4g/kg; resistance 3-4x/week; monitor fatigue/nausea
+- Older adults 55+ — functional independence, fall prevention, 40-60% 1RM, 90-120s rest, balance every session
+- Post-rehab — physician clearance required, OPT Phase 1 start, pain scale monitoring, 5-10% weekly load increases
+
+CALORIE ESTIMATION (Mifflin-St Jeor): Men: RMR=(10×kg)+(6.25×cm)−(5×age)+5; Women: RMR=(10×kg)+(6.25×cm)−(5×age)−161; TDEE=RMR×activity factor
+
+SCOPE OF PRACTICE: Trainers do not diagnose injuries. On every injury response end with "⚕️ Remind client: consult a physician or physical therapist if symptoms worsen, are sharp/radiating, or sudden-onset." Detailed meal planning → refer to RD.
+
+RESPONSE FORMAT: Lead with most actionable content. Bold headers, bullet points. For injury: MODIFICATIONS: / AVOID: / ALTERNATIVES:. For workouts: complete session with sets/reps/tempo/rest. For OPT/lifting: reference the specific phases and drills. Dense value — no filler.`;
+
+let msgs=[], activeMode='general', loading=false;
+const welcomeEl=document.getElementById('welcomeEl');
+const msgsEl=document.getElementById('msgsEl');
+const qi=document.getElementById('qi');
+const sendBtn=document.getElementById('sendBtn');
+
+/* NAV */
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelector('[data-panel="'+t.dataset.tab+'"]').classList.add('active');
+}));
+
+/* MODE CHIPS */
+document.querySelectorAll('.mode-chip').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  activeMode=c.dataset.m;
+}));
+
+/* QA + WELCOME CARDS */
+document.querySelectorAll('.qa-btn').forEach(b=>b.addEventListener('click',()=>{switchAsk();qi.value=b.dataset.p;send();}));
+document.querySelectorAll('.w-card').forEach(c=>c.addEventListener('click',()=>{
+  if(c.dataset.m){document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));const ch=document.querySelector('.mode-chip[data-m="'+c.dataset.m+'"]');if(ch){ch.classList.add('active');activeMode=c.dataset.m;}}
+  qi.value=c.dataset.p;send();
+}));
+
+function switchAsk(){
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelector('[data-tab="ask"]').classList.add('active');
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelector('[data-panel="ask"]').classList.add('active');
+}
+
+/* TEXTAREA */
+qi.addEventListener('input',()=>{qi.style.height='auto';qi.style.height=Math.min(qi.scrollHeight,120)+'px';});
+qi.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+sendBtn.addEventListener('click',send);
+
+/* ACCORDION */
+function tog(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+window.tog=tog;
+
+/* FORMAT AI RESPONSE */
+function fmt(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^#{1,4} (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^\- (.+)$/gm,'<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)/g,m=>'<ul>'+m+'</ul>')
+    .replace(/<\/ul>\s*<ul>/g,'')
+    .replace(/⚕️(.*)/g,'<div class="disc-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>$1</span></div>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/([^>])\n([^<])/g,'$1<br>$2');
+}
+
+function addMsg(role,content){
+  const el=document.createElement('div');
+  el.className='msg '+role;
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const ml=activeMode.charAt(0).toUpperCase()+activeMode.slice(1);
+  if(role==='user'){el.innerHTML=`<div class="msg-avatar">TR</div><div class="msg-body"><div class="msg-label">${t}</div><div class="msg-bubble">${content}</div></div>`;}
+  else{el.innerHTML=`<div class="msg-avatar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f0a500" stroke-width="2"><path d="M12 2L3 7v10l9 5 9-5V7L12 2z"/></svg></div><div class="msg-body"><div class="msg-label">Dr. Fitness · ${ml} · ${t}</div><div class="msg-bubble">${fmt(content)}</div></div>`;}
+  msgsEl.appendChild(el);msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+function addTyping(){const el=document.createElement('div');el.className='msg ai';el.id='typEl';el.innerHTML=`<div class="msg-avatar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f0a500" stroke-width="2"><path d="M12 2L3 7v10l9 5 9-5V7L12 2z"/></svg></div><div class="msg-body"><div class="typing"><span></span><span></span><span></span></div></div>`;msgsEl.appendChild(el);msgsEl.scrollTop=msgsEl.scrollHeight;}
+function removeTyping(){const e=document.getElementById('typEl');if(e)e.remove();}
+
+async function send(){
+  const text=qi.value.trim();if(!text||loading)return;
+  loading=true;sendBtn.disabled=true;qi.value='';qi.style.height='auto';
+  welcomeEl.classList.add('hidden');msgsEl.classList.remove('hidden');
+  const pfxMap={injury:'[INJURY MODIFICATION — provide modifications, list what to avoid, give specific alternatives] ',nutrition:'[NUTRITION GUIDANCE] ',workout:'[WORKOUT GENERATION — complete session: warm-up, main with exercises/sets/reps/tempo/rest, cool-down, align to NASM OPT] ',warmup:'[WARMUP PROTOCOL — complete warmup with exercises, sets/reps, duration, purpose, aligned to NASM OPT sequence] ',olympic:'[OLYMPIC LIFTING — reference EPI snatch coaching model phases, drills, cues, and technical model] ',recovery:'[RECOVERY METHODS — reference EPI evidence-based recovery protocols with specific times and temperatures] ',glp1:'[GLP-1/AOM SPECIAL POPULATION — muscle preservation, protein targets, energy/fatigue management] ',older:'[OLDER ADULT 55+ — fall prevention, joint safety, extended warmup, balance, NASM/ACE older adult guidelines] '};
+  const pfx=pfxMap[activeMode]||'';
+  msgs.push({role:'user',content:pfx+text});
+  addMsg('user',text);addTyping();
+  try{
+    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:msgs})});
+    const d=await res.json();removeTyping();
+    if(d.content&&d.content[0]){const r=d.content[0].text;msgs.push({role:'assistant',content:r});addMsg('ai',r);}
+    else throw new Error('No response');
+  }catch(err){removeTyping();addMsg('ai',`**Connection error** — could not reach AI backend. Check your connection and try again.\n\nError: ${err.message}`);}
+  loading=false;sendBtn.disabled=false;qi.focus();
+}
+
+/* ══ CALORIE CALCULATOR ══ */
+function calcCalories(){
+  const sex=document.getElementById('c-sex').value;
+  const age=parseFloat(document.getElementById('c-age').value);
+  const heightIn=parseFloat(document.getElementById('c-height').value);
+  const weightLbs=parseFloat(document.getElementById('c-weight').value);
+  const activity=parseFloat(document.getElementById('c-activity').value);
+  const goal=document.getElementById('c-goal').value;
+  if([age,heightIn,weightLbs].some(v=>isNaN(v)||v<=0)){alert('Please fill in all fields.');return;}
+  const kg=weightLbs*0.453592;
+  const cm=heightIn*2.54;
+  let rmr=sex==='m'?(10*kg)+(6.25*cm)-(5*age)+5:(10*kg)+(6.25*cm)-(5*age)-161;
+  const tdee=rmr*activity;
+  const goalMap={loss:{adj:-400,label:'Fat Loss',prot:2.0,carb:3.5,fat:1.0,note:'Moderate deficit of ~400 kcal. Higher protein preserves muscle during fat loss. Increase deficit slowly and monitor performance.'},maintain:{adj:0,label:'Maintenance / Recomp',prot:1.8,carb:5.0,fat:1.2,note:'At TDEE. Body recomposition is possible here — prioritize training quality and protein distribution.'},gain:{adj:300,label:'Muscle Gain',prot:2.0,carb:6.0,fat:1.3,note:'Modest surplus of ~300 kcal minimizes fat gain. Increase by 50–100 kcal every 2 weeks if not gaining at desired rate.'},glp1:{adj:-300,label:'GLP-1/AOM Client',prot:2.2,carb:3.0,fat:0.9,note:'⚠️ GLP-1 clients often eat far below calculated targets due to appetite suppression. Prioritize protein above all — protein shakes are frequently necessary. Refer to RD for individualized planning. Monitor closely.'}};
+  const g=goalMap[goal];
+  const targetCals=Math.round(tdee+g.adj);
+  const protG=Math.round(kg*g.prot);
+  const fatG=Math.round(kg*g.fat);
+  const protCals=protG*4;const fatCals=fatG*9;
+  const carbCals=Math.max(0,targetCals-protCals-fatCals);
+  const carbG=Math.round(carbCals/4);
+  document.getElementById('calcResults').classList.add('show');
+  document.getElementById('resultCards').innerHTML=`
+    <div class="result-card"><div class="rc-val">${Math.round(rmr)}</div><div class="rc-unit">kcal</div><div class="rc-label">RMR (Mifflin-St Jeor)</div></div>
+    <div class="result-card"><div class="rc-val">${Math.round(tdee)}</div><div class="rc-unit">kcal</div><div class="rc-label">TDEE (Maintenance)</div></div>
+    <div class="result-card"><div class="rc-val">${targetCals}</div><div class="rc-unit">kcal</div><div class="rc-label">Target (${g.label})</div></div>
+    <div class="result-card"><div class="rc-val">${Math.round(kg)}</div><div class="rc-unit">kg</div><div class="rc-label">Body Weight</div></div>`;
+  document.getElementById('macroLabel').textContent='Daily Macros — '+g.label;
+  document.getElementById('macroRow').innerHTML=`
+    <div class="macro-card mc-p"><div class="mv">${protG}g</div><div class="ml">Protein (${Math.round(g.prot*10)/10}g/kg) · ${protCals} kcal</div></div>
+    <div class="macro-card mc-c"><div class="mv">${carbG}g</div><div class="ml">Carbohydrate · ${carbCals} kcal</div></div>
+    <div class="macro-card mc-f"><div class="mv">${fatG}g</div><div class="ml">Fat (${Math.round(g.fat*10)/10}g/kg) · ${fatCals} kcal</div></div>`;
+  document.getElementById('calcNotes').innerHTML=`<strong>Notes:</strong> ${g.note}<br><br><em>These are estimates based on averages. Individual variance is ±10–15%. Calorie and macro recommendations are for educational purposes only. Refer to a Registered Dietitian for clinical nutrition planning.</em>`;
+}
+</script>
+</body>
+</html>
