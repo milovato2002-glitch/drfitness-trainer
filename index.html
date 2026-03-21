@@ -2979,7 +2979,7 @@ async function send(){
   msgs.push({role:'user',content:pfx+text});
   addMsg('user',text);addTyping();
   try{
-    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS+(window.langSuffix||'')+(window.cpClientContext||''),messages:msgs})});
+    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'-sonnet-4-20250514',max_tokens:1000,system:SYS+(window.langSuffix||'')+(window.cpClientContext||''),messages:msgs})});
     const d=await res.json();removeTyping();
     if(d.content&&d.content[0]){const r=d.content[0].text;msgs.push({role:'assistant',content:r});addMsg('ai',r);}
     else throw new Error('No response');
@@ -3963,7 +3963,7 @@ Be specific, practical, and aligned to NASM OPT principles. Use professional tra
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1500,
         system: SYS + (window.langSuffix || ''),
         messages: [{role:'user', content: prompt}]
@@ -4750,7 +4750,7 @@ Provide specific recommendations covering: recommended OPT phase and why, key ex
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 600,
         system: 'You are Dr. Fitness, an elite trainer reference AI. Provide direct, practical, evidence-based recommendations for certified personal trainers. Be concise and specific.',
         messages: [{role:'user', content: prompt}]
