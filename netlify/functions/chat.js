@@ -26,12 +26,6 @@ exports.handler = async function(event, context) {
 
   try {
     const body = JSON.parse(event.body);
-    const payload = {
-      ...body,
-      model: 'claude-sonnet-4-5',
-      max_tokens: body.max_tokens || 1000
-    };
-
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -39,9 +33,13 @@ exports.handler = async function(event, context) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1000,
+        system: body.system || '',
+        messages: body.messages || []
+      })
     });
-
     const data = await response.json();
     return {
       statusCode: response.status,
@@ -51,12 +49,11 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify(data)
     };
-
   } catch (err) {
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: 'Function error: ' + err.message })
+      body: JSON.stringify({ error: err.message })
     };
   }
 };
