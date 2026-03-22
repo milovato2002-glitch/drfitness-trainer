@@ -806,7 +806,7 @@ async function send(){
   msgs.push({role:'user',content:pfx+text});
   addMsg('user',text);addTyping();
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:msgs})});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:msgs})});
     const d=await res.json();removeTyping();
     if(d.content&&d.content[0]){const r=d.content[0].text;msgs.push({role:'assistant',content:r});addMsg('ai',r);}
     else throw new Error('No response');
