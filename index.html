@@ -1008,14 +1008,19 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
     <!-- SUPPLEMENT DECISION TREE -->
     <div class="nut-sub" id="nut-supp-tree">
-      <div class="nut-hero"><h2>Supplement Decision Tree</h2><p>Evidence-based supplement recommendations by client goal. Only recommending supplements with strong research support.</p></div>
-      <div class="nut-cards">
-        <div class="nut-card" style="border-top:3px solid var(--gold);"><div class="nut-card-label">Fat Loss Client</div><h3>Priority Stack</h3><ul><li><strong>1. Protein powder:</strong> If not hitting protein targets from food — non-negotiable</li><li><strong>2. Caffeine:</strong> 3-6 mg/kg, 30-60 min pre-workout — proven fat oxidation and performance</li><li><strong>3. Creatine:</strong> 3-5g/day — preserves muscle during deficit, improves training performance</li><li><strong>4. Vitamin D3:</strong> 1000-2000 IU/day — most clients are deficient, impacts fat metabolism</li><li><strong>Optional: L-Carnitine:</strong> 2-3g with carbs — modest fat oxidation evidence</li></ul></div>
-        <div class="nut-card" style="border-top:3px solid #60a5fa;"><div class="nut-card-label">Muscle Gain Client</div><h3>Priority Stack</h3><ul><li><strong>1. Creatine monohydrate:</strong> 3-5g/day — most evidence-based supplement for muscle gain</li><li><strong>2. Protein powder:</strong> To hit 1.6-2.2 g/kg target</li><li><strong>3. Caffeine:</strong> Pre-workout performance</li><li><strong>4. Beta-Alanine:</strong> 3.2g/day — reduces fatigue during high-rep training</li><li><strong>5. Magnesium:</strong> 300-400mg — sleep quality and recovery</li></ul></div>
-        <div class="nut-card" style="border-top:3px solid var(--teal);"><div class="nut-card-label">GLP-1 Client</div><h3>Priority Stack</h3><ul><li><strong>1. Protein powder:</strong> Critical — often the only way to hit protein targets</li><li><strong>2. Multivitamin:</strong> Low food intake = micronutrient gaps</li><li><strong>3. Vitamin D3 + K2:</strong> Bone health during weight loss</li><li><strong>4. Magnesium:</strong> Often depleted, supports sleep and muscle</li><li><strong>5. B12:</strong> Absorption may be impaired</li><li><strong>6. Creatine:</strong> Muscle preservation during weight loss</li></ul></div>
-        <div class="nut-card" style="border-top:3px solid #a78bfa;"><div class="nut-card-label">Older Adult 55+</div><h3>Priority Stack</h3><ul><li><strong>1. Creatine:</strong> 3-5g/day — most evidence for muscle preservation in older adults</li><li><strong>2. Vitamin D3:</strong> 1000-2000 IU — bone density and muscle function</li><li><strong>3. Calcium:</strong> 1000-1200 mg/day — bone density</li><li><strong>4. Omega-3:</strong> 1-3g EPA+DHA — anti-inflammatory, joint support</li><li><strong>5. B12:</strong> Often deficient in older adults</li><li><strong>6. Magnesium:</strong> Sleep, muscle cramps, recovery</li></ul></div>
-        <div class="nut-card" style="border-top:3px solid var(--green);"><div class="nut-card-label">Recovery Focus</div><h3>Priority Stack</h3><ul><li><strong>1. Tart cherry juice:</strong> 8oz twice daily — reduces DOMS and oxidative stress</li><li><strong>2. Omega-3:</strong> 1-3g EPA+DHA — reduces inflammation</li><li><strong>3. Magnesium glycinate:</strong> 300-400mg before bed — sleep and recovery</li><li><strong>4. Creatine:</strong> Cellular energy replenishment</li><li><strong>5. Protein timing:</strong> Casein before bed for overnight muscle repair</li></ul></div>
-        <div class="nut-card" style="border-top:3px solid var(--amber);"><div class="nut-card-label">Athletic Performance</div><h3>Priority Stack</h3><ul><li><strong>1. Creatine:</strong> 3-5g/day — strength, power, sprint performance</li><li><strong>2. Caffeine:</strong> 3-6 mg/kg pre-event — most proven ergogenic aid</li><li><strong>3. Beta-Alanine:</strong> 3.2g/day — buffers lactic acid in high-intensity efforts</li><li><strong>4. Sodium bicarbonate:</strong> 0.3g/kg pre-event — acute performance boost in short events</li><li><strong>5. Beetroot/nitrates:</strong> 500mg nitrates 2-3 hrs before — aerobic performance</li></ul></div>
+      <div class="nut-hero"><h2>Supplement Decision Tree</h2><p>Interactive evidence-based supplement recommendations. Select your client profile below to generate a prioritized supplement stack with evidence grades, dosing, and timing.</p></div>
+      <div class="calc-wrap" style="margin-bottom:1.5rem;">
+        <h3>Build Your Client Supplement Stack</h3>
+        <div class="calc-grid">
+          <div class="calc-field"><label>Primary Goal</label><select id="supp-goal"><option value="fat_loss">Fat Loss</option><option value="muscle_gain">Muscle Gain</option><option value="performance">Athletic Performance</option><option value="recovery">Recovery Focus</option><option value="glp1">GLP-1 Client</option><option value="older_adult">Older Adult 55+</option></select></div>
+          <div class="calc-field"><label>Population</label><select id="supp-pop"><option value="general">General Population</option><option value="athlete">Competitive Athlete</option><option value="55plus">55+ Adult</option><option value="pregnant">Pregnant / Postpartum</option></select></div>
+          <div class="calc-field"><label>Monthly Budget</label><select id="supp-budget"><option value="basic">Basic (under $50)</option><option value="moderate">Moderate ($50-$150)</option><option value="premium">Premium (over $150)</option></select></div>
+        </div>
+        <button class="calc-btn" onclick="buildSuppStack()">Generate Supplement Stack</button>
+      </div>
+      <div id="suppOutput" style="display:none;"></div>
+      <div style="background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.25);border-radius:var(--radius);padding:0.875rem 1.1rem;font-size:0.78rem;color:var(--text2);line-height:1.6;">
+        ⚕️ <strong style="color:var(--text);">Scope of Practice:</strong> Trainers may educate clients about evidence-based supplements within general wellness. Do not prescribe supplements to treat medical conditions. Pregnant clients should consult their OB/GYN before taking any supplements. Always recommend clients discuss supplements with their physician.
       </div>
     </div>
 
@@ -1051,17 +1056,22 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
     <!-- CLIENT HANDOUT GENERATOR -->
     <div class="nut-sub" id="nut-handout">
-      <div class="nut-hero"><h2>Client Handout Generator</h2><p>Generate a one-page nutrition summary your client can take home. AI-powered, scope-of-practice aware, printable.</p></div>
+      <div class="nut-hero"><h2>Client Handout Generator</h2><p>Generate a professional one-page nutrition handout your client can take home. Fully formatted, print-ready, and scope-of-practice compliant.</p></div>
       <div class="handout-form">
         <div class="handout-grid">
           <div class="handout-field"><label>Client Name</label><input type="text" id="ho-name" placeholder="Client first name"></div>
           <div class="handout-field"><label>Primary Goal</label><select id="ho-goal"><option value="fat_loss">Fat Loss</option><option value="muscle_gain">Muscle Gain</option><option value="maintenance">Maintenance</option><option value="glp1">GLP-1 Client</option><option value="older_adult">Older Adult 55+</option><option value="athletic">Athletic Performance</option></select></div>
           <div class="handout-field"><label>Body Weight (lbs)</label><input type="number" id="ho-weight" placeholder="e.g. 175"></div>
+          <div class="handout-field"><label>Sex (for calorie calc)</label><select id="ho-sex"><option value="m">Male</option><option value="f">Female</option></select></div>
+          <div class="handout-field"><label>Age</label><input type="number" id="ho-age" placeholder="e.g. 35" min="16" max="100"></div>
           <div class="handout-field"><label>Activity Level</label><select id="ho-activity"><option value="sedentary">Sedentary</option><option value="light">Lightly Active</option><option value="moderate" selected>Moderately Active</option><option value="very">Very Active</option></select></div>
           <div class="handout-field"><label>Dietary Preference</label><select id="ho-diet"><option value="standard">Standard</option><option value="high_protein">High Protein Focus</option><option value="plant_based">Plant-Based</option><option value="low_carb">Low Carb</option></select></div>
           <div class="handout-field"><label>Key Challenge</label><select id="ho-challenge"><option value="protein">Not eating enough protein</option><option value="calories">Unaware of calorie intake</option><option value="timing">Poor meal timing</option><option value="consistency">Inconsistency</option><option value="cravings">Cravings and overeating</option></select></div>
         </div>
-        <button class="handout-btn" onclick="generateHandout()">Generate Handout</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="handout-btn" onclick="generateHandout()">Generate Handout</button>
+          <button class="handout-btn" style="background:transparent;border:1px solid var(--border);color:var(--text2);" onclick="printHandout()">🖨️ Print Handout</button>
+        </div>
         <div class="handout-output" id="handoutOutput"></div>
       </div>
     </div>
@@ -1228,6 +1238,8 @@ function generateHandout() {
   var name = document.getElementById('ho-name').value || 'Client';
   var goal = document.getElementById('ho-goal').value;
   var weight = parseFloat(document.getElementById('ho-weight').value) || 0;
+  var sex = document.getElementById('ho-sex').value;
+  var age = parseFloat(document.getElementById('ho-age').value) || 30;
   var activity = document.getElementById('ho-activity').value;
   var diet = document.getElementById('ho-diet').value;
   var challenge = document.getElementById('ho-challenge').value;
@@ -1235,47 +1247,197 @@ function generateHandout() {
   var goalLabels = {fat_loss:'Fat Loss',muscle_gain:'Muscle Gain',maintenance:'Maintenance',glp1:'GLP-1 Client',older_adult:'Older Adult 55+',athletic:'Athletic Performance'};
   var activityFactors = {sedentary:1.2,light:1.375,moderate:1.55,very:1.725};
   var kg = weight * 0.453592;
+  var cm = 170; // default height estimate
 
   var protMin = goal === 'glp1' ? 1.8 : goal === 'older_adult' ? 1.6 : 1.6;
   var protMax = goal === 'glp1' ? 2.4 : goal === 'older_adult' ? 2.0 : 2.2;
   var protTarget = Math.round(kg * ((protMin + protMax) / 2));
 
-  var rmr = kg > 0 ? Math.round(10 * kg + 500) : 0;
+  var rmr = kg > 0 ? (sex === 'm' ? Math.round((10 * kg) + (6.25 * cm) - (5 * age) + 5) : Math.round((10 * kg) + (6.25 * cm) - (5 * age) - 161)) : 0;
   var tdee = kg > 0 ? Math.round(rmr * (activityFactors[activity] || 1.55)) : 0;
-  var calTarget = goal === 'fat_loss' ? tdee - 400 : goal === 'muscle_gain' ? tdee + 300 : tdee;
+  var calTarget = goal === 'fat_loss' ? tdee - 400 : goal === 'muscle_gain' ? tdee + 300 : goal === 'glp1' ? Math.min(tdee, 1400) : tdee;
+  var hydrationOz = weight > 0 ? Math.round(weight * 0.5) : 64;
 
-  var challengeScripts = {
-    protein: 'Focus on eating a protein source at every single meal and snack. Start with protein first before anything else on your plate.',
-    calories: 'Try tracking your food for just one week using an app like MyFitnessPal. You do not have to do it forever — just to build awareness.',
-    timing: 'Eat a small protein and carb snack 60-90 minutes before your training sessions. After training, get protein in within 2 hours.',
-    consistency: 'Focus on one habit at a time. This week, just hit your protein target. Once that is automatic, we add the next habit.',
-    cravings: 'Eat more protein and fiber — both reduce hunger and cravings significantly. Protein is the most filling macronutrient.'
+  var topFoods = {
+    fat_loss: ['Chicken breast (31g protein per 4oz)','Eggs (6g protein each, satiating)','Greek yogurt (15-20g protein per cup)','Salmon (25g protein per 4oz + omega-3)','Berries (low calorie, high fiber, antioxidants)'],
+    muscle_gain: ['Lean beef (28g protein per 4oz + creatine)','Eggs (complete amino acid profile)','Rice (fast-digesting carb for training fuel)','Whole milk (protein + calories for surplus)','Sweet potato (complex carbs for glycogen)'],
+    maintenance: ['Chicken breast (versatile lean protein)','Quinoa (complete plant protein + fiber)','Avocado (healthy fats + fiber)','Greek yogurt (protein + probiotics)','Mixed vegetables (micronutrients + fiber)'],
+    glp1: ['Protein shake (easiest way to hit targets)','Greek yogurt (tolerable on low appetite)','Cottage cheese (high protein, easy to eat)','Eggs (nutrient-dense, small volume)','Bone broth (hydration + protein when nauseous)'],
+    older_adult: ['Eggs (leucine-rich, easy to prepare)','Greek yogurt (calcium + protein)','Salmon (omega-3 + vitamin D + protein)','Milk or fortified plant milk (calcium + D)','Lean chicken (high protein per calorie)'],
+    athletic: ['Rice + chicken (classic performance fuel)','Bananas (fast carbs pre/post workout)','Oats (sustained energy for training)','Whey protein (fast MPS post-training)','Salmon (recovery + anti-inflammatory)']
   };
 
-  var goalTips = {
-    fat_loss: ['Protein is your best friend during fat loss — it preserves muscle and keeps you full', 'A deficit of 300-500 calories per day is sustainable and minimizes muscle loss', 'Weigh yourself weekly, not daily — focus on the monthly trend'],
-    muscle_gain: ['Eat in a slight surplus of 200-300 calories — enough to build muscle without excess fat', 'Prioritize carbohydrates around your training window', 'Protein timing matters — spread intake across 4-5 meals'],
-    maintenance: ['Focus on food quality rather than strict calorie counting', 'Protein intake is still the most important variable for body composition', 'Consistency over perfection — 80-90 percent compliance beats 100 percent short-term'],
-    glp1: ['Protein first at every meal — eat it before anything else', 'Protein shakes are often necessary to hit your targets', 'Small frequent meals are easier than large ones on this medication'],
-    older_adult: ['You need MORE protein than younger adults to get the same muscle-building response', 'Aim for at least 30-40g of protein per meal', 'Stay hydrated even when you do not feel thirsty'],
-    athletic: ['Match your carbohydrate intake to your training load', 'Never try new foods or supplements on competition day', 'Recovery nutrition is as important as pre-workout nutrition']
+  var mealTiming = {
+    fat_loss: 'Eat 3-4 meals spaced 4-5 hours apart. Protein first at every meal. Pre-workout: small protein + carb snack 60-90 min before. Post-workout: 30-40g protein within 2 hours.',
+    muscle_gain: 'Eat 4-5 meals every 3-4 hours. Pre-workout: 30-50g carbs + 20-30g protein 1-2 hours before. Post-workout: 40-50g protein + 40-80g carbs within 2 hours. Casein protein before bed.',
+    maintenance: 'Eat 3-4 balanced meals. Focus on consistent timing day to day. Protein at every meal. Pre-workout: light snack if training fasted.',
+    glp1: 'Eat 4-5 small meals when tolerated. Protein first at every meal — eat it before anything else. Protein shake first thing in the morning. Do not skip meals even with low appetite.',
+    older_adult: 'Eat 3-4 meals with 30-40g protein at each to overcome anabolic resistance. Do not skip breakfast protein. Post-workout protein is especially important.',
+    athletic: 'Pre-workout: 1-4g/kg carbs + protein 3-4 hours before OR small carb + protein 1 hour before. Post-workout: 30-50g protein + 1-1.5g/kg carbs within 1 hour. Match carb intake to training load.'
   };
+
+  var keySupplement = {
+    fat_loss: 'Creatine monohydrate 3-5g/day (preserves muscle during deficit)',
+    muscle_gain: 'Creatine monohydrate 3-5g/day (most evidence-based muscle builder)',
+    maintenance: 'Vitamin D3 1000-2000 IU/day (most people are deficient)',
+    glp1: 'Protein powder 2-3 servings/day (critical to hit protein targets)',
+    older_adult: 'Creatine 3-5g/day + Vitamin D3 2000 IU/day',
+    athletic: 'Creatine 3-5g/day + caffeine 3-6mg/kg pre-event'
+  };
+
+  var dateStr = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
 
   var output = document.getElementById('handoutOutput');
-  output.innerHTML = '<h4>Nutrition Summary for ' + name + ' — ' + goalLabels[goal] + '</h4>' +
-    (kg > 0 ? '<p><strong>Daily Calorie Target:</strong> ' + calTarget + ' kcal &nbsp;|&nbsp; <strong>Protein Target:</strong> ' + protTarget + 'g per day</p>' : '') +
-    '<h4>Your Key Focus This Week</h4>' +
-    '<p>' + (challengeScripts[challenge] || '') + '</p>' +
-    '<h4>Top Tips for Your Goal</h4><ul>' +
-    (goalTips[goal] || []).map(function(t) { return '<li>' + t + '</li>'; }).join('') +
-    '</ul>' +
-    '<h4>Simple Protein Sources to Focus On</h4>' +
-    '<p>Chicken breast, eggs, Greek yogurt, cottage cheese, lean beef, fish, protein shakes. Aim for 30-40g of protein at each main meal.</p>' +
-    '<h4>Hydration Target</h4>' +
-    '<p>' + (weight > 0 ? Math.round(weight * 0.5) + ' oz (' + Math.round(weight * 0.5 / 8) + ' cups) of water per day minimum.' : 'Aim for 8-10 cups of water per day minimum.') + ' Add electrolytes for sessions longer than 60 minutes.</p>' +
-    '<p style="font-size:0.72rem;color:var(--text3);margin-top:1rem;font-style:italic;">This summary is general nutrition education within personal trainer scope of practice. For individualized meal planning, please consult a Registered Dietitian. &mdash; Dr. Fitness Trainer Reference System</p>';
+  output.innerHTML =
+    '<div id="handoutPrint" style="background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--gold);padding-bottom:1rem;margin-bottom:1rem;">' +
+      '<div><div style="font-family:Bebas Neue,sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">Dr. Fitness</div><div style="font-size:0.68rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;">Client Nutrition Handout</div></div>' +
+      '<div style="text-align:right;"><div style="font-size:0.82rem;color:var(--text);font-weight:500;">' + name + '</div><div style="font-size:0.72rem;color:var(--text3);">' + dateStr + '</div></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem;">' +
+      '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--gold);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">' + goalLabels[goal] + '</div><div style="font-size:0.65rem;color:var(--text3);">GOAL</div></div>' +
+      (kg > 0 ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid #60a5fa;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#60a5fa;">' + calTarget + '</div><div style="font-size:0.65rem;color:var(--text3);">DAILY KCAL</div></div>' : '') +
+      (kg > 0 ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--green);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--green);">' + protTarget + 'g</div><div style="font-size:0.65rem;color:var(--text3);">DAILY PROTEIN</div></div>' : '') +
+      '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--teal);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--teal);">' + hydrationOz + 'oz</div><div style="font-size:0.65rem;color:var(--text3);">DAILY WATER</div></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">' +
+      '<div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">Top 5 Foods for Your Goal</div><ol style="margin-left:1rem;font-size:0.8rem;color:var(--text2);line-height:1.8;">' +
+        (topFoods[goal] || []).map(function(f) { return '<li>' + f + '</li>'; }).join('') +
+      '</ol></div>' +
+      '<div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">Meal Timing Guidance</div><p style="font-size:0.8rem;color:var(--text2);line-height:1.7;">' + (mealTiming[goal] || '') + '</p></div>' +
+    '</div>' +
+    '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.875rem 1rem;margin-bottom:1rem;">' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.3rem;">Key Supplement Recommendation</div>' +
+      '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;">' + (keySupplement[goal] || 'Creatine 3-5g/day') + '</p>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border2);padding-top:0.75rem;margin-top:0.75rem;">' +
+      '<div style="font-size:0.72rem;color:var(--text3);"><strong style="color:var(--text2);">Trainer:</strong> Dr. Michael Lovato EdD &nbsp;|&nbsp; <strong style="color:var(--text2);">Best Fitness</strong></div>' +
+      '<div style="font-size:0.62rem;color:var(--text3);max-width:50%;text-align:right;">This is general nutrition education within personal trainer scope of practice. It does not replace medical advice. For individualized meal planning, consult a Registered Dietitian.</div>' +
+    '</div>' +
+    '</div>';
 
   output.classList.add('show');
+}
+
+function printHandout() {
+  var content = document.getElementById('handoutPrint');
+  if (!content) { alert('Generate a handout first.'); return; }
+  var w = window.open('', '_blank');
+  w.document.write('<html><head><title>Client Nutrition Handout</title><style>body{font-family:Arial,sans-serif;background:#fff;color:#222;padding:1.5rem;max-width:800px;margin:0 auto;}h4{margin:0.75rem 0 0.3rem;color:#333;}strong{color:#b8860b;}ul,ol{margin-left:1rem;}li{margin-bottom:4px;}p{line-height:1.6;margin-bottom:0.5rem;}.header{display:flex;justify-content:space-between;border-bottom:2px solid #b8860b;padding-bottom:0.75rem;margin-bottom:1rem;}.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1rem;text-align:center;}.stat{border:1px solid #ddd;border-radius:6px;padding:0.5rem;}.stat-val{font-size:1.3rem;font-weight:700;color:#b8860b;}.stat-label{font-size:0.7rem;color:#888;text-transform:uppercase;}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}.section-title{font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#888;border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:0.5rem;}.supp-box{background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:0.75rem;margin-bottom:1rem;}.footer{display:flex;justify-content:space-between;border-top:1px solid #ddd;padding-top:0.5rem;font-size:0.72rem;color:#888;}.disclaimer{max-width:50%;text-align:right;font-size:0.65rem;}</style></head><body>');
+  var n = document.getElementById('ho-name').value || 'Client';
+  var g = document.getElementById('ho-goal');
+  var goalText = g.options[g.selectedIndex].text;
+  var dateStr = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  w.document.write(content.innerHTML.replace(/var\(--navy3\)/g,'#fff').replace(/var\(--navy2\)/g,'#f9f9f9').replace(/var\(--gold\)/g,'#b8860b').replace(/var\(--text\)/g,'#222').replace(/var\(--text2\)/g,'#444').replace(/var\(--text3\)/g,'#888').replace(/var\(--green\)/g,'#2dc653').replace(/var\(--teal\)/g,'#2dd4bf').replace(/var\(--border2\)/g,'#ddd').replace(/var\(--border\)/g,'#ccc').replace(/var\(--radius-sm\)/g,'6px').replace(/var\(--radius\)/g,'8px').replace(/#60a5fa/g,'#2563eb'));
+  w.document.write('</body></html>');
+  w.document.close();
+  setTimeout(function() { w.print(); }, 500);
+}
+
+function buildSuppStack() {
+  var goal = document.getElementById('supp-goal').value;
+  var pop = document.getElementById('supp-pop').value;
+  var budget = document.getElementById('supp-budget').value;
+  var out = document.getElementById('suppOutput');
+
+  var stacks = {
+    fat_loss: [
+      {name:'Protein Powder (Whey/Plant)',grade:'A',dose:'25-40g per serving as needed',timing:'Post-workout and between meals',why:'Fill protein gaps to preserve muscle during deficit',priority:1},
+      {name:'Caffeine',grade:'A',dose:'3-6 mg/kg body weight',timing:'30-60 min pre-workout',why:'Proven fat oxidation, performance, and appetite suppression',priority:1},
+      {name:'Creatine Monohydrate',grade:'A',dose:'3-5g daily',timing:'Any time daily with water',why:'Preserves muscle during caloric deficit, improves training performance',priority:1},
+      {name:'Vitamin D3',grade:'B',dose:'1000-2000 IU daily',timing:'With a meal containing fat',why:'Most clients are deficient; impacts metabolic health and fat metabolism',priority:2},
+      {name:'Magnesium Glycinate',grade:'B',dose:'300-400mg',timing:'Before bed',why:'Sleep quality, stress management, recovery support during deficit',priority:2},
+      {name:'L-Carnitine',grade:'C',dose:'2-3g with carbs',timing:'With pre-workout meal',why:'Modest fat oxidation evidence; more effective with carbohydrate intake',priority:3},
+      {name:'Green Tea Extract (EGCG)',grade:'C',dose:'400-500mg EGCG',timing:'Morning or pre-workout',why:'Small metabolic boost; modest fat oxidation support',priority:3},
+    ],
+    muscle_gain: [
+      {name:'Creatine Monohydrate',grade:'A',dose:'3-5g daily',timing:'Any time daily',why:'Most evidence-based supplement for muscle and strength gain',priority:1},
+      {name:'Protein Powder (Whey)',grade:'A',dose:'25-40g per serving',timing:'Post-workout and to fill daily gaps',why:'Hit 1.6-2.2 g/kg protein target for maximum MPS',priority:1},
+      {name:'Caffeine',grade:'A',dose:'3-6 mg/kg',timing:'30-60 min pre-workout',why:'Training performance, strength, and power output',priority:1},
+      {name:'Beta-Alanine',grade:'B',dose:'3.2-6.4g daily (split doses)',timing:'Daily — timing does not matter',why:'Reduces fatigue in 60-240 second efforts; improves training volume',priority:2},
+      {name:'Magnesium Glycinate',grade:'B',dose:'300-400mg',timing:'Before bed',why:'Sleep quality and muscle recovery',priority:2},
+      {name:'Citrulline Malate',grade:'B',dose:'6-8g',timing:'60 min pre-workout',why:'Reduces fatigue, improves training volume capacity',priority:2},
+      {name:'Ashwagandha (KSM-66)',grade:'C',dose:'300-600mg',timing:'Morning or evening',why:'Modest testosterone and recovery support; stress reduction',priority:3},
+    ],
+    performance: [
+      {name:'Creatine Monohydrate',grade:'A',dose:'3-5g daily',timing:'Any time daily',why:'Strength, power, sprint performance, and recovery between bouts',priority:1},
+      {name:'Caffeine',grade:'A',dose:'3-6 mg/kg',timing:'30-60 min pre-event',why:'Most proven ergogenic aid in sports nutrition',priority:1},
+      {name:'Beta-Alanine',grade:'B',dose:'3.2g daily',timing:'Daily — chronic loading',why:'Buffers lactic acid in high-intensity 1-4 minute efforts',priority:1},
+      {name:'Sodium Bicarbonate',grade:'B',dose:'0.3 g/kg',timing:'60-90 min pre-event',why:'Acute performance boost in short high-intensity events',priority:2},
+      {name:'Beetroot Juice / Nitrates',grade:'B',dose:'500mg nitrates',timing:'2-3 hours pre-event',why:'Improves aerobic efficiency and endurance performance',priority:2},
+      {name:'Citrulline Malate',grade:'B',dose:'6-8g',timing:'60 min pre-exercise',why:'Reduces fatigue, improves repeated sprint performance',priority:2},
+      {name:'Tart Cherry Juice',grade:'B',dose:'8oz twice daily',timing:'Morning and evening on heavy training days',why:'Reduces DOMS, oxidative stress, and inflammation between sessions',priority:3},
+    ],
+    recovery: [
+      {name:'Tart Cherry Juice',grade:'B',dose:'8oz twice daily or 480mg extract',timing:'Morning and evening',why:'Reduces DOMS, inflammation, and oxidative stress. Natural melatonin for sleep',priority:1},
+      {name:'Omega-3 (Fish Oil)',grade:'B',dose:'1-3g EPA+DHA daily',timing:'With meals',why:'Reduces systemic inflammation, supports joint health and recovery',priority:1},
+      {name:'Magnesium Glycinate',grade:'B',dose:'300-400mg',timing:'Before bed',why:'Sleep quality, muscle relaxation, cramp prevention',priority:1},
+      {name:'Creatine Monohydrate',grade:'A',dose:'3-5g daily',timing:'Any time',why:'Cellular energy replenishment and recovery between sessions',priority:1},
+      {name:'Protein (Casein)',grade:'A',dose:'30-40g',timing:'Before bed',why:'Slow-release protein supports overnight muscle protein synthesis',priority:2},
+      {name:'Vitamin D3',grade:'B',dose:'1000-2000 IU',timing:'With morning meal',why:'Immune function, muscle recovery, and bone health',priority:2},
+      {name:'Collagen Peptides',grade:'C',dose:'15-20g',timing:'60 min before training with vitamin C',why:'May support tendon and connective tissue repair; emerging evidence',priority:3},
+    ],
+    glp1: [
+      {name:'Protein Powder (Whey/Plant)',grade:'A',dose:'25-40g per serving, 2-3 shakes daily',timing:'Morning, between meals, post-workout',why:'Critical — often the only way to hit protein targets due to appetite suppression',priority:1},
+      {name:'Multivitamin',grade:'B',dose:'1 daily',timing:'With largest meal',why:'Low food intake creates micronutrient gaps across the board',priority:1},
+      {name:'Vitamin D3 + K2',grade:'B',dose:'2000-4000 IU D3 + 100mcg K2',timing:'With a fat-containing meal',why:'Bone health protection during rapid weight loss',priority:1},
+      {name:'Magnesium Glycinate',grade:'B',dose:'300-400mg',timing:'Before bed',why:'Often depleted; supports sleep, muscle function, and reduces cramps',priority:1},
+      {name:'B12 (Methylcobalamin)',grade:'B',dose:'1000mcg',timing:'Morning',why:'GI changes may impair absorption; supports energy and nerve function',priority:2},
+      {name:'Creatine Monohydrate',grade:'A',dose:'3-5g daily',timing:'Any time',why:'Muscle preservation during weight loss — critical for GLP-1 clients',priority:2},
+      {name:'Electrolytes',grade:'B',dose:'As needed',timing:'During and after exercise',why:'Lower food and fluid intake may cause electrolyte imbalance',priority:2},
+    ],
+    older_adult: [
+      {name:'Creatine Monohydrate',grade:'A',dose:'3-5g daily',timing:'Any time with water',why:'Strongest evidence for muscle preservation in older adults. Also supports cognition',priority:1},
+      {name:'Vitamin D3',grade:'A',dose:'1000-2000 IU (up to 4000 if deficient)',timing:'With a meal containing fat',why:'Bone density, muscle function, fall prevention, immune health',priority:1},
+      {name:'Calcium',grade:'B',dose:'1000-1200mg daily (food + supplement)',timing:'Split doses with meals',why:'Bone density — especially important for postmenopausal women',priority:1},
+      {name:'Omega-3 (Fish Oil)',grade:'B',dose:'1-3g EPA+DHA',timing:'With meals',why:'Anti-inflammatory, joint support, cardiovascular health, cognitive function',priority:1},
+      {name:'B12 (Methylcobalamin)',grade:'B',dose:'1000mcg',timing:'Morning',why:'Absorption decreases with age; deficiency causes fatigue and neuropathy',priority:2},
+      {name:'Magnesium Glycinate',grade:'B',dose:'300-400mg',timing:'Before bed',why:'Sleep quality, muscle cramps, bone health, over 50% of older adults deficient',priority:2},
+      {name:'Protein Powder',grade:'A',dose:'25-40g per serving',timing:'Post-workout and with meals under 30g protein',why:'Overcome anabolic resistance — older adults need MORE protein per meal',priority:2},
+    ],
+  };
+
+  var stack = stacks[goal] || stacks.fat_loss;
+
+  // Filter by population
+  if (pop === 'pregnant') {
+    stack = stack.filter(function(s) {
+      var avoid = ['Caffeine','Beta-Alanine','Sodium Bicarbonate','Ashwagandha (KSM-66)','L-Carnitine','Green Tea Extract (EGCG)'];
+      return avoid.indexOf(s.name) === -1;
+    });
+  }
+
+  // Filter by budget
+  if (budget === 'basic') {
+    stack = stack.filter(function(s) { return s.priority <= 2; }).slice(0, 4);
+  } else if (budget === 'moderate') {
+    stack = stack.filter(function(s) { return s.priority <= 2; });
+  }
+
+  var gradeColors = {A:'background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3)',B:'background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)',C:'background:rgba(244,162,97,0.12);color:var(--amber);border:1px solid rgba(244,162,97,0.3)'};
+  var goalLabels = {fat_loss:'Fat Loss',muscle_gain:'Muscle Gain',performance:'Athletic Performance',recovery:'Recovery',glp1:'GLP-1 Client',older_adult:'Older Adult 55+'};
+  var budgetLabels = {basic:'Basic (under $50/mo)',moderate:'Moderate ($50-$150/mo)',premium:'Premium ($150+/mo)'};
+  var popLabels = {general:'General',athlete:'Athlete',['55plus']:'55+',pregnant:'Pregnant/Postpartum'};
+
+  var html = '<div style="margin-bottom:1rem;"><span style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);">Recommended Stack</span>';
+  html += '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);margin:0.2rem 0;">' + goalLabels[goal] + ' — ' + popLabels[pop] + '</h3>';
+  html += '<p style="font-size:0.78rem;color:var(--text3);">' + budgetLabels[budget] + ' · ' + stack.length + ' supplements · Priority ranked</p></div>';
+
+  if (pop === 'pregnant') {
+    html += '<div style="background:rgba(244,114,182,0.08);border:1px solid rgba(244,114,182,0.25);border-radius:var(--radius);padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.78rem;color:var(--text2);line-height:1.5;"><strong style="color:var(--text);">Prenatal Note:</strong> Caffeine, beta-alanine, and several other supplements have been removed. All prenatal supplement decisions must be approved by the client OB/GYN.</div>';
+  }
+
+  html += '<div class="supp-grid">';
+  stack.forEach(function(s, i) {
+    html += '<div class="supp-card" style="border-top:3px solid ' + (s.priority===1?'var(--gold)':s.priority===2?'var(--border)':'var(--border2)') + ';">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h4>#' + (i+1) + ' ' + s.name + '</h4><span style="font-size:0.62rem;font-weight:700;letter-spacing:0.08em;padding:2px 7px;border-radius:10px;' + gradeColors[s.grade] + '">GRADE ' + s.grade + '</span></div>';
+    html += '<p><strong>Dose:</strong> ' + s.dose + '<br><strong>Timing:</strong> ' + s.timing + '<br><strong>Why:</strong> ' + s.why + '</p>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  out.innerHTML = html;
+  out.style.display = 'block';
 }
 </script>
 
