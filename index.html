@@ -772,6 +772,11 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
     <div class="nut-section">Tools</div>
     <button class="nut-btn chat" onclick="nutSwitch(this,'nut-chat')">AI Nutrition Coach</button>
     <button class="nut-btn handout" onclick="nutSwitch(this,'handout')">Client Handout Generator</button>
+    <button class="nut-btn chat" onclick="nutSwitch(this,'grocery')">Grocery List Generator</button>
+    <div class="nut-section">Guides</div>
+    <button class="nut-btn timing" onclick="nutSwitch(this,'if-guide')">Intermittent Fasting</button>
+    <button class="nut-btn food" onclick="nutSwitch(this,'alcohol')">Alcohol and Body Comp</button>
+    <button class="nut-btn food" onclick="nutSwitch(this,'travel')">Travel Nutrition</button>
     <div class="nut-section">Reference</div>
     <button class="nut-btn myth" onclick="nutSwitch(this,'myths')">Nutrition Myth Buster</button>
     <button class="nut-btn sop" onclick="nutSwitch(this,'sop')">Scope of Practice</button>
@@ -1144,6 +1149,53 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
       </div>
     </div>
 
+    <!-- INTERMITTENT FASTING -->
+    <div class="nut-sub" id="nut-if-guide">
+      <div class="nut-hero"><h2>Intermittent Fasting — Trainer Guide</h2><p>What trainers need to know when clients ask about or are already practicing intermittent fasting. Stay within scope of practice — educate, do not prescribe.</p></div>
+      <div class="nut-cards">
+        <div class="nut-card"><div class="nut-card-label">Common Protocols</div><h3>IF Methods Your Clients Use</h3><ul><li><strong>16:8</strong> — 16-hour fast, 8-hour eating window (most common)</li><li><strong>18:6</strong> — 18-hour fast, 6-hour eating window</li><li><strong>5:2</strong> — 5 normal days, 2 days at 500-600 kcal</li><li><strong>OMAD</strong> — One meal a day (extreme — not recommended for most)</li><li><strong>Most evidence</strong> supports 16:8 as the most sustainable and practical approach</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">What the Research Says</div><h3>Evidence Summary</h3><ul><li>IF works for weight loss primarily through <strong>calorie restriction</strong> — no metabolic magic</li><li>No significant advantage over continuous calorie restriction for fat loss</li><li>May improve insulin sensitivity in some populations</li><li>Protein distribution is compromised — harder to spread across 4-5 meals</li><li>Training fasted is fine for low-intensity only — NOT for strength or HIIT</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Trainer Concerns</div><h3>When IF is Problematic</h3><ul><li><strong>Muscle preservation:</strong> Cramming protein into a short window makes hitting targets harder</li><li><strong>GLP-1 clients:</strong> Already eating very little — IF further reduces intake</li><li><strong>Older adults:</strong> Anabolic resistance + IF = poor MPS distribution</li><li><strong>Disordered eating risk:</strong> IF can mask or trigger restrictive patterns</li><li><strong>Training performance:</strong> Fasted training reduces strength and power output</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Trainer Script</div><h3>When a Client Asks About IF</h3><p style="font-style:italic;color:var(--teal);">"Intermittent fasting can work for some people, but it works because of calorie reduction — not because of the fasting window itself. My concern for you is making sure we hit your protein target, which is harder in a shorter eating window. If you want to try it, let us make sure the eating window includes at least 3 protein-rich meals."</p></div>
+      </div>
+    </div>
+
+    <!-- ALCOHOL AND BODY COMP -->
+    <div class="nut-sub" id="nut-alcohol">
+      <div class="nut-hero"><h2>Alcohol and Body Composition</h2><p>The science of how alcohol impacts fat loss, muscle building, recovery, and training performance. Critical knowledge for honest client conversations.</p></div>
+      <div class="nut-cards">
+        <div class="nut-card" style="border-color:rgba(230,57,70,0.4);"><div class="nut-card-label">The Core Problem</div><h3>Alcohol is 7 kcal/gram — With Zero Benefit</h3><ul><li>7 kcal/gram — more calorie-dense than protein or carbs</li><li>Body prioritizes metabolizing alcohol over fat — fat oxidation stops</li><li>Lowers inhibitions leading to overeating (pizza at 2am phenomenon)</li><li>Mixed drinks can easily add 500-1000+ kcal in a single night</li><li>A "moderate" night out can erase an entire week of calorie deficit</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Muscle and Recovery</div><h3>How Alcohol Destroys Gains</h3><ul><li>Reduces muscle protein synthesis by up to 24% (even with adequate protein)</li><li>Suppresses testosterone for up to 72 hours</li><li>Disrupts sleep architecture — specifically REM and deep sleep</li><li>Impairs glycogen replenishment</li><li>Increases cortisol — promotes abdominal fat storage</li><li>Dehydration compounds all of the above</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Practical Guidance</div><h3>If a Client Drinks — Harm Reduction</h3><ul><li>Choose spirits with zero-calorie mixers over beer or cocktails</li><li>Set a drink limit before going out and stick to it</li><li>Eat protein before drinking (slows absorption, reduces overeating)</li><li>Alternate every drink with a glass of water</li><li>Do not train the day after heavy drinking — recovery is already impaired</li><li>Track alcohol calories just like food calories</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Calorie Reference</div><h3>Common Drink Calorie Counts</h3><ul><li><strong>Light beer:</strong> 100 kcal</li><li><strong>Regular beer:</strong> 150 kcal</li><li><strong>IPA/craft beer:</strong> 200-300 kcal</li><li><strong>Glass of wine (5oz):</strong> 125 kcal</li><li><strong>Vodka soda:</strong> 100 kcal</li><li><strong>Margarita:</strong> 300-500 kcal</li><li><strong>Long Island iced tea:</strong> 450+ kcal</li></ul></div>
+      </div>
+    </div>
+
+    <!-- TRAVEL NUTRITION -->
+    <div class="nut-sub" id="nut-travel">
+      <div class="nut-hero"><h2>Travel Nutrition Strategies</h2><p>How to help clients maintain nutrition consistency while traveling for work, vacation, or competition. Practical strategies that actually work on the road.</p></div>
+      <div class="nut-cards">
+        <div class="nut-card"><div class="nut-card-label">Pack These</div><h3>Travel Nutrition Kit</h3><ul><li><strong>Protein powder packets:</strong> Single-serve for hotel rooms</li><li><strong>Protein bars:</strong> Minimum 20g protein per bar</li><li><strong>Beef jerky / turkey jerky:</strong> High protein, shelf stable</li><li><strong>Mixed nuts (portioned):</strong> Healthy fats + protein</li><li><strong>Oatmeal packets:</strong> Hotel room breakfast solution</li><li><strong>Electrolyte packets:</strong> Especially for flights (dehydrating)</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Restaurant Strategy</div><h3>Eating Out Without Derailing</h3><ul><li><strong>Protein first:</strong> Order a protein-focused entree (grilled chicken, fish, steak)</li><li><strong>Simple preparations:</strong> Grilled, baked, or steamed — avoid fried and creamy sauces</li><li><strong>Double the vegetables:</strong> Sub fries or rice for a side salad or steamed vegetables</li><li><strong>Control portions:</strong> Eat half, take the rest — restaurant portions are 2-3 servings</li><li><strong>Skip the bread basket:</strong> Do not waste calories on filler before the meal</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Air Travel</div><h3>Flying and Nutrition</h3><ul><li>Eat a full protein-rich meal before flying</li><li>Bring your own protein snacks — airport food is overpriced and low quality</li><li>Drink water aggressively — planes dehydrate you significantly</li><li>Avoid alcohol on flights (further dehydration at altitude)</li><li>Skip the in-flight snack box (mostly empty carbs)</li></ul></div>
+        <div class="nut-card"><div class="nut-card-label">Mindset</div><h3>The 80/20 Travel Rule</h3><p>Travel is not the time for perfection. Aim for <strong>80% adherence</strong> — hit protein targets and make reasonable choices. One vacation meal will not ruin progress. An entire week of vacation eating with no awareness will. The best approach: enjoy the trip, hit protein, stay active, and get back to normal when you return.</p></div>
+      </div>
+    </div>
+
+    <!-- GROCERY LIST GENERATOR -->
+    <div class="nut-sub" id="nut-grocery">
+      <div class="nut-hero"><h2>Grocery List Generator</h2><p>Generate a categorized shopping list based on your client goal and dietary preference. Print or share as a starting point for client education.</p></div>
+      <div class="calc-wrap">
+        <h3>Build a Grocery List</h3>
+        <div class="calc-grid">
+          <div class="calc-field"><label>Primary Goal</label><select id="gl-goal"><option value="fat_loss">Fat Loss</option><option value="muscle_gain">Muscle Gain</option><option value="maintenance">Maintenance</option><option value="glp1">GLP-1 Client</option><option value="older_adult">Older Adult 55+</option></select></div>
+          <div class="calc-field"><label>Dietary Preference</label><select id="gl-diet"><option value="standard">Standard</option><option value="high_protein">High Protein Focus</option><option value="plant_based">Plant-Based</option><option value="low_carb">Low Carb</option></select></div>
+        </div>
+        <button class="calc-btn" onclick="buildGroceryList()">Generate Grocery List</button>
+      </div>
+      <div id="groceryOutput" style="display:none;"></div>
+    </div>
+
   </div>
 </div>
 </div>
@@ -1332,6 +1384,61 @@ function printHandout() {
   w.document.write('</body></html>');
   w.document.close();
   setTimeout(function() { w.print(); }, 500);
+}
+
+function buildGroceryList() {
+  var goal = document.getElementById('gl-goal').value;
+  var diet = document.getElementById('gl-diet').value;
+  var out = document.getElementById('groceryOutput');
+
+  var proteins = {
+    standard: ['Chicken breast','Lean ground turkey','Eggs','Greek yogurt (plain)','Salmon fillets','Lean ground beef (90/10)','Cottage cheese','Canned tuna'],
+    high_protein: ['Chicken breast (bulk)','Eggs (2 dozen)','Greek yogurt (large tub)','Whey protein powder','Lean ground beef','Salmon','Turkey breast deli meat','Cottage cheese'],
+    plant_based: ['Extra-firm tofu','Tempeh','Edamame (frozen)','Lentils (dried or canned)','Chickpeas (canned)','Pea protein powder','Seitan','Black beans'],
+    low_carb: ['Chicken thighs','Eggs','Bacon (uncured)','Salmon','Beef ribeye','Cheese (cheddar, mozzarella)','Greek yogurt (full fat)','Pork tenderloin']
+  };
+
+  var carbs = {
+    standard: ['Brown rice','Sweet potatoes','Oats (rolled)','Whole wheat bread','Bananas','Mixed berries','Quinoa','Whole wheat pasta'],
+    high_protein: ['White rice (fast post-workout)','Oats','Sweet potatoes','Bananas','Ezekiel bread','Cream of rice','Blueberries','Potatoes'],
+    plant_based: ['Brown rice','Quinoa','Sweet potatoes','Oats','Whole grain bread','Bananas','Mixed berries','Buckwheat'],
+    low_carb: ['Cauliflower rice','Berries (small portion)','Avocado','Zucchini','Spaghetti squash','Almond flour','Coconut flour','Cherry tomatoes']
+  };
+
+  var fats = {
+    standard: ['Olive oil','Avocados','Mixed nuts (unsalted)','Natural peanut butter','Chia seeds','Flaxseed','Coconut oil'],
+    high_protein: ['Natural peanut butter','Almonds','Avocados','Olive oil','Walnuts','Chia seeds','Egg yolks (included)'],
+    plant_based: ['Olive oil','Avocados','Mixed nuts','Tahini','Chia seeds','Flaxseed','Coconut oil'],
+    low_carb: ['Avocados','Olive oil','Butter','Coconut oil','Macadamia nuts','Walnuts','MCT oil']
+  };
+
+  var veggies = ['Spinach (fresh or frozen)','Broccoli','Bell peppers','Zucchini','Asparagus','Green beans','Mixed salad greens','Onions','Garlic','Mushrooms'];
+
+  var goalExtras = {
+    fat_loss: ['Green tea','Apple cider vinegar','Hot sauce (zero calorie flavor)','Sugar-free electrolytes','Sparkling water','Shirataki noodles'],
+    muscle_gain: ['Whole milk','Granola','Trail mix','Honey','Dried fruit','Pasta sauce','Bagels'],
+    maintenance: ['Hummus','Olive tapenade','Whole grain crackers','Dried fruit','Dark chocolate (85%+)'],
+    glp1: ['Protein shakes (ready to drink)','Bone broth','Ginger tea (for nausea)','Electrolyte packets','Smooth peanut butter','Applesauce'],
+    older_adult: ['Fortified orange juice (calcium + D)','Canned salmon (bones for calcium)','Prune juice','Fortified cereal','Ginger','Turmeric']
+  };
+
+  var goalLabels = {fat_loss:'Fat Loss',muscle_gain:'Muscle Gain',maintenance:'Maintenance',glp1:'GLP-1 Client',older_adult:'Older Adult 55+'};
+  var dietLabels = {standard:'Standard',high_protein:'High Protein',plant_based:'Plant-Based',low_carb:'Low Carb'};
+
+  function listItems(arr) { return arr.map(function(i) { return '<li style="padding:3px 0;border-bottom:1px solid var(--border2);font-size:0.8rem;color:var(--text2);">' + i + '</li>'; }).join(''); }
+
+  var html = '<div style="margin-bottom:1rem;"><span style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);">Grocery List</span>';
+  html += '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);margin:0.2rem 0;">' + goalLabels[goal] + ' — ' + dietLabels[diet] + '</h3></div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">';
+  html += '<div class="nut-card"><div class="nut-card-label">Proteins</div><h3>Protein Sources</h3><ul style="list-style:none;margin:0;padding:0;">' + listItems(proteins[diet]) + '</ul></div>';
+  html += '<div class="nut-card"><div class="nut-card-label">Carbohydrates</div><h3>Carb Sources</h3><ul style="list-style:none;margin:0;padding:0;">' + listItems(carbs[diet]) + '</ul></div>';
+  html += '<div class="nut-card"><div class="nut-card-label">Healthy Fats</div><h3>Fat Sources</h3><ul style="list-style:none;margin:0;padding:0;">' + listItems(fats[diet]) + '</ul></div>';
+  html += '<div class="nut-card"><div class="nut-card-label">Vegetables</div><h3>Produce</h3><ul style="list-style:none;margin:0;padding:0;">' + listItems(veggies) + '</ul></div>';
+  html += '<div class="nut-card"><div class="nut-card-label">Goal-Specific</div><h3>Extras for ' + goalLabels[goal] + '</h3><ul style="list-style:none;margin:0;padding:0;">' + listItems(goalExtras[goal] || []) + '</ul></div>';
+  html += '</div>';
+
+  out.innerHTML = html;
+  out.style.display = 'block';
 }
 
 function buildSuppStack() {
