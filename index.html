@@ -5610,5 +5610,152 @@ document.querySelectorAll('.lang-btn').forEach(b => {
 updateSysPromptLang('en');
 
 </script>
+<!-- ══ PERSISTENT FLOATING CHAT ══ -->
+<style>
+.fc-btn{position:fixed;bottom:24px;right:24px;z-index:800;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:all 0.2s;font-size:1.3rem;}
+.fc-btn:hover{background:var(--gold2);transform:scale(1.08);}
+.fc-panel{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:var(--navy2);border-left:1px solid var(--border);z-index:900;display:flex;flex-direction:column;transition:right 0.25s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.3);}
+.fc-panel.open{right:0;}
+.fc-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--navy3);}
+.fc-header h3{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.06em;color:var(--gold);}
+.fc-header p{font-size:0.68rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;}
+.fc-close{background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);padding:5px 10px;cursor:pointer;font-size:0.78rem;}
+.fc-close:hover{border-color:var(--red);color:var(--red);}
+.fc-mode-row{display:flex;gap:4px;padding:0.6rem 1rem;border-bottom:1px solid var(--border2);flex-wrap:wrap;background:rgba(10,22,40,0.5);}
+.fc-chip{padding:3px 9px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.12s;}
+.fc-chip:hover,.fc-chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim2);}
+.fc-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.875rem;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.fc-msg{display:flex;gap:8px;}
+.fc-msg.user{flex-direction:row-reverse;}
+.fc-bubble{padding:0.7rem 0.9rem;border-radius:var(--radius);font-size:0.82rem;line-height:1.7;max-width:90%;}
+.fc-msg.user .fc-bubble{background:var(--blue2);color:var(--text);}
+.fc-msg.ai .fc-bubble{background:var(--navy3);border:1px solid var(--border2);color:var(--text);}
+.fc-bubble strong{color:var(--gold);}
+.fc-input-area{padding:0.875rem 1rem;border-top:1px solid var(--border2);background:rgba(10,22,40,0.8);}
+.fc-input-row{display:flex;gap:8px;align-items:flex-end;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 8px 8px 12px;}
+.fc-input-row:focus-within{border-color:var(--border);}
+#fcQi{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.85rem;resize:none;max-height:100px;min-height:20px;line-height:1.5;}
+#fcQi::placeholder{color:var(--text3);}
+.fc-send{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
+.fc-send:hover{background:var(--gold2);}
+.fc-send:disabled{opacity:0.3;cursor:not-allowed;}
+.fc-hint{font-size:0.65rem;color:var(--text3);text-align:center;margin-top:5px;}
+.fc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:850;}
+.fc-overlay.open{display:block;}
+@media(max-width:480px){.fc-panel{width:100vw;}.fc-btn{bottom:16px;right:16px;}}
+</style>
+
+<div class="fc-overlay" id="fcOverlay" onclick="fcClose()"></div>
+
+<div class="fc-panel" id="fcPanel">
+  <div class="fc-header">
+    <div><h3>Dr. Fitness</h3><p>AI Trainer Reference</p></div>
+    <button class="fc-close" onclick="fcClose()">✕ Close</button>
+  </div>
+  <div class="fc-mode-row" id="fcModeRow">
+    <button class="fc-chip active" data-m="general">General</button>
+    <button class="fc-chip" data-m="injury">Injury</button>
+    <button class="fc-chip" data-m="nutrition">Nutrition</button>
+    <button class="fc-chip" data-m="workout">Workout</button>
+    <button class="fc-chip" data-m="glp1">GLP-1</button>
+    <button class="fc-chip" data-m="older">55+</button>
+  </div>
+  <div class="fc-msgs" id="fcMsgs">
+    <div class="fc-msg ai"><div class="fc-bubble">Ask me anything — injury mods, workout ideas, nutrition guidance, GLP-1 protocols. I am here on every tab.</div></div>
+  </div>
+  <div class="fc-input-area">
+    <div class="fc-input-row">
+      <textarea id="fcQi" placeholder="Ask Dr. Fitness..." rows="1"></textarea>
+      <button class="fc-send" id="fcSend"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+    <div class="fc-hint">Enter to send · Shift+Enter for new line</div>
+  </div>
+</div>
+
+<button class="fc-btn" id="fcBtn" onclick="fcToggle()" title="Ask Dr. Fitness">💬</button>
+
+<script>
+(function(){
+  var fcOpen = false;
+  var fcMsgsData = [];
+  var fcMode = 'general';
+  var fcLoading = false;
+
+  window.fcToggle = function(){fcOpen ? fcClose() : fcOpenPanel();};
+  window.fcClose = function(){
+    fcOpen = false;
+    document.getElementById('fcPanel').classList.remove('open');
+    document.getElementById('fcOverlay').classList.remove('open');
+  };
+  window.fcOpenPanel = function(){
+    fcOpen = true;
+    document.getElementById('fcPanel').classList.add('open');
+    document.getElementById('fcOverlay').classList.add('open');
+    setTimeout(()=>document.getElementById('fcQi').focus(),300);
+  };
+
+  document.querySelectorAll('.fc-chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.fc-chip').forEach(function(x){x.classList.remove('active');});
+      c.classList.add('active');
+      fcMode = c.dataset.m;
+    });
+  });
+
+  var fcQi = document.getElementById('fcQi');
+  fcQi.addEventListener('input',function(){fcQi.style.height='auto';fcQi.style.height=Math.min(fcQi.scrollHeight,100)+'px';});
+  fcQi.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();fcSendMsg();}});
+  document.getElementById('fcSend').addEventListener('click',fcSendMsg);
+
+  async function fcSendMsg(){
+    var text = fcQi.value.trim();
+    if(!text||fcLoading) return;
+    fcLoading = true;
+    document.getElementById('fcSend').disabled = true;
+    fcQi.value = ''; fcQi.style.height='auto';
+
+    var msgsEl = document.getElementById('fcMsgs');
+    var userDiv = document.createElement('div');
+    userDiv.className = 'fc-msg user';
+    userDiv.innerHTML = '<div class="fc-bubble">'+text+'</div>';
+    msgsEl.appendChild(userDiv);
+
+    var typDiv = document.createElement('div');
+    typDiv.className = 'fc-msg ai'; typDiv.id = 'fcTyp';
+    typDiv.innerHTML = '<div class="fc-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+    msgsEl.appendChild(typDiv);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    var pfxMap = {injury:'[INJURY MODIFICATION] ',nutrition:'[NUTRITION GUIDANCE] ',workout:'[WORKOUT GENERATION] ',glp1:'[GLP-1 CLIENT] ',older:'[OLDER ADULT 55+] '};
+    var pfx = pfxMap[fcMode]||'';
+    fcMsgsData.push({role:'user',content:pfx+text});
+
+    try{
+      var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:window.SYS||(typeof SYS!=='undefined'?SYS:'You are Dr. Fitness, an expert trainer reference AI for certified personal trainers. Be specific, practical, and evidence-based.'),messages:fcMsgsData})});
+      var d = await res.json();
+      var typEl = document.getElementById('fcTyp');
+      if(typEl) typEl.remove();
+      if(d.content&&d.content[0]){
+        var r = d.content[0].text;
+        fcMsgsData.push({role:'assistant',content:r});
+        var aiDiv = document.createElement('div');
+        aiDiv.className = 'fc-msg ai';
+        var formatted = r.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+        aiDiv.innerHTML = '<div class="fc-bubble">'+formatted+'</div>';
+        msgsEl.appendChild(aiDiv);
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+      }
+    }catch(err){
+      var t2 = document.getElementById('fcTyp'); if(t2) t2.remove();
+      var errDiv = document.createElement('div');
+      errDiv.className='fc-msg ai';
+      errDiv.innerHTML='<div class="fc-bubble">Connection error. Try again.</div>';
+      msgsEl.appendChild(errDiv);
+    }
+    fcLoading = false;
+    document.getElementById('fcSend').disabled = false;
+  }
+})();
+</script>
 </body>
 </html>
