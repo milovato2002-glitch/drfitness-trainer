@@ -242,13 +242,22 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 <body>
 
 <div id="splash">
-  <div class="splash-logo">Dr. Fitness</div>
-  <div class="splash-sub">Trainer Reference System — EPI · NASM · ACE · ISSA</div>
+  <div style="margin-bottom:1rem;font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text3);">Best Fitness — Professional Tools</div>
+  <div class="splash-logo" style="font-size:4.5rem;margin-bottom:0;">Dr. Fitness</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.12em;color:var(--text);margin-bottom:0.3rem;">Trainer Reference System</div>
+  <div class="splash-sub" style="margin-bottom:1.5rem;">v9 — EPI · NASM · ACE · ISSA Certified</div>
+  <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;justify-content:center;">
+    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">400+</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">Exercises</div></div>
+    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">18</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">Tabs</div></div>
+    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">5</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">AI Features</div></div>
+    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">14</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">Workout Styles</div></div>
+  </div>
   <div class="splash-disc">
     <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Scope of Practice Notice</h3>
     <p>This tool provides <strong>trainer reference guidance only</strong> and does not replace medical diagnosis or treatment. Always advise clients with pain, injury, or health concerns to <strong>consult a licensed physician or physical therapist</strong> before continuing exercise. Calorie estimates are educational — refer detailed dietary planning to a Registered Dietitian.</p>
   </div>
   <button class="splash-enter" onclick="document.getElementById('splash').style.display='none'">I Understand — Enter Dr. Fitness</button>
+  <div style="margin-top:1.5rem;font-size:0.65rem;color:var(--text3);">Dr. Michael Lovato EdD · CEO, AILG · Fitness Director, Best Fitness</div>
 </div>
 
 <header>
@@ -327,15 +336,26 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
     <div class="chat-main">
       <div class="welcome" id="welcomeEl">
-        <div class="welcome-logo">Dr. Fitness</div>
-        <div class="welcome-sub">Trainer Reference System — EPI · NASM · ACE · ISSA</div>
-        <div class="welcome-grid">
-          <div class="w-card" data-p="My client has knee pain when squatting. What safe modifications can I make?" data-m="injury"><div class="w-card-icon">🦵</div><div class="w-card-title">Injury Modifications</div><div class="w-card-text">Symptom-based swaps within scope of practice</div></div>
-          <div class="w-card" data-p="Generate a complete 60-minute NASM OPT Phase 1 beginner resistance training session." data-m="workout"><div class="w-card-icon">🏋️</div><div class="w-card-title">Workout Generation</div><div class="w-card-text">OPT, ACE IFT, and EPI-aligned sessions</div></div>
-          <div class="w-card" data-p="Explain the snatch coaching model phases and how to teach a novice lifter step by step." data-m="general"><div class="w-card-icon">🏅</div><div class="w-card-title">Olympic Lifting</div><div class="w-card-text">Snatch & clean coaching models, common errors</div></div>
-          <div class="w-card" data-p="What recovery methods are most effective for athletes? Include CWI, CWT, and active recovery protocols." data-m="general"><div class="w-card-icon">🧊</div><div class="w-card-title">Recovery Science</div><div class="w-card-text">Hydrotherapy, compression, active recovery</div></div>
-          <div class="w-card" data-p="What are the protein targets and nutrition priorities for a GLP-1 client trying to preserve muscle during weight loss?" data-m="nutrition"><div class="w-card-icon">🥗</div><div class="w-card-title">Nutrition Guidance</div><div class="w-card-text">Macros, timing, GLP-1, older adult specifics</div></div>
-          <div class="w-card" data-p="Explain strength and power development: force-velocity curve, motor unit recruitment, and how to train RFD." data-m="general"><div class="w-card-icon">⚡</div><div class="w-card-title">Strength & Power</div><div class="w-card-text">S&P science, hypertrophy, complex training</div></div>
+        <div class="welcome-logo" style="font-size:4rem;">Dr. Fitness</div>
+        <div class="welcome-sub" style="margin-bottom:0.5rem;">Trainer Reference System — EPI · NASM · ACE · ISSA</div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-bottom:1.5rem;max-width:500px;">Ask me anything about training, nutrition, injury modifications, GLP-1 protocols, Olympic lifting, recovery science, or special populations. I stay within scope of practice.</div>
+        <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;justify-content:center;">
+          <div style="text-align:center;padding:6px 14px;background:var(--gold-dim2);border:1px solid var(--border2);border-radius:20px;font-size:0.65rem;color:var(--text3);font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">400+ EXERCISES</div>
+          <div style="text-align:center;padding:6px 14px;background:var(--gold-dim2);border:1px solid var(--border2);border-radius:20px;font-size:0.65rem;color:var(--text3);font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">AI WORKOUT BUILDER</div>
+          <div style="text-align:center;padding:6px 14px;background:var(--gold-dim2);border:1px solid var(--border2);border-radius:20px;font-size:0.65rem;color:var(--text3);font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">CLIENT PROFILES</div>
+          <div style="text-align:center;padding:6px 14px;background:var(--gold-dim2);border:1px solid var(--border2);border-radius:20px;font-size:0.65rem;color:var(--text3);font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">NUTRITION HUB</div>
+          <div style="text-align:center;padding:6px 14px;background:var(--gold-dim2);border:1px solid var(--border2);border-radius:20px;font-size:0.65rem;color:var(--text3);font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">14 WORKOUT STYLES</div>
+        </div>
+        <div class="welcome-grid" style="grid-template-columns:repeat(3,1fr);max-width:720px;">
+          <div class="w-card" data-p="My client has knee pain when squatting. What safe modifications can I make?" data-m="injury" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">🦵</div><div class="w-card-title">Injury Modifications</div><div class="w-card-text">Symptom-based exercise swaps and modifications within scope of practice. Knee, shoulder, back, and more.</div></div>
+          <div class="w-card" data-p="Generate a complete 60-minute NASM OPT Phase 1 beginner resistance training session with warm-up and cool-down." data-m="workout" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">🏋️</div><div class="w-card-title">Workout Generation</div><div class="w-card-text">Complete sessions aligned to NASM OPT, ACE IFT, and EPI models. Sets, reps, tempo, rest, and coaching cues.</div></div>
+          <div class="w-card" data-p="What are the protein targets and nutrition priorities for a GLP-1 client trying to preserve muscle during weight loss?" data-m="nutrition" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">💊</div><div class="w-card-title">GLP-1 Protocols</div><div class="w-card-text">Muscle preservation, protein targets, training modifications, and nutrition for semaglutide and tirzepatide clients.</div></div>
+          <div class="w-card" data-p="Explain the snatch coaching model phases and how to teach a novice lifter step by step." data-m="general" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">🏅</div><div class="w-card-title">Olympic Lifting</div><div class="w-card-text">EPI snatch and clean coaching models, phase progressions, common errors, and technical cues.</div></div>
+          <div class="w-card" data-p="What recovery methods are most effective for athletes? Rank them with protocols including CWI, CWT, and active recovery." data-m="recovery" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">🧊</div><div class="w-card-title">Recovery Science</div><div class="w-card-text">Cold water immersion, contrast therapy, compression, sleep, and active recovery protocols with evidence grades.</div></div>
+          <div class="w-card" data-p="Explain macronutrient targets, meal timing, and supplement recommendations for a fat loss client." data-m="nutrition" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">🥗</div><div class="w-card-title">Nutrition Guidance</div><div class="w-card-text">Macros, meal timing, supplement stacks, GLP-1 nutrition, and scope-of-practice-aware dietary education.</div></div>
+          <div class="w-card" data-p="Build a safe 45-minute resistance training session for a client over 65 with balance and fall prevention focus." data-m="older" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">👥</div><div class="w-card-title">Special Populations</div><div class="w-card-text">55+ clients, post-rehab return, prenatal and postpartum, and youth athlete training guidelines.</div></div>
+          <div class="w-card" data-p="Explain strength and power development: force-velocity curve, motor unit recruitment, and how to train rate of force development." data-m="general" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">⚡</div><div class="w-card-title">Strength and Power</div><div class="w-card-text">Force-velocity curve, motor unit recruitment, complex training, PAP, and periodization for strength sports.</div></div>
+          <div class="w-card" data-p="What are the most important corrective exercise strategies for a client with upper crossed syndrome and forward head posture?" data-m="general" style="padding:1.1rem;"><div class="w-card-icon" style="font-size:1.5rem;">🧘</div><div class="w-card-title">Corrective Exercise</div><div class="w-card-text">OHSA deviations, overactive and underactive muscles, and corrective strategies from NASM CES protocols.</div></div>
         </div>
       </div>
       <div class="messages hidden" id="msgsEl"></div>
@@ -3297,6 +3317,14 @@ function filterPeptides() {
         <div class="cp-fg cp-fg-full">
           <div class="cp-field"><label>Biggest Barrier to Success</label><textarea id="cf-barriers" placeholder="e.g. Travel schedule, family commitments, previous injuries, lack of motivation, diet habits..."></textarea></div>
         </div>
+        <div class="cp-section-label">Training Goals — Ranked by Priority</div>
+        <div class="cp-fg cp-fg-full">
+          <div class="cp-field"><label>Goal #1 (Highest Priority)</label><input type="text" id="cf-goal-rank1" placeholder="e.g. Lose 20 lbs of body fat"></div>
+        </div>
+        <div class="cp-fg">
+          <div class="cp-field"><label>Goal #2</label><input type="text" id="cf-goal-rank2" placeholder="e.g. Build visible muscle definition"></div>
+          <div class="cp-field"><label>Goal #3</label><input type="text" id="cf-goal-rank3" placeholder="e.g. Improve cardiovascular endurance"></div>
+        </div>
         <div class="cp-section-label">Previous Experience & Expectations</div>
         <div class="cp-fg">
           <div class="cp-field"><label>Previous Personal Trainer Experience</label><select id="cf-prev-trainer"><option value="">Select</option><option value="none">Never worked with a trainer</option><option value="some">Some experience (1–5 sessions)</option><option value="moderate">Moderate (weeks to months)</option><option value="extensive">Extensive (1+ years)</option></select></div>
@@ -3416,6 +3444,14 @@ function filterPeptides() {
           <div class="cp-field"><label>Cholesterol (total, if known)</label><input type="text" id="cf-cholesterol" placeholder="e.g. 185 mg/dL"></div>
           <div class="cp-field"><label>Currently on GLP-1 / AOM medication?</label><select id="cf-glp1-med"><option value="">Select</option><option value="no">No</option><option value="semaglutide">Yes — Semaglutide (Ozempic/Wegovy)</option><option value="tirzepatide">Yes — Tirzepatide (Mounjaro/Zepbound)</option><option value="liraglutide">Yes — Liraglutide (Victoza/Saxenda)</option><option value="other_glp1">Yes — Other GLP-1</option></select></div>
         </div>
+        <div class="cp-fg">
+          <div class="cp-field"><label>GLP-1 Current Dose (if applicable)</label><input type="text" id="cf-glp1-dose" placeholder="e.g. 0.5mg weekly, 2.5mg weekly"></div>
+          <div class="cp-field"><label>GLP-1 Start Date</label><input type="date" id="cf-glp1-start"></div>
+        </div>
+        <div class="cp-section-label">Current Supplements</div>
+        <div class="cp-fg cp-fg-full">
+          <div class="cp-field"><label>Current Supplement List (brand and dose if known)</label><textarea id="cf-current-supps" placeholder="e.g. Creatine monohydrate 5g/day, Vitamin D3 2000 IU, whey protein 1-2 scoops daily, fish oil 2g..."></textarea></div>
+        </div>
         <div class="cp-section-label">Injury History</div>
         <div class="cp-checkgroup" id="cf-injuries">
           <span class="cp-check" data-val="knee">Knee</span>
@@ -3431,6 +3467,13 @@ function filterPeptides() {
         </div>
         <div class="cp-fg cp-fg-full" style="margin-top:0.875rem;">
           <div class="cp-field"><label>Injury / Medical Notes (details, restrictions, physician clearance status)</label><textarea id="cf-injury-notes" placeholder="e.g. Right knee meniscus repair 2022 — cleared for exercise, no deep squatting below 90°. Lower back disc herniation — no heavy deadlifts off floor..."></textarea></div>
+        </div>
+        <div class="cp-fg cp-fg-full">
+          <div class="cp-field"><label>Previous Injury List with Dates</label><textarea id="cf-injury-list" placeholder="e.g.&#10;2022-03 — Right knee meniscus repair&#10;2019-08 — Left ankle sprain (Grade 2)&#10;2018-01 — Rotator cuff impingement (right)&#10;2023-11 — Lower back strain"></textarea></div>
+        </div>
+        <div class="cp-fg">
+          <div class="cp-field"><label>Physician Clearance Date</label><input type="date" id="cf-phys-clearance-date"></div>
+          <div class="cp-field"><label>Reassessment Scheduled Date</label><input type="date" id="cf-reassess-sched"></div>
         </div>
         <div class="cp-section-label">Medications</div>
         <div class="cp-fg cp-fg-full">
@@ -3639,6 +3682,15 @@ function filterPeptides() {
         <p class="cp-ai-loading" id="cpAiText">Analyzing client profile...</p>
       </div>
       <div id="cpModalContent"></div>
+      <!-- PROGRESS NOTES -->
+      <div class="cp-detail-section" id="cpProgressNotesSection">
+        <div class="cp-detail-label">Progress Notes</div>
+        <div style="display:flex;gap:8px;margin-bottom:0.75rem;flex-wrap:wrap;">
+          <textarea id="cpNewNote" placeholder="Add session note..." style="flex:1;min-width:200px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);font-family:Barlow,sans-serif;font-size:0.82rem;resize:vertical;min-height:44px;outline:none;"></textarea>
+          <button onclick="addProgressNote()" style="padding:8px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;">+ Add Note</button>
+        </div>
+        <div id="cpNotesDisplay" style="max-height:250px;overflow-y:auto;scrollbar-width:thin;"></div>
+      </div>
     </div>
     <div class="cp-modal-actions">
       <button class="cp-action-btn cp-action-primary" onclick="cpOpenAiChat()">💬 Ask AI About This Client</button>
@@ -5830,8 +5882,14 @@ function cpCollectForm() {
     glucose: document.getElementById('cf-glucose').value,
     cholesterol: document.getElementById('cf-cholesterol').value,
     glp1Med: document.getElementById('cf-glp1-med').value,
+    glp1Dose: document.getElementById('cf-glp1-dose').value,
+    glp1Start: document.getElementById('cf-glp1-start').value,
+    currentSupps: document.getElementById('cf-current-supps').value,
     injuries: cpGetChecked('cf-injuries'),
     injuryNotes: document.getElementById('cf-injury-notes').value,
+    injuryList: document.getElementById('cf-injury-list').value,
+    physClearanceDate: document.getElementById('cf-phys-clearance-date').value,
+    reassessSched: document.getElementById('cf-reassess-sched').value,
     medications: document.getElementById('cf-medications').value,
     ohsaFoot: cpGetChecked('cf-ohsa-foot'),
     ohsaKnee: cpGetChecked('cf-ohsa-knee'),
@@ -5874,6 +5932,9 @@ function cpCollectForm() {
     formatPref: document.getElementById('cf-format-pref').value,
     goalShort: document.getElementById('cf-goal-short').value,
     goalLong: document.getElementById('cf-goal-long').value,
+    goalRank1: document.getElementById('cf-goal-rank1').value,
+    goalRank2: document.getElementById('cf-goal-rank2').value,
+    goalRank3: document.getElementById('cf-goal-rank3').value,
     calorieAwareness: document.getElementById('cf-calories').value,
     mealFrequency: document.getElementById('cf-meals').value,
     breakfast: document.getElementById('cf-breakfast').value,
@@ -5950,8 +6011,14 @@ function cpPopulateForm(c) {
   document.getElementById('cf-glucose').value = c.glucose||'';
   document.getElementById('cf-cholesterol').value = c.cholesterol||'';
   document.getElementById('cf-glp1-med').value = c.glp1Med||'';
+  document.getElementById('cf-glp1-dose').value = c.glp1Dose||'';
+  document.getElementById('cf-glp1-start').value = c.glp1Start||'';
+  document.getElementById('cf-current-supps').value = c.currentSupps||'';
   cpSetChecked('cf-injuries', c.injuries);
   document.getElementById('cf-injury-notes').value = c.injuryNotes||'';
+  document.getElementById('cf-injury-list').value = c.injuryList||'';
+  document.getElementById('cf-phys-clearance-date').value = c.physClearanceDate||'';
+  document.getElementById('cf-reassess-sched').value = c.reassessSched||'';
   document.getElementById('cf-medications').value = c.medications||'';
   cpSetChecked('cf-ohsa-foot', c.ohsaFoot);
   cpSetChecked('cf-ohsa-knee', c.ohsaKnee);
@@ -5987,6 +6054,7 @@ function cpPopulateForm(c) {
   setVal('cf-prev-trainer', c.prevTrainer); setVal('cf-prev-trainer-notes', c.prevTrainerNotes);
   setVal('cf-session-freq', c.sessionFreq); setVal('cf-format-pref', c.formatPref);
   setVal('cf-goal-short', c.goalShort); setVal('cf-goal-long', c.goalLong);
+  setVal('cf-goal-rank1', c.goalRank1); setVal('cf-goal-rank2', c.goalRank2); setVal('cf-goal-rank3', c.goalRank3);
   setVal('cf-calories', c.calorieAwareness); setVal('cf-meals', c.mealFrequency);
   setVal('cf-breakfast', c.breakfast); setVal('cf-nutrition-challenge', c.nutritionChallenge);
   cpSetChecked('cf-allergies', c.allergies); cpSetChecked('cf-recovery-habits', c.recoveryHabits);
@@ -6025,7 +6093,9 @@ function cpResetForm() {
   ['cf-allergies','cf-recovery-habits'].forEach(id => cpSetChecked(id, []));
   ['cf-language','cf-race','cf-emerg-name','cf-emerg-phone','cf-pcp-name','cf-pcp-phone',
    'cf-prev-trainer','cf-prev-trainer-notes','cf-session-freq','cf-format-pref',
-   'cf-goal-short','cf-goal-long','cf-calories','cf-meals','cf-breakfast',
+   'cf-goal-short','cf-goal-long','cf-goal-rank1','cf-goal-rank2','cf-goal-rank3',
+   'cf-glp1-dose','cf-glp1-start','cf-current-supps','cf-injury-list','cf-phys-clearance-date','cf-reassess-sched',
+   'cf-calories','cf-meals','cf-breakfast',
    'cf-nutrition-challenge','cf-clearance','cf-clearance-date','cf-current-pain',
    'cf-pain-detail','cf-family-cvd','cf-family-diabetes','cf-surgical-detail',
    'cf-prenatal-status','cf-ob-clearance','cf-prenatal-notes','cf-sls-left','cf-sls-right',
@@ -6260,6 +6330,9 @@ function viewClient(id) {
   document.getElementById('cpAiText').style.fontStyle = 'italic';
   document.getElementById('cpModal').classList.add('open');
 
+  // Render progress notes
+  if (typeof renderProgressNotes === 'function') renderProgressNotes();
+
   // Generate AI suggestions
   cpGenerateAiSuggestions(c);
 }
@@ -6320,6 +6393,63 @@ function closeCpModal() { document.getElementById('cpModal').classList.remove('o
 window.closeCpModal = closeCpModal;
 document.getElementById('cpModal').addEventListener('click', function(e){if(e.target===this)closeCpModal();});
 document.getElementById('cpFormOverlay').addEventListener('click', function(e){if(e.target===this)closeClientForm();});
+
+/* ══ PROGRESS NOTES ══ */
+function getProgressNotes(clientId) {
+  var all = JSON.parse(localStorage.getItem('drfitness_progress_notes') || '{}');
+  return all[clientId] || [];
+}
+
+function saveProgressNotes(clientId, notes) {
+  var all = JSON.parse(localStorage.getItem('drfitness_progress_notes') || '{}');
+  all[clientId] = notes;
+  localStorage.setItem('drfitness_progress_notes', JSON.stringify(all));
+}
+
+function renderProgressNotes() {
+  if (!cpViewingClient) return;
+  var notes = getProgressNotes(cpViewingClient.id || cpViewingClient.fname);
+  var display = document.getElementById('cpNotesDisplay');
+  if (!display) return;
+  if (notes.length === 0) {
+    display.innerHTML = '<p style="font-size:0.78rem;color:var(--text3);font-style:italic;">No progress notes yet. Add session notes above.</p>';
+    return;
+  }
+  display.innerHTML = notes.map(function(n, i) {
+    return '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem 1rem;margin-bottom:6px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+      '<span style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;color:var(--gold);">' + n.date + '</span>' +
+      '<button onclick="deleteProgressNote(' + i + ')" style="background:transparent;border:none;color:var(--text3);font-size:0.7rem;cursor:pointer;">✕</button>' +
+      '</div>' +
+      '<p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">' + n.text.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>' +
+      '</div>';
+  }).join('');
+}
+
+window.addProgressNote = function() {
+  if (!cpViewingClient) return;
+  var ta = document.getElementById('cpNewNote');
+  var text = ta.value.trim();
+  if (!text) return;
+  var clientId = cpViewingClient.id || cpViewingClient.fname;
+  var notes = getProgressNotes(clientId);
+  notes.unshift({
+    date: new Date().toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+    text: text
+  });
+  saveProgressNotes(clientId, notes);
+  ta.value = '';
+  renderProgressNotes();
+};
+
+window.deleteProgressNote = function(idx) {
+  if (!cpViewingClient) return;
+  var clientId = cpViewingClient.id || cpViewingClient.fname;
+  var notes = getProgressNotes(clientId);
+  notes.splice(idx, 1);
+  saveProgressNotes(clientId, notes);
+  renderProgressNotes();
+};
 
 function cpBuildClientContext(c) {
   if (!c) return '';
