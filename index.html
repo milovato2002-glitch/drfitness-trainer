@@ -285,6 +285,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <button class="nav-tab" data-tab="plbb">🏆 PL &amp; BB</button>
   <button class="nav-tab" data-tab="youtube">📺 Resources</button>
   <button class="nav-tab" data-tab="peptides">🔬 Peptides</button>
+  <button class="nav-tab" data-tab="resources">🔗 Resources</button>
 </div>
 
 <main>
@@ -1802,6 +1803,10 @@ function buildSuppStack() {
       <p style="font-size:0.82rem;color:var(--text2);line-height:1.65;"><strong style="color:var(--text);">Personal trainers cannot recommend, prescribe, or guide clients on peptide use.</strong> This information is strictly for trainer education — to understand what clients may be asking about and when to refer to a physician. All peptide decisions must be made under physician supervision. Most peptides listed here are <strong style="color:var(--text);">not FDA-approved for human use</strong> and are classified as research chemicals.</p>
     </div>
 
+    <div style="margin-bottom:1.25rem;">
+      <input type="text" id="peptideSearch" placeholder="Search peptides by name..." oninput="filterPeptides()" style="width:100%;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+
     <div class="accord"><button class="accord-hdr open" onclick="tog(this)">What Are Peptides? — The Basics <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
       <div class="accord-body open">
         <span class="sub-lbl">Definition</span>Peptides are short chains of amino acids (2–50) that act as signaling molecules throughout the body. Many naturally occurring hormones — including insulin and GLP-1 — are peptides. The fitness and wellness industry uses the term specifically for <strong>synthetic research peptides</strong> being explored for recovery, performance, and anti-aging.
@@ -1862,9 +1867,171 @@ function buildSuppStack() {
       </div>
     </div>
 
+    <!-- NEW PEPTIDE CARDS -->
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">Sermorelin — GHRH Analogue <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Synthetic analogue of growth hormone-releasing hormone (GHRH). A 29-amino-acid peptide that stimulates the pituitary to produce and release natural growth hormone. Was previously FDA-approved for GH-deficiency testing.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Stimulates the pituitary to release endogenous GH in a pulsatile pattern</li><li>More physiological than exogenous GH — preserves natural feedback loops</li><li>Half-life approximately 10-20 minutes</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Improved sleep quality and deeper sleep</li><li>Better body composition (fat loss + lean mass)</li><li>Enhanced recovery between sessions</li><li>Anti-aging benefits (skin, hair, energy)</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Some human data exists from GH-deficiency studies</li><li>FDA removed approval in 2008 — not currently FDA-approved for any indication</li><li>Anti-aging clinic use is off-label and unregulated</li><li>Long-term safety data is limited</li><li>WADA banned substance (S2 — Peptide Hormones)</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"Sermorelin is a peptide that stimulates your body to produce its own growth hormone. It was once used medically but is no longer FDA-approved. If you are interested, that is a conversation for your physician, not your trainer."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">AOD-9604 — Anti-Obesity Drug Fragment <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Modified fragment of human growth hormone (amino acids 177-191). Originally developed by Monash University as a potential anti-obesity treatment. The fragment responsible for fat mobilization without the growth-promoting effects.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Stimulates lipolysis (fat breakdown) similar to natural GH</li><li>Inhibits lipogenesis (fat storage)</li><li>Does not affect blood sugar or tissue growth (unlike full GH)</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Targeted fat loss</li><li>No effect on appetite or blood sugar</li><li>Safer than full growth hormone</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Phase 2 clinical trials showed no significant weight loss vs placebo</li><li>Development was <strong>abandoned</strong> after clinical trial failure</li><li>Not FDA-approved for any indication</li><li>Despite clinical failure, widely promoted by wellness clinics</li><li>WADA status: S0 — Non-Approved Substance</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"AOD-9604 was actually tested in human clinical trials for weight loss and it did not work better than placebo. The company stopped developing it. That is important context if you are considering it. Your doctor can help you evaluate the evidence."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">Hexarelin — Growth Hormone Secretagogue <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Synthetic hexapeptide growth hormone secretagogue. One of the most potent GH-releasing peptides. Stimulates GH release through the ghrelin receptor (GHS-R).
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Binds ghrelin receptor to stimulate GH release</li><li>Produces strongest acute GH spike among GHRPs</li><li>Also increases cortisol and prolactin (unlike Ipamorelin)</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Significant muscle gain and fat loss</li><li>Enhanced recovery and joint healing</li><li>Improved sleep quality</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Potent GH releaser but <strong>desensitizes rapidly</strong> — effects diminish within weeks</li><li>Raises cortisol and prolactin (undesirable side effects)</li><li>Not FDA-approved</li><li>WADA banned (S2 category)</li><li>Limited human safety data for long-term use</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"Hexarelin is one of the stronger growth hormone-releasing peptides, but it loses effectiveness quickly and has side effects that Ipamorelin does not. This is physician territory — I cannot guide you on this."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">GHRP-2 — Growth Hormone Releasing Peptide 2 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Synthetic growth hormone releasing peptide that acts on the ghrelin receptor. One of the earliest GHRPs developed. Stimulates both GH and appetite.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Activates the ghrelin receptor in the pituitary</li><li>Stimulates significant GH release</li><li>Also stimulates appetite (ghrelin = hunger hormone)</li><li>Raises cortisol and prolactin moderately</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Muscle growth and recovery</li><li>Fat loss (despite increased appetite)</li><li>Better sleep quality</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Has some human pharmacokinetic data</li><li>Appetite stimulation can be counterproductive for fat loss clients</li><li>Cortisol and prolactin elevation is a concern</li><li>Not FDA-approved for any indication</li><li>WADA banned (S2 category)</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"GHRP-2 stimulates growth hormone but also significantly increases appetite, which may work against your fat loss goals. Your doctor can discuss whether this makes sense for your situation."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">GHRP-6 — Growth Hormone Releasing Peptide 6 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>One of the original growth hormone releasing peptides. A 28-amino-acid peptide that strongly activates the ghrelin receptor. Known for causing the most intense hunger response of any GHRP.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Strong ghrelin receptor activation</li><li>Potent GH release but also strong cortisol and prolactin increase</li><li>Extremely potent appetite stimulation</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Muscle mass gains</li><li>Recovery and injury healing</li><li>Improved sleep</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Oldest GHRP — more data available but largely superseded by Ipamorelin</li><li>Intense hunger makes it impractical for fat loss clients</li><li>More side effects than newer alternatives (cortisol, prolactin, appetite)</li><li>Not FDA-approved</li><li>WADA banned (S2 category)</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"GHRP-6 is an older growth hormone peptide that causes very strong hunger — which could significantly interfere with your nutrition plan. Newer peptides have fewer side effects. This is a conversation for your physician."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">PT-141 (Bremelanotide) — Melanocortin Receptor Agonist <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Synthetic peptide that acts on melanocortin receptors in the brain. Originally developed from Melanotan II. FDA-approved as Vyleesi for hypoactive sexual desire disorder (HSDD) in premenopausal women.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Activates melanocortin-4 receptors (MC4R) in the central nervous system</li><li>Works on sexual arousal pathways in the brain — not vascular like PDE5 inhibitors</li><li>May also affect appetite regulation (MC4R pathway)</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Enhanced sexual function and desire</li><li>Improved libido</li><li>Some claim tanning effects (melanocortin cross-reactivity)</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li><strong>FDA-approved as Vyleesi</strong> for HSDD in women — one of few approved peptides</li><li>Common side effects: nausea (40%), flushing, headache</li><li>Not approved for men — off-label use in anti-aging clinics</li><li>Not related to training or performance</li><li>WADA status: Not specifically listed but melanocortin agonists may fall under S0</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"PT-141 is actually FDA-approved for a specific medical condition in women. It has nothing to do with training or performance. If this is something you are exploring, that is a conversation with your doctor."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">Epithalon — Telomerase Activator <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Synthetic tetrapeptide (4 amino acids) based on the natural Epithalamin peptide produced by the pineal gland. Developed by Russian scientist Vladimir Khavinson. Proposed as an anti-aging peptide that activates telomerase.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Activates telomerase — the enzyme that maintains telomere length</li><li>Telomere shortening is associated with cellular aging</li><li>May regulate melatonin production from the pineal gland</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Anti-aging and longevity benefits</li><li>Better sleep through melatonin regulation</li><li>Cellular rejuvenation</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Most research is from Russian labs — limited peer review in Western journals</li><li>Animal studies show interesting telomere effects but no human clinical trials</li><li>Telomerase activation carries theoretical cancer risk (cancer cells also activate telomerase)</li><li>Not FDA-approved</li><li>WADA status: S0 — Non-Approved Substance</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"Epithalon is promoted as an anti-aging peptide, but the research is very preliminary — mostly from animal studies. There is a theoretical cancer risk with telomerase activation. Definitely a physician conversation if you are considering it."
+      </div>
+    </div>
+
+    <div class="accord peptide-card"><button class="accord-hdr" onclick="tog(this)">LL-37 — Antimicrobial Peptide <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <span class="sub-lbl">What It Is</span>Human cathelicidin antimicrobial peptide. A 37-amino-acid peptide naturally produced by the immune system as a defense against bacteria, viruses, and fungi. The synthetic version is used in wellness clinics for immune support.
+        <span class="sub-lbl">Proposed Mechanism</span><ul><li>Directly kills bacteria by disrupting their cell membranes</li><li>Modulates immune response and inflammation</li><li>Promotes wound healing and tissue repair</li><li>Anti-biofilm properties</li></ul>
+        <span class="sub-lbl">What Clients Claim</span><ul><li>Enhanced immune function</li><li>Faster recovery from illness</li><li>Gut health improvement</li><li>Anti-inflammatory effects</li></ul>
+        <span class="sub-lbl">Science Reality</span><ul><li>Well-studied as a naturally occurring immune peptide</li><li>Synthetic administration in humans is NOT well studied</li><li>Immune system modulation can have unpredictable effects</li><li>Not FDA-approved for therapeutic use</li><li>Quality control of synthetic LL-37 is a significant concern</li><li>WADA status: Not specifically listed but likely falls under S0</li></ul>
+        <span class="sub-lbl">Trainer Talking Points</span>"LL-37 is actually a natural part of your immune system. The synthetic version being sold in clinics is a different story — we do not have clinical trial data for injecting it. Please discuss with your physician if you are considering this."
+      </div>
+    </div>
+
   </div>
 </div>
 
+<script>
+function filterPeptides() {
+  var query = document.getElementById('peptideSearch').value.toLowerCase();
+  var cards = document.querySelectorAll('[data-panel="peptides"] .accord');
+  cards.forEach(function(card) {
+    var text = card.textContent.toLowerCase();
+    card.style.display = text.indexOf(query) !== -1 ? '' : 'none';
+  });
+}
+</script>
+
+<!-- ══ RESOURCES & LINKS ══ -->
+<div class="panel" data-panel="resources">
+  <div class="ref-panel">
+    <div class="ref-header"><h2>🔗 Resources and Links</h2><p>Curated external resources for trainer professional development, client education, and evidence-based practice. All links open in a new tab.</p></div>
+
+    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">🥗 Nutrition Databases <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body open">
+        <div class="cards-grid">
+          <div class="ref-card"><h3>USDA FoodData Central</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Official US government food composition database. The gold standard for accurate nutrient data on any food.</p><a href="https://fdc.nal.usda.gov" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ fdc.nal.usda.gov</a></div>
+          <div class="ref-card"><h3>Cronometer</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Precise nutrition tracking app with micronutrient detail. Best for clients who want comprehensive nutrient analysis.</p><a href="https://cronometer.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ cronometer.com</a></div>
+          <div class="ref-card"><h3>MyFitnessPal</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Most popular food tracking app. Massive food database, barcode scanner, and macro tracking. Best for general client use.</p><a href="https://www.myfitnesspal.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ myfitnesspal.com</a></div>
+          <div class="ref-card"><h3>Examine.com</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Independent supplement and nutrition research analysis. Unbiased evidence reviews — the best resource for supplement questions.</p><a href="https://examine.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ examine.com</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">🔢 Calorie Calculators <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <div class="cards-grid">
+          <div class="ref-card"><h3>NASM Calorie Calculator</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Official NASM calorie and macro calculator aligned with their certification curriculum.</p><a href="https://www.nasm.org/resources/calorie-calculator" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ nasm.org/resources/calorie-calculator</a></div>
+          <div class="ref-card"><h3>ACE Calorie Calculator</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">American Council on Exercise calorie needs calculator. Uses Mifflin-St Jeor equation with activity multipliers.</p><a href="https://www.acefitness.org/resources/everyone/tools-calculators/calorie-calculator" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ acefitness.org calorie calculator</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">📚 Research Databases <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <div class="cards-grid">
+          <div class="ref-card"><h3>PubMed</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">NIH database of biomedical research. Free access to abstracts and many full-text articles. The go-to for exercise and nutrition science.</p><a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ pubmed.ncbi.nlm.nih.gov</a></div>
+          <div class="ref-card"><h3>Google Scholar</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Broad academic search engine covering journals, theses, and conference papers across all disciplines.</p><a href="https://scholar.google.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ scholar.google.com</a></div>
+          <div class="ref-card"><h3>NSCA Research</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">National Strength and Conditioning Association research portal. JSCR journal and position statements on training science.</p><a href="https://www.nsca.com/education/articles/" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ nsca.com</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">🎓 Certification Bodies <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <div class="cards-grid">
+          <div class="ref-card"><h3>NASM</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">National Academy of Sports Medicine. OPT model, corrective exercise, and performance enhancement specializations.</p><a href="https://www.nasm.org" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ nasm.org</a></div>
+          <div class="ref-card"><h3>ACE</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">American Council on Exercise. IFT model, health coaching, and behavior change certifications.</p><a href="https://www.acefitness.org" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ acefitness.org</a></div>
+          <div class="ref-card"><h3>ISSA</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">International Sports Sciences Association. Comprehensive personal training and specialist certifications.</p><a href="https://www.issaonline.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ issaonline.com</a></div>
+          <div class="ref-card"><h3>NSCA</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">National Strength and Conditioning Association. CSCS and NSCA-CPT certifications. Research-driven strength and conditioning.</p><a href="https://www.nsca.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ nsca.com</a></div>
+          <div class="ref-card"><h3>USAPL</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">USA Powerlifting. Drug-tested powerlifting federation. Competition rules, records, and meet scheduling.</p><a href="https://www.usapowerlifting.com" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ usapowerlifting.com</a></div>
+          <div class="ref-card"><h3>USPA</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">United States Powerlifting Association. Multi-ply and raw divisions. Competition information and records.</p><a href="https://www.uspa.net" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ uspa.net</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">🏛️ Government Health Resources <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <div class="cards-grid">
+          <div class="ref-card"><h3>CDC Physical Activity Guidelines</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Official US physical activity guidelines for Americans. Minimum recommendations by age group and population.</p><a href="https://www.cdc.gov/physical-activity-basics/guidelines/index.html" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ cdc.gov physical activity</a></div>
+          <div class="ref-card"><h3>NIH Exercise Resources</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">National Institutes of Health exercise and fitness research, fact sheets, and evidence summaries.</p><a href="https://www.nih.gov/health-information/exercise-physical-fitness" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ nih.gov exercise</a></div>
+          <div class="ref-card"><h3>ACSM Guidelines</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">American College of Sports Medicine. Exercise testing, prescription guidelines, and position stands on training science.</p><a href="https://www.acsm.org/education-resources/trending-topics-resources" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ acsm.org</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accord"><button class="accord-hdr" onclick="tog(this)">📖 Client Education Resources <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="accord-body">
+        <div class="cards-grid">
+          <div class="ref-card"><h3>MedlinePlus — Exercise</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">NIH consumer-friendly health information. Great for sharing with clients who want to read more about exercise benefits.</p><a href="https://medlineplus.gov/exerciseandphysicalfitness.html" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ medlineplus.gov exercise</a></div>
+          <div class="ref-card"><h3>Mayo Clinic — Fitness</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Evidence-based fitness articles written for the general public. Excellent client education resource for common questions.</p><a href="https://www.mayoclinic.org/healthy-lifestyle/fitness" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ mayoclinic.org fitness</a></div>
+          <div class="ref-card"><h3>Harvard Health — Exercise</h3><p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">Harvard Medical School fitness and exercise articles. Research-backed, clearly written health and fitness guidance.</p><a href="https://www.health.harvard.edu/topics/exercise-and-fitness" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none;">→ health.harvard.edu fitness</a></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ══ WORKOUT BUILDER ══ -->
 <div class="panel" data-panel="workout">
