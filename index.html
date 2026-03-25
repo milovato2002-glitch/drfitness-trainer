@@ -1630,6 +1630,10 @@ function generateHandout() {
 .badge-rehab{color:var(--teal);border-color:rgba(45,212,191,0.4);background:rgba(45,212,191,0.08);}
 .badge-55{color:#a78bfa;border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);}
 .badge-glp{color:var(--amber);border-color:rgba(244,162,97,0.4);background:rgba(244,162,97,0.08);}
+.badge-sm{color:#f97316;border-color:rgba(249,115,22,0.4);background:rgba(249,115,22,0.08);}
+.badge-hyrox{color:#22d3ee;border-color:rgba(34,211,238,0.4);background:rgba(34,211,238,0.08);}
+.badge-ocr{color:#84cc16;border-color:rgba(132,204,22,0.4);background:rgba(132,204,22,0.08);}
+.badge-pre{color:#f472b6;border-color:rgba(244,114,182,0.4);background:rgba(244,114,182,0.08);}
 .wl-card-meta{font-size:0.75rem;color:var(--text3);margin-bottom:0.5rem;}
 .wl-card-desc{font-size:0.78rem;color:var(--text2);line-height:1.5;}
 .wl-card-footer{display:flex;gap:6px;margin-top:0.75rem;flex-wrap:wrap;}
@@ -1698,6 +1702,10 @@ function generateHandout() {
     <button class="wl-tab" data-wl="rehab">Post-Rehab</button>
     <button class="wl-tab" data-wl="older">55+ Functional</button>
     <button class="wl-tab" data-wl="glp">GLP-1 / AOM</button>
+    <button class="wl-tab" data-wl="strongman">Strongman</button>
+    <button class="wl-tab" data-wl="hyrox">Hyrox</button>
+    <button class="wl-tab" data-wl="ocr">OCR</button>
+    <button class="wl-tab" data-wl="prenatal">Prenatal / Postpartum</button>
   </div>
 
   <!-- ═══ BODYBUILDING ═══ -->
@@ -2124,6 +2132,165 @@ function generateHandout() {
       <div class="ex-card"><h4>Pre-Session Check-In</h4><div class="ex-meta">Every single session — no exceptions</div><div class="ex-cue">Ask: energy level, nausea, last meal timing. Adjust intensity accordingly. Never push through significant nausea</div></div>
       <div class="ex-card"><h4>OPT Phase Guidance</h4><div class="ex-meta">Phase selection for GLP-1 clients</div><div class="ex-cue">Beginners: Phase 1–2. Intermediate: Phase 2–3. Focus on compound movements — maximize muscle stimulus per session</div></div>
       <div class="ex-card"><h4>Progress Metrics</h4><div class="ex-meta">Track beyond the scale</div><div class="ex-cue">Track strength performance, muscle measurements, and body composition — not just scale weight. Muscle gain + fat loss can mask scale progress</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ STRONGMAN ═══ -->
+  <div class="wl-content" data-wl="strongman">
+    <div class="wl-section-title">Pre-Written Sessions</div>
+    <div class="wl-cards">
+      <div class="wl-card" onclick="openSession('sm1')">
+        <div class="wl-card-top"><div class="wl-card-title">Strongman Foundations — Full Body</div><span class="wl-card-badge badge-sm">STRONGMAN</span></div>
+        <div class="wl-card-meta">75 min · Intermediate · Full Gym + Implements</div>
+        <div class="wl-card-desc">Log clean and press, deadlift, farmers carry, atlas stone loading. Builds foundational event strength and grip endurance.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Barbells</span><span class="wl-tag">Implements</span><span class="wl-tag">Carries</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('sm2')">
+        <div class="wl-card-top"><div class="wl-card-title">Moving Events Day — Carry and Load</div><span class="wl-card-badge badge-sm">STRONGMAN</span></div>
+        <div class="wl-card-meta">60 min · Intermediate-Advanced · Implements Required</div>
+        <div class="wl-card-desc">Farmers walk, yoke carry, sandbag loading, sled push and pull. Train event-specific conditioning and moving under heavy load.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Yoke</span><span class="wl-tag">Farmers</span><span class="wl-tag">Sled</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('sm3')">
+        <div class="wl-card-top"><div class="wl-card-title">Overhead and Pressing Strength</div><span class="wl-card-badge badge-sm">STRONGMAN</span></div>
+        <div class="wl-card-meta">70 min · Intermediate · Barbells + Log</div>
+        <div class="wl-card-desc">Log press, axle press, push press, Z press. Build overhead pressing power essential for strongman competition.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Log</span><span class="wl-tag">Axle</span><span class="wl-tag">Barbells</span></div>
+      </div>
+    </div>
+    <div class="wl-section-title">Weekly Program Templates</div>
+    <div class="prog-grid">
+      <div class="prog-card"><h4>4-Day Strongman Split</h4><div class="days">4 days/week · Intermediate-Advanced</div><div class="prog-day"><strong>Day 1:</strong> Overhead Press + Upper Accessories</div><div class="prog-day"><strong>Day 2:</strong> Deadlift + Back + Grip</div><div class="prog-day"><strong>Day 3:</strong> Moving Events — Carries, Sled, Loading</div><div class="prog-day"><strong>Day 4:</strong> Squat + Lower Accessories</div></div>
+      <div class="prog-card"><h4>3-Day Beginner Strongman</h4><div class="days">3 days/week · Beginner</div><div class="prog-day"><strong>Day 1:</strong> Squat + Press + Carry</div><div class="prog-day"><strong>Day 2:</strong> Deadlift + Row + Grip Work</div><div class="prog-day"><strong>Day 3:</strong> Full Event Practice Day</div></div>
+    </div>
+    <div class="wl-section-title">Key Exercises and Coaching Cues</div>
+    <div class="ex-grid">
+      <div class="ex-card"><h4>Log Clean and Press</h4><div class="ex-meta">Full Body · Strongman Staple · 5x3</div><div class="ex-cue">Roll log into lap, hips under, clean to chest shelf. Dip-drive press overhead. Elbows stay neutral grip</div></div>
+      <div class="ex-card"><h4>Farmers Walk</h4><div class="ex-meta">Grip · Core · Conditioning · 4x50m</div><div class="ex-cue">Neutral grip, shoulders packed down, short fast steps. Breathe in rhythm. Do not let handles drift forward</div></div>
+      <div class="ex-card"><h4>Atlas Stone Load</h4><div class="ex-meta">Full Body · Event · 5x1-3</div><div class="ex-cue">Lap the stone first — wedge fingers under, round back is expected. Hip extension to chest, then roll onto platform</div></div>
+      <div class="ex-card"><h4>Yoke Walk</h4><div class="ex-meta">Full Body · Stability · 4x30m</div><div class="ex-cue">Brace hard before first step. Short quick steps. Look straight ahead. Keep yoke from swinging side to side</div></div>
+      <div class="ex-card"><h4>Axle Deadlift</h4><div class="ex-meta">Posterior Chain · Grip · 4x5</div><div class="ex-cue">Thicker bar demands double overhand or straps. Hook grip if possible. Brace like a conventional deadlift</div></div>
+      <div class="ex-card"><h4>Sled Push / Pull</h4><div class="ex-meta">Conditioning · Leg Drive · 5x20m</div><div class="ex-cue">Low body angle on push — drive through toes. Pull with hand-over-hand — sit back and drive with legs not arms</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ HYROX ═══ -->
+  <div class="wl-content" data-wl="hyrox">
+    <div class="wl-section-title">Pre-Written Sessions</div>
+    <div class="wl-cards">
+      <div class="wl-card" onclick="openSession('hx1')">
+        <div class="wl-card-top"><div class="wl-card-title">Hyrox Race Simulation — Full Event</div><span class="wl-card-badge badge-hyrox">HYROX</span></div>
+        <div class="wl-card-meta">75 min · Intermediate-Advanced · Full Gym + Sled</div>
+        <div class="wl-card-desc">Simulates all 8 Hyrox stations with 1km run segments. SkiErg, sled push, sled pull, burpee broad jump, row, farmers carry, lunges, wall balls.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Full Sim</span><span class="wl-tag">Cardio Equipment</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('hx2')">
+        <div class="wl-card-top"><div class="wl-card-title">Hyrox Station Strength Builder</div><span class="wl-card-badge badge-hyrox">HYROX</span></div>
+        <div class="wl-card-meta">60 min · All Levels · Full Gym</div>
+        <div class="wl-card-desc">Focused strength work for Hyrox stations. Heavy sled, wall ball technique, lunge endurance, and grip work for farmers carry.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Sled</span><span class="wl-tag">Wall Balls</span><span class="wl-tag">Lunges</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('hx3')">
+        <div class="wl-card-top"><div class="wl-card-title">Hyrox Conditioning — Run and Work Intervals</div><span class="wl-card-badge badge-hyrox">HYROX</span></div>
+        <div class="wl-card-meta">50 min · All Levels · Treadmill + Minimal Equipment</div>
+        <div class="wl-card-desc">Alternating 400m-800m runs with station work. Build the run-to-work transition that determines Hyrox race performance.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Treadmill</span><span class="wl-tag">Transitions</span></div>
+      </div>
+    </div>
+    <div class="wl-section-title">Weekly Program Templates</div>
+    <div class="prog-grid">
+      <div class="prog-card"><h4>4-Day Hyrox Prep (8 weeks out)</h4><div class="days">4 days/week · Intermediate</div><div class="prog-day"><strong>Day 1:</strong> Strength — Squat, Lunge, Sled Focus</div><div class="prog-day"><strong>Day 2:</strong> Run — Tempo 5-8km at race pace</div><div class="prog-day"><strong>Day 3:</strong> Station Work — All 8 events practice</div><div class="prog-day"><strong>Day 4:</strong> Long Run + Mini Sim (4 stations)</div></div>
+      <div class="prog-card"><h4>3-Day Hyrox Maintenance</h4><div class="days">3 days/week · All levels</div><div class="prog-day"><strong>Day 1:</strong> Strength + Carries</div><div class="prog-day"><strong>Day 2:</strong> Run Intervals + Wall Balls</div><div class="prog-day"><strong>Day 3:</strong> Full or Half Race Simulation</div></div>
+    </div>
+    <div class="wl-section-title">Key Exercises and Coaching Cues</div>
+    <div class="ex-grid">
+      <div class="ex-card"><h4>Wall Ball</h4><div class="ex-meta">Full Body · Hyrox Staple · 100 reps</div><div class="ex-cue">Full squat, drive through heels, release ball at full extension. Catch and absorb into next squat. Rhythm is everything</div></div>
+      <div class="ex-card"><h4>Sled Push (Hyrox)</h4><div class="ex-meta">Legs · Conditioning · 50m standard</div><div class="ex-cue">Low angle, short powerful steps, arms extended. Do not stand up tall — lose all leverage. Drive from hip flexion</div></div>
+      <div class="ex-card"><h4>Sled Pull (Hyrox)</h4><div class="ex-meta">Upper Body · Grip · 50m standard</div><div class="ex-cue">Sit back, hand-over-hand rope pull. Legs drive the pull — arms guide the rope. Fast hands win</div></div>
+      <div class="ex-card"><h4>Burpee Broad Jump</h4><div class="ex-meta">Full Body · 80m standard</div><div class="ex-cue">Chest to ground, snap hips up, jump forward as far as possible. Pacing is key — start controlled</div></div>
+      <div class="ex-card"><h4>Farmers Carry (Hyrox)</h4><div class="ex-meta">Grip · Core · 200m standard</div><div class="ex-cue">Grip hard, shoulders down, quick steps. If grip fails, set down briefly and reset. Chalk helps</div></div>
+      <div class="ex-card"><h4>Sandbag Lunges</h4><div class="ex-meta">Legs · Core · 200m standard</div><div class="ex-cue">Sandbag on shoulder, tall posture, controlled step. Alternate legs. Controlled knee touch — do not slam</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ OCR ═══ -->
+  <div class="wl-content" data-wl="ocr">
+    <div class="wl-section-title">Pre-Written Sessions</div>
+    <div class="wl-cards">
+      <div class="wl-card" onclick="openSession('ocr1')">
+        <div class="wl-card-top"><div class="wl-card-title">OCR Grip and Upper Body Endurance</div><span class="wl-card-badge badge-ocr">OCR</span></div>
+        <div class="wl-card-meta">60 min · Intermediate · Full Gym + Pull-Up Bar</div>
+        <div class="wl-card-desc">Dead hangs, rope climbs, monkey bar simulation, pull-up variations, grip endurance circuits. Upper body staying power for obstacle completion.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Pull-Up Bar</span><span class="wl-tag">Rope</span><span class="wl-tag">Grip</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('ocr2')">
+        <div class="wl-card-top"><div class="wl-card-title">OCR Trail Run and Obstacle Conditioning</div><span class="wl-card-badge badge-ocr">OCR</span></div>
+        <div class="wl-card-meta">60 min · All Levels · Outdoor or Gym</div>
+        <div class="wl-card-desc">Run intervals mixed with bodyweight obstacles. Box jumps, bear crawls, wall climbs, burpees, and carry variations.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Bodyweight</span><span class="wl-tag">Running</span><span class="wl-tag">Carries</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('ocr3')">
+        <div class="wl-card-top"><div class="wl-card-title">OCR Strength Base — Full Body</div><span class="wl-card-badge badge-ocr">OCR</span></div>
+        <div class="wl-card-meta">60 min · Beginner-Intermediate · Full Gym</div>
+        <div class="wl-card-desc">Deadlift, pull-ups, overhead press, loaded carries, core anti-rotation. The strength foundation that makes obstacles possible.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Barbells</span><span class="wl-tag">Pull-Up Bar</span><span class="wl-tag">DBs</span></div>
+      </div>
+    </div>
+    <div class="wl-section-title">Weekly Program Templates</div>
+    <div class="prog-grid">
+      <div class="prog-card"><h4>4-Day OCR Prep (12 weeks)</h4><div class="days">4 days/week · Intermediate</div><div class="prog-day"><strong>Day 1:</strong> Strength — Deadlift, Squats, Press</div><div class="prog-day"><strong>Day 2:</strong> Trail Run — 5-10km with hills</div><div class="prog-day"><strong>Day 3:</strong> Grip + Upper Body Endurance</div><div class="prog-day"><strong>Day 4:</strong> Long Run + Obstacle Simulation</div></div>
+      <div class="prog-card"><h4>3-Day OCR Beginner</h4><div class="days">3 days/week · Beginner</div><div class="prog-day"><strong>Day 1:</strong> Full Body Strength + Grip</div><div class="prog-day"><strong>Day 2:</strong> Run Conditioning (intervals)</div><div class="prog-day"><strong>Day 3:</strong> Obstacle Practice + Carries</div></div>
+    </div>
+    <div class="wl-section-title">Key Exercises and Coaching Cues</div>
+    <div class="ex-grid">
+      <div class="ex-card"><h4>Dead Hang (Timed)</h4><div class="ex-meta">Grip Endurance · Foundation · 4x max hold</div><div class="ex-cue">Full grip, shoulders packed, breathe steadily. Target 60+ seconds. If you cannot hang, you cannot do monkey bars</div></div>
+      <div class="ex-card"><h4>Rope Climb</h4><div class="ex-meta">Full Body · Grip · OCR Essential</div><div class="ex-cue">J-hook or S-wrap foot technique. Pull with arms, clamp with feet, stand up on rope. Do not arm-only climb</div></div>
+      <div class="ex-card"><h4>Bear Crawl</h4><div class="ex-meta">Core · Shoulders · OCR Obstacle</div><div class="ex-cue">Knees 1 inch off ground, opposite hand and foot move together. Keep hips low and level. Build to 50m continuous</div></div>
+      <div class="ex-card"><h4>Wall Climb / Box Step-Over</h4><div class="ex-meta">Full Body · Power · OCR Event</div><div class="ex-cue">Explosive hip drive to get chest above wall. Hook a heel, roll over. Practice at low heights first</div></div>
+      <div class="ex-card"><h4>Sandbag Carry (Shoulder)</h4><div class="ex-meta">Core · Legs · Loaded Carry</div><div class="ex-cue">Clean to shoulder, stabilize with one arm, walk with purpose. Switch shoulders at halfway. Keep a tight brace</div></div>
+      <div class="ex-card"><h4>Spear Throw Practice</h4><div class="ex-meta">Skill · Coordination · Spartan Event</div><div class="ex-cue">Overhead throw like a javelin — step, rotate, release above shoulder height. Practice with PVC pipe first</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ PRENATAL / POSTPARTUM ═══ -->
+  <div class="wl-content" data-wl="prenatal">
+    <div style="background:rgba(244,114,182,0.08);border:1px solid rgba(244,114,182,0.25);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--text2);line-height:1.65;">
+      <strong style="color:var(--text);">⚕️ Medical Clearance Required:</strong> All prenatal and postpartum clients must have written clearance from their OB/GYN before beginning or continuing exercise. Trainers must stay within scope of practice and refer to pelvic floor physical therapy when appropriate.
+    </div>
+    <div class="wl-section-title">Pre-Written Sessions</div>
+    <div class="wl-cards">
+      <div class="wl-card" onclick="openSession('pre1')">
+        <div class="wl-card-top"><div class="wl-card-title">Prenatal Strength — 2nd Trimester Safe</div><span class="wl-card-badge badge-pre">PRENATAL</span></div>
+        <div class="wl-card-meta">45 min · All Levels · Full Gym · OB Cleared</div>
+        <div class="wl-card-desc">Modified compound movements, pelvic floor activation, core stability without crunches. Goblet squats, hip hinge, incline press, banded walks.</div>
+        <div class="wl-card-footer"><span class="wl-tag">OB Cleared</span><span class="wl-tag">Modified</span><span class="wl-tag">Pelvic Floor</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('pre2')">
+        <div class="wl-card-top"><div class="wl-card-title">Prenatal Low Impact — 3rd Trimester</div><span class="wl-card-badge badge-pre">PRENATAL</span></div>
+        <div class="wl-card-meta">35 min · All Levels · Minimal Equipment · OB Cleared</div>
+        <div class="wl-card-desc">Gentle resistance, breathing exercises, hip and back relief movements. Focus on comfort, pelvic floor, and maintaining activity safely.</div>
+        <div class="wl-card-footer"><span class="wl-tag">Low Impact</span><span class="wl-tag">Bands</span><span class="wl-tag">Bodyweight</span></div>
+      </div>
+      <div class="wl-card" onclick="openSession('pre3')">
+        <div class="wl-card-top"><div class="wl-card-title">Postpartum Return — First 12 Weeks</div><span class="wl-card-badge badge-pre">POSTPARTUM</span></div>
+        <div class="wl-card-meta">30-40 min · Beginner · Minimal Equipment · OB + PT Cleared</div>
+        <div class="wl-card-desc">Progressive return to exercise. Pelvic floor reactivation, diastasis recti-safe core work, glute activation, gentle resistance progression.</div>
+        <div class="wl-card-footer"><span class="wl-tag">OB Cleared</span><span class="wl-tag">Progressive</span><span class="wl-tag">DR Safe</span></div>
+      </div>
+    </div>
+    <div class="wl-section-title">Weekly Program Templates</div>
+    <div class="prog-grid">
+      <div class="prog-card"><h4>3-Day Prenatal (Trimester 2)</h4><div class="days">3 days/week · OB cleared</div><div class="prog-day"><strong>Day 1:</strong> Lower Body — Squats, Hinge, Banded Walks</div><div class="prog-day"><strong>Day 2:</strong> Upper Body — Incline Press, Rows, Carries</div><div class="prog-day"><strong>Day 3:</strong> Full Body Light + Pelvic Floor + Mobility</div></div>
+      <div class="prog-card"><h4>3-Day Postpartum Return (Weeks 6-12)</h4><div class="days">3 days/week · OB + pelvic floor PT cleared</div><div class="prog-day"><strong>Day 1:</strong> Glute Activation + Bodyweight Squat Progression</div><div class="prog-day"><strong>Day 2:</strong> Upper Body Light + Core Reconnection</div><div class="prog-day"><strong>Day 3:</strong> Walking + Full Body Bands + Breathing</div></div>
+    </div>
+    <div class="wl-section-title">Key Exercises and Coaching Cues</div>
+    <div class="ex-grid">
+      <div class="ex-card"><h4>Goblet Squat (Prenatal)</h4><div class="ex-meta">Legs · Pelvic Floor · All Trimesters</div><div class="ex-cue">Wide stance as belly grows, exhale on exertion, inhale on descent. Pelvic floor lifts on the way up. No holding breath</div></div>
+      <div class="ex-card"><h4>Incline DB Press</h4><div class="ex-meta">Chest · Prenatal Safe · Avoid Supine After T1</div><div class="ex-cue">Incline avoids supine position after first trimester. Moderate weight, controlled tempo. No Valsalva</div></div>
+      <div class="ex-card"><h4>Banded Lateral Walk</h4><div class="ex-meta">Glutes · Hip Stability · All Stages</div><div class="ex-cue">Band above knees, quarter squat, small controlled steps. Prevents SI joint dysfunction common in pregnancy</div></div>
+      <div class="ex-card"><h4>Diaphragmatic Breathing</h4><div class="ex-meta">Core · Pelvic Floor · Foundation</div><div class="ex-cue">Inhale — ribs expand laterally, pelvic floor relaxes. Exhale — ribs close, pelvic floor gently lifts. Foundation of all prenatal core work</div></div>
+      <div class="ex-card"><h4>Bird Dog (DR Safe)</h4><div class="ex-meta">Core · Anti-Extension · Postpartum</div><div class="ex-cue">Opposite arm and leg extend. Exhale on extension, brace gently. No coning or doming of the midline</div></div>
+      <div class="ex-card"><h4>Pallof Press</h4><div class="ex-meta">Core · Anti-Rotation · DR Safe</div><div class="ex-cue">Cable or band at chest height, press out and resist rotation. Safe for diastasis recti — no intra-abdominal pressure</div></div>
     </div>
   </div>
 
@@ -4495,6 +4662,234 @@ const sessions = {
       ['Week 4: OPT Phase 2 — Peak Week', '4 days/week', '3-4 sets, 10 reps', '60–75s', '75–80% 1RM', 'Highest volume of block. Deload following week'],
     ],
     cooldown: 'Post-session: document energy, pain, and loads. Reinforce protein targets and hydration every session.'
+  },
+  sm1: {
+    title: 'Strongman Foundations — Full Body',
+    meta: '75 min · Intermediate · Full Gym + Implements',
+    warmup: [
+      ['General Cardio (Bike/Row)', '5 min', '—', '—', 'Raise core temperature'],
+      ['Band Pull-Aparts + Dislocates', '2x15 each', '—', '30s', 'Shoulder prep for overhead'],
+      ['Goblet Squat', '2x10', 'Controlled', '30s', 'Open hips, prime squat pattern'],
+      ['Light Deadlift Ramp', '3x5 ascending', '—', '60s', 'Build to working weight gradually'],
+    ],
+    main: [
+      ['Log Clean and Press', '5x3', 'Explosive', '2-3 min', '70-80% max', 'Roll to lap, clean to shelf, dip-drive press. Neutral grip throughout'],
+      ['Conventional Deadlift', '4x5', '2-0-1', '2-3 min', '80-85% 1RM', 'Full brace, push floor away, lock out hips and knees together'],
+      ['Farmers Walk', '4x50m', '—', '90s', 'Heavy', 'Shoulders packed, short fast steps, breathe in rhythm'],
+      ['Atlas Stone to Platform (or heavy sandbag)', '5x2', 'Explosive', '2 min', 'Heavy', 'Lap first, hip drive to chest, roll onto platform'],
+      ['Barbell Row', '3x10', '2-0-2', '60s', '70% 1RM', 'Support the pressing and carrying volume with upper back strength'],
+      ['Plank Hold', '3x45s', '—', '45s', 'BW', 'Full body brace — practice breathing under tension'],
+    ],
+    cooldown: 'Lat stretch, hip flexor stretch, thoracic extension over roller. 5-8 min. Grip and forearm stretches.'
+  },
+  sm2: {
+    title: 'Moving Events Day — Carry and Load',
+    meta: '60 min · Intermediate-Advanced · Implements Required',
+    warmup: [
+      ['Light Jog or Bike', '5 min', '—', '—', 'Elevate heart rate'],
+      ['Hip Circles + Leg Swings', '10 each', '—', '—', 'Open hips for carries'],
+      ['Light Farmers Walk', '2x20m', '—', '30s', 'Groove carry pattern'],
+    ],
+    main: [
+      ['Yoke Walk', '5x30m', '—', '2-3 min', 'Heavy', 'Brace before first step. Short quick steps. Eyes forward'],
+      ['Farmers Walk', '4x50m', '—', '2 min', 'Heavy', 'Neutral grip, packed shoulders, fast turnover'],
+      ['Sandbag Load to Platform', '5x3', 'Explosive', '90s', 'Moderate-Heavy', 'Bear hug, lap, hip drive, load. Keep bag close to body'],
+      ['Sled Push', '4x20m', '—', '90s', 'Heavy', 'Low body angle, drive through toes, arms extended'],
+      ['Sled Pull (Hand-Over-Hand)', '4x20m', '—', '90s', 'Moderate', 'Sit back, drive with legs. Fast hands'],
+      ['Loaded Carry Medley', '3 rounds', '—', '2 min', 'Mixed', 'Farmers 25m + Sandbag 25m + Sled 25m — no rest between implements'],
+    ],
+    cooldown: 'Full body static stretch. Forearm and grip stretches. 5 min walk cool-down.'
+  },
+  sm3: {
+    title: 'Overhead and Pressing Strength',
+    meta: '70 min · Intermediate · Barbells + Log',
+    warmup: [
+      ['Band Dislocates', '2x15', '—', '—', 'Full ROM shoulder prep'],
+      ['Face Pulls', '2x15', 'Controlled', '30s', 'Warm up rotator cuff'],
+      ['Empty Bar Press', '3x8 ascending', '—', '30s', 'Groove press pattern'],
+    ],
+    main: [
+      ['Log Clean and Press', '5x3', 'Explosive', '2-3 min', '75-85% max', 'Clean to shelf, dip-drive, lock out. Elbows forward in rack'],
+      ['Strict Overhead Press', '4x6', '2-0-2', '2 min', '80% 1RM', 'Full brace, bar starts at clavicle, press straight up'],
+      ['Push Press', '3x5', 'Explosive', '2 min', '85% strict max', 'Dip-drive with legs, catch overhead with locked arms'],
+      ['Z Press (seated on floor)', '3x8', '2-0-2', '60s', 'Moderate', 'No leg drive — pure shoulder and core strength'],
+      ['DB Lateral Raise', '3x15', '2-0-2', '45s', 'Light', 'Medial delt isolation — lead with elbows not hands'],
+      ['Tricep Pushdown', '3x15', '2-0-2', '45s', 'Moderate', 'Support pressing lockout strength'],
+    ],
+    cooldown: 'Overhead lat stretch, doorway chest stretch, thoracic spine extension over foam roller. 5 min.'
+  },
+  hx1: {
+    title: 'Hyrox Race Simulation — Full Event',
+    meta: '75 min · Intermediate-Advanced · Full Gym + Sled',
+    warmup: [
+      ['Light Jog', '5 min', '—', '—', 'Steady pace warm-up'],
+      ['Dynamic Stretches', '5 min', '—', '—', 'Leg swings, arm circles, hip openers'],
+    ],
+    main: [
+      ['1km Run (treadmill or track)', '1 km', 'Race pace', '—', '—', 'Target race pace — learn your sustainable speed'],
+      ['SkiErg (or alt: jumping jacks 2 min)', '1000m', 'Moderate', 'Transition', '—', 'Long pulls, drive with hips not arms'],
+      ['1km Run', '1 km', 'Race pace', '—', '—', 'Maintain pace after SkiErg fatigue'],
+      ['Sled Push', '50m', 'Strong', 'Transition', 'Heavy', 'Low angle, short powerful steps'],
+      ['1km Run', '1 km', 'Race pace', '—', '—', 'Run-to-work transition is where races are won'],
+      ['Sled Pull (rope)', '50m', 'Moderate', 'Transition', 'Moderate', 'Sit back, hand-over-hand, drive with legs'],
+      ['1km Run', '1 km', 'Race pace', '—', '—', 'Control breathing during transitions'],
+      ['Burpee Broad Jump', '80m', 'Paced', 'Transition', 'BW', 'Chest to floor, jump forward. Pace yourself'],
+      ['800m Run', '800m', 'Race pace', '—', '—', 'Shortened to manage total session time'],
+      ['Row (or alt: 2 min assault bike)', '1000m', 'Moderate', 'Transition', '—', 'Steady stroke rate, drive with legs'],
+      ['800m Run', '800m', 'Race pace', '—', '—', 'Push through fatigue — this is where Hyrox gets real'],
+      ['Farmers Carry', '200m', 'Fast', 'Transition', '2x24kg', 'Quick steps, reset grip if needed'],
+      ['800m Run', '800m', 'Race pace', '—', '—', 'Almost there — mental toughness zone'],
+      ['Sandbag Lunges', '100m', 'Controlled', 'Transition', '20kg', 'Alternate legs, controlled knee touch'],
+      ['Wall Balls', '75 reps', 'Steady', 'Transition', '6-9kg', 'Full squat, drive through heels, catch and go'],
+      ['Final 400m Run', '400m', 'Sprint finish', '—', '—', 'Everything left in the tank — finish strong'],
+    ],
+    cooldown: 'Walk 5 min. Full body static stretch. Hydrate immediately. Log total time for benchmarking.'
+  },
+  hx2: {
+    title: 'Hyrox Station Strength Builder',
+    meta: '60 min · All Levels · Full Gym',
+    warmup: [
+      ['Light Jog', '5 min', '—', '—', 'Easy pace'],
+      ['Bodyweight Squats + Lunges', '2x10 each', '—', '30s', 'Prime lower body'],
+    ],
+    main: [
+      ['Sled Push (heavy)', '5x25m', '—', '90s', 'Heavy', 'Build pushing strength — low angle, drive hard'],
+      ['Wall Balls', '4x25 reps', '—', '60s', 'Race weight', 'Practice race pace — rhythm matters more than speed'],
+      ['Walking Lunges (weighted)', '4x20 steps', '—', '60s', 'Moderate', 'Sandbag on shoulder or DBs. Controlled step, tall posture'],
+      ['Farmers Carry', '4x100m', '—', '60s', 'Race weight', 'Build grip endurance at or above race weight'],
+      ['Sled Pull (rope)', '4x25m', '—', '60s', 'Moderate', 'Hand-over-hand technique drilling'],
+      ['Burpee Broad Jump', '3x10', '—', '60s', 'BW', 'Practice efficient chest-to-floor-to-jump technique'],
+    ],
+    cooldown: 'Light walk 3 min. Quad, hip flexor, shoulder stretches. 5 min total.'
+  },
+  hx3: {
+    title: 'Hyrox Conditioning — Run and Work Intervals',
+    meta: '50 min · All Levels · Treadmill + Minimal Equipment',
+    warmup: [
+      ['Easy Jog', '5 min', '—', '—', 'Build gradually to working pace'],
+      ['Dynamic Leg Swings + Hip Circles', '2 min', '—', '—', 'Prepare for running'],
+    ],
+    main: [
+      ['800m Run', '800m', 'Race pace', '30s rest', '—', 'Start at target race pace'],
+      ['Wall Balls or Thrusters', '20 reps', 'Moderate', '30s rest', 'Light-Mod', 'Transition from run to work — manage heart rate'],
+      ['800m Run', '800m', 'Race pace', '30s rest', '—', 'Hold pace despite fatigue'],
+      ['Burpees', '15 reps', 'Moderate', '30s rest', 'BW', 'Efficient movement — do not waste energy'],
+      ['800m Run', '800m', 'Race pace', '30s rest', '—', 'Legs will feel heavy — push through'],
+      ['Farmers Hold + Walk', '200m or 2 min', 'Moderate', '30s rest', '2x20kg', 'Grip and core under running fatigue'],
+      ['400m Run', '400m', 'Fast', '30s rest', '—', 'Faster than race pace — build speed reserve'],
+      ['Walking Lunges', '40 steps', 'Controlled', '—', 'BW', 'Finish strong with legs under fatigue'],
+    ],
+    cooldown: 'Walk cool-down 5 min. Full body stretch focusing on quads, calves, hip flexors.'
+  },
+  ocr1: {
+    title: 'OCR Grip and Upper Body Endurance',
+    meta: '60 min · Intermediate · Full Gym + Pull-Up Bar',
+    warmup: [
+      ['Light Jog + Arm Circles', '5 min', '—', '—', 'Raise core temp, mobilize shoulders'],
+      ['Band Pull-Aparts', '2x15', '—', '30s', 'Warm up upper back'],
+      ['Dead Hang', '2x20s', '—', '30s', 'Prep grip and shoulders'],
+    ],
+    main: [
+      ['Pull-Ups (various grips)', '4x max reps', '2-0-2', '90s', 'BW', 'Alternate grips each set: overhand, neutral, mixed. Full ROM'],
+      ['Dead Hang for Time', '4x max hold', '—', '60s', 'BW', 'Target 60+ seconds. This is your obstacle foundation'],
+      ['Rope Climb or Towel Pull-Ups', '4x2 climbs or 4x6', '—', '90s', 'BW', 'J-hook feet, pull with arms, stand on rope. Towel pull-ups build grip'],
+      ['Farmers Carry', '4x50m', '—', '60s', 'Heavy', 'Grip endurance under load — simulate carry obstacles'],
+      ['Ring Rows or TRX Rows', '3x12', '2-1-2', '45s', 'BW', 'Simulate traverse and rig movements'],
+      ['Plate Pinch Hold', '3x max hold', '—', '45s', '2x10lb', 'Pinch grip strength for wall climbs and grip obstacles'],
+      ['Bear Crawl', '3x25m', '—', '45s', 'BW', 'Knees 1 inch off ground. Core tight, opposite hand-foot pattern'],
+    ],
+    cooldown: 'Forearm stretches, lat stretch, shoulder stretches. 5 min. Ice hands if needed.'
+  },
+  ocr2: {
+    title: 'OCR Trail Run and Obstacle Conditioning',
+    meta: '60 min · All Levels · Outdoor or Gym',
+    warmup: [
+      ['Easy Jog', '5 min', '—', '—', 'Gradual pace build'],
+      ['Dynamic Stretches', '3 min', '—', '—', 'Leg swings, hip openers, arm circles'],
+    ],
+    main: [
+      ['Run Interval', '800m', 'Moderate', '—', '—', 'Simulate running between obstacles'],
+      ['Burpees', '15 reps', 'Fast', '—', 'BW', 'Chest to ground, explosive jump'],
+      ['Run Interval', '800m', 'Moderate', '—', '—', 'Maintain pace despite upper body fatigue'],
+      ['Bear Crawl', '30m', 'Fast', '—', 'BW', 'Low hips, fast hands and feet'],
+      ['Run Interval', '400m', 'Fast', '—', '—', 'Pick up pace on shorter segments'],
+      ['Box Jumps or Step-Ups', '15 reps', 'Controlled', '—', '20-24 inch', 'Land soft, step down. Simulates wall climbs'],
+      ['Run Interval', '400m', 'Moderate', '—', '—', 'Recovery run between hard efforts'],
+      ['Sandbag Carry (shoulder)', '100m', '—', '—', 'Moderate', 'Switch shoulders at 50m. Keep core tight'],
+      ['Run Interval', '400m', 'Fast', '—', '—', 'Push through fatigue'],
+      ['Pull-Ups + Dead Hang', '8 pull-ups + 30s hang', '—', '—', 'BW', 'Simulate rig to monkey bar transition'],
+    ],
+    cooldown: 'Walk 5 min. Full body stretch. Focus on grip, shoulders, and hip flexors.'
+  },
+  ocr3: {
+    title: 'OCR Strength Base — Full Body',
+    meta: '60 min · Beginner-Intermediate · Full Gym',
+    warmup: [
+      ['Row or Bike', '5 min', '—', '—', 'General warm-up'],
+      ['Band Pull-Aparts + Dislocates', '2x15 each', '—', '30s', 'Shoulder prep'],
+      ['Bodyweight Squats', '2x10', '—', '30s', 'Prime squat pattern'],
+    ],
+    main: [
+      ['Deadlift', '4x6', '2-0-2', '2 min', '75-80% 1RM', 'Foundation pull strength for carries and obstacles'],
+      ['Pull-Ups (assisted if needed)', '4x8', '2-0-2', '90s', 'BW', 'Build to unassisted. Essential for rigs and rope'],
+      ['Overhead Press', '3x8', '2-0-2', '90s', '70% 1RM', 'Overhead strength for wall climbs and carries'],
+      ['Farmers Carry', '4x40m', '—', '60s', 'Heavy', 'Build grip and core for carry obstacles'],
+      ['Pallof Press (anti-rotation)', '3x10 each', '2-1-2', '45s', 'Moderate', 'Core stability under unstable conditions'],
+      ['Step-Ups (weighted)', '3x10 each', '2-0-2', '60s', 'Moderate', 'Single-leg strength for uneven terrain'],
+    ],
+    cooldown: 'Full body stretch 5 min. Focus on lats, hip flexors, and forearms.'
+  },
+  pre1: {
+    title: 'Prenatal Strength — 2nd Trimester Safe',
+    meta: '45 min · All Levels · Full Gym · OB Cleared Required',
+    warmup: [
+      ['Walking or Light Bike', '5 min', '—', '—', 'Gentle cardio warm-up — no overheating'],
+      ['Cat-Cow + Diaphragmatic Breathing', '2x10', 'Slow', '—', 'Connect breath to pelvic floor. Inhale = expand, exhale = lift'],
+      ['Banded Clamshells', '2x12 each', 'Controlled', '30s', 'Activate glutes, support SI joint'],
+    ],
+    main: [
+      ['Goblet Squat', '3x12', '2-0-2', '60s', 'Moderate', 'Wide stance, exhale on exertion, pelvic floor lifts on up phase'],
+      ['Incline DB Press (30-45 degrees)', '3x10', '2-0-2', '60s', 'Moderate', 'Avoids supine after T1. Controlled tempo, no breath holding'],
+      ['Seated Cable Row', '3x12', '2-1-2', '60s', 'Moderate', 'Tall posture, retract scapula. Supports upper back as posture changes'],
+      ['Banded Lateral Walks', '3x15 each', '—', '45s', 'Light band', 'Quarter squat, controlled steps. Hip stability for SI joint support'],
+      ['Romanian Deadlift (DB)', '3x10', '2-0-2', '60s', 'Moderate', 'Hip hinge, neutral spine. Posterior chain strength prevents back pain'],
+      ['Pallof Press', '3x10 each', '2-1-2', '45s', 'Light-Mod', 'Anti-rotation core work — safe for all trimesters. No coning'],
+    ],
+    cooldown: 'Gentle hip opener stretch, childs pose (modified wide-knee), side-lying quad stretch. 5 min. Hydrate well.'
+  },
+  pre2: {
+    title: 'Prenatal Low Impact — 3rd Trimester',
+    meta: '35 min · All Levels · Minimal Equipment · OB Cleared Required',
+    warmup: [
+      ['Gentle Walking', '5 min', '—', '—', 'Slow pace, focus on breathing'],
+      ['Diaphragmatic Breathing', '2 min', 'Slow', '—', 'Inhale expand ribs, exhale gentle pelvic floor lift'],
+    ],
+    main: [
+      ['Wall Sit', '3x20-30s', '—', '45s', 'BW', 'Back flat on wall, thighs parallel. Modify depth as needed'],
+      ['Incline Push-Up (wall or bench)', '3x10', '2-0-2', '45s', 'BW', 'Avoid prone position. Hands elevated, controlled tempo'],
+      ['Seated Band Row', '3x12', '2-1-2', '45s', 'Light band', 'Sit on chair or bench. Upper back support for posture changes'],
+      ['Standing Banded Hip Abduction', '3x12 each', '—', '30s', 'Light band', 'Hold support. Gentle glute activation, hip stability'],
+      ['Modified Bird Dog', '3x8 each', 'Controlled', '30s', 'BW', 'From all fours — extend opposite arm and leg. No coning'],
+      ['Pelvic Floor Activation', '3x10', 'Slow', '30s', '—', 'Gentle kegel with exhale. Hold 5s, release fully. No bearing down'],
+    ],
+    cooldown: 'Side-lying stretch, gentle hip circles, supported childs pose. Focus on relaxation and breathing. 5 min.'
+  },
+  pre3: {
+    title: 'Postpartum Return — First 12 Weeks',
+    meta: '30-40 min · Beginner · Minimal Equipment · OB + Pelvic Floor PT Cleared',
+    warmup: [
+      ['Walking', '5 min', '—', '—', 'Gentle pace, focus on posture'],
+      ['Diaphragmatic Breathing + PF Connection', '3 min', 'Slow', '—', 'Re-establish breath-pelvic floor connection. Foundation of everything'],
+    ],
+    main: [
+      ['Glute Bridge', '3x12', '2-1-2', '45s', 'BW', 'Exhale to bridge, gentle PF lift. No bearing down. Full hip extension'],
+      ['Wall Push-Up', '3x10', '2-0-2', '30s', 'BW', 'Rebuild pressing strength gradually. Check for doming'],
+      ['Banded Lateral Walk', '3x12 each', '—', '30s', 'Light band', 'Re-activate glutes. Quarter squat position'],
+      ['Bird Dog', '3x8 each', '2-1-2', '30s', 'BW', 'Exhale on extension. Watch for coning — if coning occurs, regress'],
+      ['Bodyweight Squat to Box', '3x10', '2-0-2', '45s', 'BW', 'Sit to bench, stand up. Rebuild squat pattern safely'],
+      ['Pallof Press', '3x8 each', '2-1-2', '30s', 'Light band', 'Anti-rotation core — safe for diastasis recti rehabilitation'],
+    ],
+    cooldown: 'Gentle hip flexor stretch, pec stretch, diaphragmatic breathing cool-down. 5 min. Log any pain or discomfort.'
   },
 };
 
