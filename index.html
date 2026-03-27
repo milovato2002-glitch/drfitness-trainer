@@ -294,6 +294,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <button class="nav-tab active" data-tab="ask">⚡ BUILD SESSION</button>
   <button class="nav-tab" data-tab="nutrition">🥗 NUTRITION</button>
   <button class="nav-tab" data-tab="calcs">🔢 CALCULATORS</button>
+  <button class="nav-tab" data-tab="supplements">💊 SUPPLEMENTS</button>
   <button class="nav-tab" data-tab="reflib">📚 REFERENCE LIBRARY</button>
   <button class="nav-tab" data-tab="quickref">⚡ QUICK REF</button>
 </div>
@@ -3751,6 +3752,70 @@ function filterPeptides() {
             <div class="cp-field">&nbsp;</div>
           </div>
         </div>
+        <div class="cp-section-label" style="margin-top:1rem;">Confidence and Mindset Assessment</div>
+        <div class="cp-fg cp-fg-full">
+          <div class="cp-field"><label>Confidence Level (1 = Very Low, 10 = Very High)</label><input type="range" id="cf-confidence" min="1" max="10" value="5" oninput="document.getElementById('cfConfLabel').textContent=this.value" style="width:100%;accent-color:var(--gold);"><div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text3);margin-top:2px;"><span>1 — Very Low</span><span id="cfConfLabel" style="color:var(--gold);font-weight:700;font-size:0.8rem;">5</span><span>10 — Very High</span></div></div>
+        </div>
+        <div class="cp-fg cp-fg-full" style="margin-top:0.5rem;">
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Previous Exercise Experience</div>
+          <div class="cp-checkgroup" id="cf-exercise-exp">
+            <span class="cp-check" data-val="never">Never Exercised</span>
+            <span class="cp-check" data-val="tried_quit">Tried and Quit</span>
+            <span class="cp-check" data-val="inconsistent">Inconsistent History</span>
+            <span class="cp-check" data-val="consistent_6mo">Consistent for 6 Months</span>
+            <span class="cp-check" data-val="consistent_1yr">Consistent for 1 Plus Years</span>
+            <span class="cp-check" data-val="competitive">Competitive Athlete</span>
+          </div>
+        </div>
+        <div class="cp-fg cp-fg-full" style="margin-top:0.75rem;">
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Biggest Personal Barrier (select all)</div>
+          <div class="cp-checkgroup" id="cf-barriers-chips">
+            <span class="cp-check" data-val="time">Time</span>
+            <span class="cp-check" data-val="cost">Cost</span>
+            <span class="cp-check" data-val="confidence">Confidence</span>
+            <span class="cp-check" data-val="past_injury">Past Injury</span>
+            <span class="cp-check" data-val="not_knowing">Not Knowing What to Do</span>
+            <span class="cp-check" data-val="motivation">Motivation</span>
+            <span class="cp-check" data-val="social_anxiety">Social Anxiety at Gym</span>
+            <span class="cp-check" data-val="physical_limitation">Physical Limitation</span>
+            <span class="cp-check" data-val="medical_concern">Medical Concern</span>
+            <span class="cp-check" data-val="bad_experience">Previous Bad Experience</span>
+          </div>
+        </div>
+        <div class="cp-fg cp-fg-full" style="margin-top:0.75rem;">
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Mental Health Flags (select all that apply)</div>
+          <div class="cp-checkgroup" id="cf-mental-health">
+            <span class="cp-check" data-val="none_mh">None</span>
+            <span class="cp-check" data-val="anxiety">Anxiety</span>
+            <span class="cp-check" data-val="depression">Depression</span>
+            <span class="cp-check" data-val="ptsd_military">PTSD from Military Service</span>
+            <span class="cp-check" data-val="ptsd_other">PTSD Other</span>
+            <span class="cp-check" data-val="eating_disorder">Eating Disorder History</span>
+            <span class="cp-check" data-val="body_dysmorphia">Body Dysmorphia</span>
+            <span class="cp-check" data-val="stress_burnout">Stress and Burnout</span>
+            <span class="cp-check" data-val="grief">Grief or Loss</span>
+            <span class="cp-check" data-val="addiction_recovery">Addiction Recovery</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--gold);margin-top:8px;line-height:1.5;font-style:italic;">These flags adjust the tone and language of all AI responses to be trauma-informed and encouraging. This information is confidential and used only to personalize coaching support.</div>
+        </div>
+        <div class="cp-fg cp-fg-full" style="margin-top:0.75rem;">
+          <div class="cp-field"><label>Current Supplement Use</label><textarea id="cf-supp-use" placeholder="List any vitamins, protein powders, pre-workouts, or other supplements currently being taken"></textarea></div>
+        </div>
+        <div class="cp-fg cp-fg-full" style="margin-top:0.75rem;">
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Primary Motivation — What Drives This Client</div>
+          <div class="cp-checkgroup" id="cf-primary-motivation">
+            <span class="cp-check" data-val="look_better">Look Better</span>
+            <span class="cp-check" data-val="feel_better">Feel Better</span>
+            <span class="cp-check" data-val="health_longevity">Health and Longevity</span>
+            <span class="cp-check" data-val="athletic_perf">Athletic Performance</span>
+            <span class="cp-check" data-val="doctor_rec">Doctor Recommendation</span>
+            <span class="cp-check" data-val="stress_relief">Stress Relief</span>
+            <span class="cp-check" data-val="social_community">Social and Community</span>
+            <span class="cp-check" data-val="prove_myself">Prove Something to Myself</span>
+            <span class="cp-check" data-val="medical_support">Support a Medical Condition</span>
+            <span class="cp-check" data-val="other_motiv">Other</span>
+          </div>
+        </div>
         <div class="cp-section-label" style="margin-top:1rem;">Sport or Competition Goals</div>
         <div class="cp-fg cp-fg-full">
           <div class="cp-field"><label>Sport / Competition (if applicable)</label><input type="text" id="cf-sport" placeholder="e.g. Powerlifting meet, DEKA FIT, Bodybuilding show, 5K race"></div>
@@ -4701,6 +4766,40 @@ function filterPeptides() {
   </div>
 
 </div>
+</div>
+
+<!-- ══ SUPPLEMENTS TAB ══ -->
+<div class="panel" data-panel="supplements">
+  <div class="ref-panel" style="max-width:1000px;margin:0 auto;padding:2rem 1.5rem;">
+    <h2 style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.3rem;">SUPPLEMENT ADVISOR</h2>
+    <p style="font-size:0.88rem;color:var(--text2);margin-bottom:1rem;">Evidence-based OTC supplement guidance within NASM CNC scope of practice</p>
+    <div style="background:rgba(240,165,0,0.06);border:1px solid var(--gold);border-radius:var(--radius);padding:10px 16px;margin-bottom:1.5rem;font-size:0.78rem;color:var(--gold);line-height:1.5;">This tool recommends over-the-counter supplements only. Always advise clients to consult their physician before starting any supplement protocol. This is not medical advice.</div>
+
+    <!-- SECTION A: Smart Supplement Builder -->
+    <div style="margin-bottom:2rem;">
+      <div id="suppClientSummary" style="display:none;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;margin-bottom:1rem;font-size:0.82rem;color:var(--text2);"></div>
+      <button onclick="openSuppBuilder()" style="padding:14px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;width:100%;">BUILD SUPPLEMENT STACK</button>
+      <div id="suppStackOutput" style="margin-top:1.5rem;"></div>
+    </div>
+
+    <!-- SECTION B: Interaction Checker -->
+    <div style="border-top:1px solid var(--border2);padding-top:1.5rem;margin-bottom:2rem;">
+      <h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--text);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem;">Supplement Interaction Checker</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="calc-field"><label>Supplements being taken</label><input type="text" id="suppCheckSupps" placeholder="e.g. Creatine, Vitamin D, Fish Oil"></div>
+        <div class="calc-field"><label>Current medications</label><input type="text" id="suppCheckMeds" placeholder="e.g. Metformin, Lisinopril"></div>
+      </div>
+      <button onclick="checkSuppInteractions()" style="padding:10px 20px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">CHECK INTERACTIONS</button>
+      <div id="suppInteractionOutput" style="margin-top:1rem;"></div>
+    </div>
+
+    <!-- SECTION C: Education Library -->
+    <div style="border-top:1px solid var(--border2);padding-top:1.5rem;">
+      <h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--text);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem;">Supplement Education Library</h3>
+      <input type="text" id="suppLibSearch" placeholder="Search supplements..." oninput="filterSuppLib()" style="width:100%;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;margin-bottom:1rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      <div id="suppLibGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ REFERENCE LIBRARY ══ -->
@@ -6700,6 +6799,13 @@ function cpCollectForm() {
     consentInformed: document.getElementById('cf-consent-informed').checked,
     consentWaiver: document.getElementById('cf-consent-waiver').checked,
     consentConfirm: document.getElementById('cf-consent-confirm').checked,
+    // Confidence and mindset
+    confidence: document.getElementById('cf-confidence').value,
+    exerciseExp: cpGetChecked('cf-exercise-exp'),
+    barriersChips: cpGetChecked('cf-barriers-chips'),
+    mentalHealth: cpGetChecked('cf-mental-health'),
+    suppUse: document.getElementById('cf-supp-use').value,
+    primaryMotivation: cpGetChecked('cf-primary-motivation'),
   };
 }
 
@@ -7603,6 +7709,174 @@ document.querySelectorAll('.lang-btn').forEach(b => {
 
 // Initialize
 updateSysPromptLang('en');
+
+/* ══ SUPPLEMENT ADVISOR ══ */
+var SUPP_LIBRARY = [
+  {name:'Creatine Monohydrate',grade:'A',who:'Everyone training for strength, muscle, or cognition',dose:'3-5g daily, any time',link:'creatine'},
+  {name:'Protein Powder (Whey/Plant)',grade:'A',who:'Anyone not hitting protein targets from food',dose:'25-40g per serving as needed',link:'protein-supplement'},
+  {name:'Caffeine',grade:'A',who:'Pre-workout performance, fat oxidation',dose:'3-6 mg/kg, 30-60 min pre-workout',link:'caffeine'},
+  {name:'Beta-Alanine',grade:'B',who:'High-rep and interval training athletes',dose:'3.2-6.4g daily split doses',link:'beta-alanine'},
+  {name:'Citrulline Malate',grade:'B',who:'Training volume and endurance athletes',dose:'6-8g 60 min pre-workout',link:'citrulline'},
+  {name:'Vitamin D3',grade:'A',who:'Nearly everyone — most people are deficient',dose:'1000-4000 IU daily with fat',link:'vitamin-d'},
+  {name:'Vitamin K2',grade:'B',who:'Bone health, pairs with D3',dose:'100-200 mcg daily with D3',link:'vitamin-k'},
+  {name:'B12 (Methylcobalamin)',grade:'A',who:'Older adults, GLP-1 clients, plant-based eaters',dose:'1000 mcg daily',link:'vitamin-b12'},
+  {name:'Iron',grade:'B',who:'Pre-menopausal women, endurance athletes if deficient',dose:'Per physician guidance only — test first',link:'iron'},
+  {name:'Zinc',grade:'B',who:'Immune support, testosterone support',dose:'15-30 mg daily with food',link:'zinc'},
+  {name:'Magnesium Glycinate',grade:'B',who:'Sleep quality, recovery, cramp prevention',dose:'300-400 mg before bed',link:'magnesium'},
+  {name:'Fish Oil (Omega-3)',grade:'A',who:'Anti-inflammatory, joint, cardiovascular support',dose:'1-3g EPA+DHA daily with meals',link:'fish-oil'},
+  {name:'Collagen Peptides',grade:'B',who:'Joint health, skin, tendon support',dose:'15-20g with vitamin C 60 min pre-training',link:'type-ii-collagen'},
+  {name:'Fiber Supplement',grade:'B',who:'Digestive health, satiety for fat loss clients',dose:'5-10g as needed to reach 25-38g daily total',link:'psyllium'},
+  {name:'Electrolytes',grade:'A',who:'Anyone training 60+ min, GLP-1 clients, hot climate',dose:'During and after training as needed',link:'sodium'},
+  {name:'Turmeric/Curcumin',grade:'B',who:'Anti-inflammatory, joint pain, post-rehab',dose:'500-1000 mg with piperine for absorption',link:'curcumin'},
+  {name:'Tart Cherry',grade:'B',who:'Recovery, DOMS reduction, sleep support',dose:'8oz juice or 480mg extract 2x daily',link:'tart-cherry-extract'},
+  {name:'Beetroot/Nitrates',grade:'B',who:'Endurance and aerobic performance',dose:'500mg nitrates 2-3 hrs pre-exercise',link:'nitrate'},
+  {name:'Green Tea Extract',grade:'B',who:'Fat oxidation, metabolic support',dose:'400-500 mg EGCG daily',link:'green-tea-catechins'},
+  {name:'Probiotics',grade:'B',who:'Gut health, immune support, GI issues',dose:'10+ billion CFU daily with food',link:'probiotic'}
+];
+
+// Render supplement education library
+(function(){
+  var grid = document.getElementById('suppLibGrid');
+  if (!grid) return;
+  var gradeStyle = {A:'background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3)',B:'background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)'};
+  grid.innerHTML = SUPP_LIBRARY.map(function(s){
+    return '<div class="supp-lib-card" style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.2rem;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h4 style="font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);">'+s.name+'</h4><span style="font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;'+gradeStyle[s.grade]+'">GRADE '+s.grade+'</span></div>' +
+      '<p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:4px;"><strong style="color:var(--text3);">Who:</strong> '+s.who+'</p>' +
+      '<p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:6px;"><strong style="color:var(--text3);">Dose:</strong> '+s.dose+'</p>' +
+      '<div style="display:flex;gap:6px;"><a href="https://examine.com/supplements/'+s.link+'/" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">Examine.com</a><a href="https://pubmed.ncbi.nlm.nih.gov/?term='+encodeURIComponent(s.name)+'" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">PubMed</a></div>' +
+    '</div>';
+  }).join('');
+})();
+
+window.filterSuppLib = function(){
+  var q = (document.getElementById('suppLibSearch').value||'').toLowerCase();
+  document.querySelectorAll('.supp-lib-card').forEach(function(c){ c.style.display = c.textContent.toLowerCase().indexOf(q)!==-1?'':'none'; });
+};
+
+// Update supplement client summary when tab opens
+function updateSuppClientSummary(){
+  var el = document.getElementById('suppClientSummary');
+  if(!el) return;
+  var c = window.cpActiveClient;
+  if(c && c.fname){
+    el.style.display = 'block';
+    el.innerHTML = '<strong style="color:var(--gold);">Active Client: '+c.fname+' '+(c.lname||'')+'</strong> · '+(c.goals||[]).join(', ')+' · '+(c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ')+((c.suppUse||c.currentSupps)?'<br>Current supplements: '+(c.suppUse||c.currentSupps):'');
+    var medsField = document.getElementById('suppCheckMeds');
+    if(medsField && c.currentMeds) medsField.value = c.currentMeds;
+  } else { el.style.display='none'; }
+}
+// Hook into tab navigation
+var _origNavHandler = null;
+document.querySelectorAll('.nav-tab').forEach(function(t){
+  t.addEventListener('click', function(){ setTimeout(updateSuppClientSummary, 100); });
+});
+
+window.openSuppBuilder = function(){
+  var c = window.cpActiveClient;
+  var modal = document.createElement('div');
+  modal.id = 'suppBuilderModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:600px;width:100%;padding:0;">' +
+    '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">Build Supplement Stack</h3><button onclick="document.getElementById(\'suppBuilderModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button></div>' +
+    '<div style="padding:1.25rem 1.5rem;">' +
+    (c?'<div style="font-size:0.78rem;color:var(--green);margin-bottom:1rem;">Building for: <strong>'+c.fname+' '+(c.lname||'')+'</strong></div>':'') +
+    '<div style="margin-bottom:1rem;"><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Primary Goal</div><div id="suppGoalChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>' +
+    '<div style="margin-bottom:1rem;"><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Budget Per Month</div><div id="suppBudgetChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>' +
+    '<div style="margin-bottom:1rem;"><div class="calc-field"><label>Current Medications</label><input type="text" id="suppMeds" value="'+(c&&c.currentMeds?c.currentMeds:'')+'" placeholder="From profile or enter manually"></div></div>' +
+    '<div style="margin-bottom:1.25rem;"><div class="calc-field"><label>Known Allergies or Sensitivities</label><input type="text" id="suppAllergies" placeholder="e.g. shellfish, dairy, soy"></div></div>' +
+    '<button onclick="generateSuppStack()" style="width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">GENERATE STACK</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+  // Build chips
+  var goals = ['Muscle Gain','Fat Loss','Body Recomposition','Athletic Performance','GLP-1 Support','55 Plus Longevity','Post-Rehab Recovery','General Health','Prenatal Support'];
+  document.getElementById('suppGoalChips').innerHTML = goals.map(function(g){return '<span class="wcc-chip" data-val="'+g+'" onclick="wccRadioSelect(this)">'+g+'</span>';}).join('');
+  var budgets = ['Under $50','$50-$100','$100-$200','Over $200'];
+  document.getElementById('suppBudgetChips').innerHTML = budgets.map(function(b){return '<span class="wcc-chip" data-val="'+b+'" onclick="wccRadioSelect(this)">'+b+'</span>';}).join('');
+};
+
+window.generateSuppStack = async function(){
+  var goal=''; document.querySelectorAll('#suppGoalChips .wcc-chip.active').forEach(function(c){goal=c.dataset.val;});
+  var budget=''; document.querySelectorAll('#suppBudgetChips .wcc-chip.active').forEach(function(c){budget=c.dataset.val;});
+  var meds = document.getElementById('suppMeds').value;
+  var allergies = document.getElementById('suppAllergies').value;
+  if(!goal){alert('Please select a primary goal.');return;}
+
+  document.getElementById('suppBuilderModal').remove();
+  var output = document.getElementById('suppStackOutput');
+  output.innerHTML = '<div style="text-align:center;padding:2rem;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">💊</div><div style="color:var(--gold);font-size:0.88rem;">Building personalized supplement stack...</div></div>';
+
+  var clientCtx = (window.cpActiveClient && typeof cpBuildClientContext==='function') ? cpBuildClientContext(window.cpActiveClient) : '';
+  var c = window.cpActiveClient || {};
+  var confidence = c.confidence || '5';
+
+  var prompt = 'Generate a personalized OTC supplement stack.\n\n' +
+    'CLIENT GOAL: '+goal+'\nBUDGET: '+budget+'/month\n' +
+    'CURRENT MEDICATIONS: '+(meds||'none')+'\nALLERGIES: '+(allergies||'none')+'\n' +
+    clientCtx +
+    (goal==='Prenatal Support' ? '\n\nIMPORTANT: Prenatal supplement recommendations must come from the client OB/GYN only. Do NOT generate a prenatal supplement stack. Instead explain why prenatal supplements require physician guidance and recommend the client consult their OB/GYN.' : '') +
+    '\n\nFor each supplement include:\n- Supplement name\n- Evidence grade (A=strong, B=moderate, C=limited)\n- Why recommended for THIS specific client\n- Recommended dose and timing\n- Form recommendation (capsule vs powder vs liquid)\n- What to look for on the label\n- Budget tier: Essential / Recommended / Premium\n- Any interactions with their medications\n\nFormat as a prioritized list from most important to least. Include examine.com links. End with a disclaimer to verify with pharmacist or physician.';
+
+  try{
+    var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sysPrompt,messages:[{role:'user',content:prompt}]})});
+    var d = await res.json();
+    if(d.content&&d.content[0]){
+      var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
+      output.innerHTML = '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+text+'</p></div>';
+    } else { throw new Error('No response'); }
+  }catch(err){ output.innerHTML = '<div style="color:var(--red);padding:1rem;">Failed to generate stack. '+err.message+'</div>'; }
+};
+
+window.checkSuppInteractions = async function(){
+  var supps = document.getElementById('suppCheckSupps').value;
+  var meds = document.getElementById('suppCheckMeds').value;
+  if(!supps){alert('Enter supplements to check.');return;}
+  var output = document.getElementById('suppInteractionOutput');
+  output.innerHTML = '<div style="color:var(--text3);font-size:0.82rem;">Checking interactions...</div>';
+  var prompt = 'Check for interactions between these supplements: '+supps+'\nAnd these medications: '+(meds||'none')+'\n\nFor each combination state: SAFE / USE WITH CAUTION / CONSULT PHYSICIAN. Explain any concerns briefly. End with disclaimer to verify with pharmacist.';
+  try{
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'You are a supplement safety advisor for personal trainers. Provide evidence-based interaction information. Always recommend consulting a physician or pharmacist for medical decisions.',messages:[{role:'user',content:prompt}]})});
+    var d = await res.json();
+    if(d.content&&d.content[0]){
+      var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      output.innerHTML = '<div style="font-size:0.82rem;color:var(--text2);line-height:1.7;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;">'+text+'</div>';
+    } else { throw new Error('No response'); }
+  }catch(err){ output.innerHTML = '<div style="color:var(--red);">Failed to check interactions.</div>'; }
+};
+
+/* ══ SYSTEM 3: CONFIDENCE-AWARE AI RESPONSES ══ */
+// Override cpBuildClientContext to include confidence and mindset data
+cpBuildClientContext = function(c) {
+  if (!c) return '';
+  var special = (c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ')||'none';
+  var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).join(', ')||'none reported';
+  var conditions = (c.conditions||[]).filter(function(x){return x&&x!=='none_hx';}).join(', ')||'none reported';
+  var meds = c.currentMeds || c.medications || 'none listed';
+  var clearance = c.physClearanceObtained ? 'yes' : 'not confirmed';
+  var confidence = c.confidence || '5';
+  var mentalHealth = (c.mentalHealth||[]).filter(function(x){return x&&x!=='none_mh';}).join(', ')||'none';
+  var barriers = (c.barriersChips||[]).join(', ')||'none noted';
+  var motivation = (c.primaryMotivation||[]).join(', ')||'not specified';
+
+  var toneRule = '';
+  var confNum = parseInt(confidence);
+  if(confNum <= 3){
+    toneRule = '\n\nRESPONSE TONE: Client confidence is VERY LOW ('+confidence+'/10). Use highly encouraging language. Start every output with a motivational statement. Celebrate small wins. Avoid jargon. Keep instructions simple. Include: Remember — every expert was once a beginner.';
+  } else if(confNum <= 5){
+    toneRule = '\n\nRESPONSE TONE: Client confidence is LOW ('+confidence+'/10). Use supportive and educational tone. Explain the why behind each exercise. Acknowledge that starting is the hardest part. Include one coaching tip per output.';
+  } else if(confNum <= 7){
+    toneRule = '\n\nRESPONSE TONE: Client confidence is MODERATE ('+confidence+'/10). Balance encouragement with technical detail. Use professional but warm language.';
+  } else {
+    toneRule = '\n\nRESPONSE TONE: Client confidence is HIGH ('+confidence+'/10). Use direct, technical, performance-focused language. Challenge them. Push progression.';
+  }
+  if(mentalHealth !== 'none'){
+    toneRule += ' MENTAL HEALTH NOTE: Client has flagged '+mentalHealth+'. Use trauma-informed, encouraging language. Never reference weight negatively. Focus on capability and strength.';
+  }
+
+  return '\n\nACTIVE CLIENT: Name ' + (c.fname||'') + ' ' + (c.lname||'') + ', Age ' + (c.age||'N/A') + ', Weight ' + (c.weight||'N/A') + 'lbs, Level ' + (c.trainingAge||'not assessed') + ', OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + ', Goal ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Medications ' + meds + ', Physician Clearance ' + clearance + ', Confidence Level ' + confidence + '/10, Primary Motivation ' + motivation + ', Barriers ' + barriers + '. Tailor all responses to this client.' + toneRule;
+};
 
 /* ══ BUILD SESSION NOW — from client card ══ */
 function buildSessionNow(clientId) {
