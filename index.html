@@ -651,14 +651,19 @@ window.wccGenerate = async function(){
     injuryInstructions = '\n\nINJURY INTELLIGENCE: The client has the following injuries or limitations: '+injuries+'. For EVERY exercise in the workout, check if it conflicts with these injuries. If it does, add a clearly labeled modification section below that exercise: "Modification for [injury]: [alternative exercise or technique change]". Format these so they can be collapsed/expanded.';
   }
 
-  var prompt = 'Generate a complete professional '+styleName+' training session.\n\n' +
+  var prgTf = window._programTimeframe || null;
+  var sessionType = prgTf ? prgTf.name : 'Session';
+  var prgInstruction = prgTf && prgTf.id !== 'single' ? '\n\nPROGRAM FORMAT: Generate a '+prgTf.name+' with daily sessions. Include: day-by-day breakdown, progressive overload plan, rest days, and periodization notes. Each day should have complete exercises with sets/reps/tempo/rest.\n' : '';
+  window._programTimeframe = null; // reset after use
+
+  var prompt = 'Generate a complete professional '+styleName+(prgTf && prgTf.id!=='single' ? ' '+prgTf.name : ' training session')+'.\n\n' +
     'TRAINING STYLE: '+styleName+'\n' +
     'CLIENT LEVEL: '+level+'\n' +
     'SESSION DURATION: '+duration+'\n' +
     'EQUIPMENT: '+equipment+'\n' +
     'PRIMARY GOAL: '+goal+'\n' +
     (injuries ? 'INJURIES/LIMITATIONS: '+injuries+'\n' : '') +
-    clientCtx + injuryInstructions +
+    clientCtx + injuryInstructions + prgInstruction +
     '\n\nFORMAT REQUIREMENTS:\n' +
     '- Apply NASM OPT phase appropriate to the client level\n' +
     '- Include a warm-up section (NASM OPT sequence: Inhibit, Lengthen, Activate, Integrate)\n' +
@@ -718,7 +723,7 @@ window.wccGenerate = async function(){
           banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml,
           styleName,
           {level:level,duration:duration,equipment:equipment,goal:goal,injuries:injuries},
-          'Session'
+          sessionType
         );
       }
     } else {
@@ -4123,6 +4128,17 @@ function filterPeptides() {
       </div>
       <button class="cp-modal-close" onclick="closeCpModal()">✕</button>
     </div>
+    <!-- STATUS BAR -->
+    <div id="cpStatusBar" style="padding:10px 1.5rem;background:var(--navy3);border-bottom:1px solid var(--border2);display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.75rem;"></div>
+    <!-- ACTION BAR -->
+    <div style="padding:12px 1.5rem;border-bottom:1px solid var(--border2);display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="if(cpViewingClient){setActiveClient(cpViewingClient.id);closeCpModal();}" style="padding:9px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">SET AS ACTIVE</button>
+      <button onclick="if(cpViewingClient)buildSessionNow(cpViewingClient.id)" style="padding:9px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">BUILD SESSION NOW</button>
+      <button onclick="if(cpViewingClient)openProgramBuilder(cpViewingClient.id)" style="padding:9px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">BUILD PROGRAM</button>
+      <button onclick="if(cpViewingClient)openSessionHistory(cpViewingClient.id)" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">VIEW HISTORY</button>
+      <button onclick="if(cpViewingClient&&cpViewingClient.email){window.open('mailto:'+cpViewingClient.email)}else{alert('Add email to client profile first.')}" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">EMAIL CLIENT</button>
+      <button id="cpPrintBtn" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">PRINT PROFILE</button>
+    </div>
     <div class="cp-modal-body">
       <div class="cp-ai-suggestions" id="cpAiBox">
         <h4>🤖 AI Trainer Recommendations</h4>
@@ -4141,10 +4157,7 @@ function filterPeptides() {
     </div>
     <div class="cp-modal-actions">
       <button class="cp-action-btn cp-action-primary" onclick="cpOpenAiChat()">💬 Ask AI About This Client</button>
-      <button class="cp-action-btn cp-action-secondary" onclick="cpOpenWorkoutBuilder()">🏋️ Build Workout</button>
-      <button class="cp-action-btn cp-action-secondary" onclick="if(cpViewingClient)openSessionHistory(cpViewingClient.id)">📋 Session History</button>
       <button class="cp-action-btn cp-action-secondary" onclick="cpOpenCalcWithClient()">🔢 Run Calculators</button>
-      <button class="cp-action-btn cp-action-secondary" id="cpPrintBtn">🖨️ Print Summary</button>
       <button class="cp-action-btn cp-action-secondary" id="cpEditBtn">✏️ Edit Profile</button>
     </div>
   </div>
@@ -6944,17 +6957,29 @@ function renderClients() {
     const phase = c.optPhase ? `Phase ${c.optPhase}` : '';
     const age = c.age ? c.age+'yr' : '';
     const sub = [age, phase, c.style ? c.style.replace(/_/g,' ') : ''].filter(Boolean).join(' · ');
-    return `<div class="cp-card" id="cpc_${c.id}">
+    const isActive = window.cpActiveClient && window.cpActiveClient.id === c.id;
+    const sessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
+    const lastSes = sessions.length > 0 ? new Date(sessions[0].date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : null;
+    const levelMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Advanced'};
+    const lvl = levelMap[c.trainingAge]||'';
+    return `<div class="cp-card${isActive?' active-client':''}" id="cpc_${c.id}">
+      ${isActive?'<div class="cp-active-badge">ACTIVE</div>':''}
       <div class="cp-card-top">
         <div class="cp-avatar">${initials}</div>
-        <div><div class="cp-card-name">${c.fname} ${c.lname||''}</div><div class="cp-card-sub">${sub||'Profile incomplete'}</div></div>
+        <div>
+          <div class="cp-card-name">${c.fname} ${c.lname||''}</div>
+          <div class="cp-card-sub">${[lvl, phase, lastSes ? 'Last: '+lastSes : ''].filter(Boolean).join(' · ')||'Profile incomplete'}</div>
+        </div>
       </div>
       ${specialTags ? '<div class="cp-card-tags">'+specialTags+'</div>' : ''}
       <div class="cp-card-goal">${c.success ? '"'+c.success.substring(0,80)+(c.success.length>80?'...':'')+'"' : goalLabel}</div>
-      <div class="cp-card-actions">
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button onclick="event.stopPropagation();setActiveClient('${c.id}')" style="flex:1;padding:7px 8px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;${isActive?'opacity:0.5;':''}">SET ACTIVE</button>
+        <button onclick="event.stopPropagation();buildSessionNow('${c.id}')" style="flex:1;padding:7px 8px;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">BUILD NOW</button>
+      </div>
+      <div class="cp-card-actions" style="margin-top:6px;">
         <button class="cp-btn-view" onclick="viewClient('${c.id}')">View Profile</button>
-        <button class="cp-btn-edit" style="background:rgba(96,165,250,0.1);border-color:rgba(96,165,250,0.4);color:#60a5fa;" onclick="openSessionHistory('${c.id}')" title="Session History">📋</button>
-        <button class="cp-btn-edit" style="background:var(--gold-dim);border-color:var(--gold);color:var(--gold);" onclick="setActiveClient('${c.id}')" title="Set as Active Client">⭐</button>
+        <button class="cp-btn-edit" onclick="openSessionHistory('${c.id}')" title="History">📋</button>
         <button class="cp-btn-edit" onclick="openClientForm('${c.id}')">✏️</button>
         <button class="cp-btn-del" onclick="deleteClient('${c.id}')">🗑</button>
       </div>
@@ -6983,6 +7008,24 @@ function viewClient(id) {
   document.getElementById('cpModalSub').textContent = [age, c.sex, phase].filter(Boolean).join(' · ') || 'Client profile';
   document.getElementById('cpEditBtn').onclick = () => { closeCpModal(); openClientForm(id); };
   document.getElementById('cpPrintBtn').onclick = () => printClientSummary(id);
+  // Status bar
+  const statusBar = document.getElementById('cpStatusBar');
+  if (statusBar) {
+    const isAct = window.cpActiveClient && window.cpActiveClient.id === c.id;
+    const cSessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
+    const lastSesDate = cSessions.length > 0 ? new Date(cSessions[0].date).toLocaleDateString() : 'Never';
+    const primaryGoalLabel = {fat_loss:'Fat Loss',muscle_gain:'Muscle Gain',strength:'Strength',athletic:'Athletic',general:'General Fitness'}[(c.goals||[])[0]] || 'Not set';
+    let daysToGoal = '';
+    if (c.timeline) {
+      const match = c.timeline.match(/(\d+)\s*(week|month|day)/i);
+      if (match) { const days = match[2].toLowerCase()==='week'?match[1]*7:match[2].toLowerCase()==='month'?match[1]*30:match[1]; daysToGoal = days + ' days'; }
+    }
+    statusBar.innerHTML = (isAct ? '<span style="color:var(--green);font-weight:700;">● ACTIVE CLIENT</span>' : '<span style="color:var(--text3);">○ Not active</span>') +
+      '<span style="color:var(--text2);">Last session: <strong style="color:var(--text);">'+lastSesDate+'</strong></span>' +
+      '<span style="color:var(--text2);">Total sessions: <strong style="color:var(--gold);">'+cSessions.length+'</strong></span>' +
+      '<span style="color:var(--text2);">Goal: <strong style="color:var(--text);">'+primaryGoalLabel+'</strong></span>' +
+      (daysToGoal ? '<span style="color:var(--text2);">Target: <strong style="color:var(--gold);">'+daysToGoal+'</strong></span>' : '');
+  }
   // Risk stratification display
   const risk = buildRiskStratification(c);
   const riskColors = { LOW: 'var(--green)', MODERATE: '#f59e0b', HIGH: 'var(--red)' };
@@ -7560,6 +7603,90 @@ document.querySelectorAll('.lang-btn').forEach(b => {
 
 // Initialize
 updateSysPromptLang('en');
+
+/* ══ BUILD SESSION NOW — from client card ══ */
+function buildSessionNow(clientId) {
+  // 1. Set as active
+  setActiveClient(clientId);
+  // 2. Close any open modals
+  if (typeof closeCpModal === 'function') closeCpModal();
+  // 3. Switch to Build Session tab
+  document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
+  var buildTab = document.querySelector('[data-tab="ask"]');
+  if (buildTab) buildTab.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  var buildPanel = document.querySelector('[data-panel="ask"]');
+  if (buildPanel) buildPanel.classList.add('active');
+  // 4. Auto-open the style questionnaire by selecting the first relevant style
+  setTimeout(function() {
+    var c = window.cpActiveClient;
+    if (!c) return;
+    // Auto-select a style based on client goals/special populations
+    var styleMap = {glp1:'glp1',older_adult:'senior',post_rehab:'corrective',prenatal:'prenatal',postpartum:'prenatal',competition:'sport'};
+    var goalStyleMap = {fat_loss:'hiit',muscle_gain:'bodybuilding',strength:'powerlifting',athletic:'sandc',general:'sandc',endurance:'endurance'};
+    var sp = (c.special||[]).filter(function(s){return s&&s!=='none';})[0];
+    var goal = (c.goals||[])[0];
+    var autoStyle = (sp && styleMap[sp]) || (goal && goalStyleMap[goal]) || 'sandc';
+    var card = document.querySelector('#styleGrid .style-card[data-style="'+autoStyle+'"]');
+    if (card) card.click();
+  }, 400);
+}
+window.buildSessionNow = buildSessionNow;
+
+/* ══ PROGRAM BUILDER — timeframe selector ══ */
+function openProgramBuilder(clientId) {
+  setActiveClient(clientId);
+  if (typeof closeCpModal === 'function') closeCpModal();
+  var timeframes = [
+    {id:'single',name:'SINGLE SESSION',desc:'One training session for today',icon:'1️⃣'},
+    {id:'7day',name:'7-DAY PROGRAM',desc:'Full week plan with daily sessions',icon:'📅'},
+    {id:'14day',name:'14-DAY PROGRAM',desc:'Two-week progression with periodization',icon:'📆'},
+    {id:'21day',name:'21-DAY CHALLENGE',desc:'Habit formation program — 3 weeks',icon:'🔥'},
+    {id:'monthly',name:'MONTHLY PROGRAM',desc:'4-week periodized training plan',icon:'📋'},
+    {id:'12week',name:'12-WEEK TRANSFORMATION',desc:'Full phase progression with deloads',icon:'🏆'}
+  ];
+  var modal = document.createElement('div');
+  modal.id = 'programBuilderModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:680px;width:100%;padding:0;">' +
+    '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">' +
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);letter-spacing:0.05em;">Build Program</h3>' +
+      '<button onclick="document.getElementById(\'programBuilderModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
+    '</div>' +
+    '<div style="padding:1.25rem 1.5rem;">' +
+      '<p style="font-size:0.85rem;color:var(--text2);margin-bottom:1.25rem;">Select a program timeframe for <strong style="color:var(--gold);">' + ((window.cpActiveClient||{}).fname||'client') + '</strong>. Then choose a training style and generate.</p>' +
+      '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">' +
+        timeframes.map(function(t){
+          return '<div onclick="selectProgramTimeframe(\''+t.id+'\',\''+t.name+'\')" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all 0.15s;text-align:center;" onmouseover="this.style.borderColor=\'var(--gold)\';this.style.background=\'rgba(240,165,0,0.04)\'" onmouseout="this.style.borderColor=\'var(--border2)\';this.style.background=\'var(--navy3)\'">' +
+            '<div style="font-size:1.5rem;margin-bottom:6px;">'+t.icon+'</div>' +
+            '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;color:var(--text);letter-spacing:0.06em;margin-bottom:4px;">'+t.name+'</div>' +
+            '<div style="font-size:0.75rem;color:var(--text3);line-height:1.4;">'+t.desc+'</div>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(modal);
+}
+window.openProgramBuilder = openProgramBuilder;
+
+window.selectProgramTimeframe = function(tfId, tfName) {
+  document.getElementById('programBuilderModal').remove();
+  window._programTimeframe = {id:tfId, name:tfName};
+  // Switch to Build Session and open style selector
+  document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
+  var bt = document.querySelector('[data-tab="ask"]');
+  if(bt) bt.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  var bp = document.querySelector('[data-panel="ask"]');
+  if(bp) bp.classList.add('active');
+  // Scroll to style grid
+  setTimeout(function(){
+    var sg = document.getElementById('styleGrid');
+    if(sg) sg.scrollIntoView({behavior:'smooth',block:'center'});
+  }, 300);
+};
 
 /* ══ SESSION HISTORY SYSTEM ══ */
 var SESSION_HISTORY_KEY = 'drfitness_session_history';
