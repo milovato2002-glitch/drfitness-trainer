@@ -459,6 +459,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
     <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">
       <h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Generated Workout</h3>
       <div style="display:flex;gap:6px;align-items:center;">
+        <button onclick="wccEmailSession()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">EMAIL</button>
         <button onclick="wccCopyWorkout()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">COPY</button>
         <button onclick="window.print()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">PRINT</button>
         <button onclick="closeWccModal('wccOutputModal')" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">✕</button>
@@ -711,6 +712,15 @@ window.wccGenerate = async function(){
       }
 
       document.getElementById('wccOutputContent').innerHTML = banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml;
+      // Auto-save to client history
+      if (typeof autoSaveSession === 'function') {
+        autoSaveSession(
+          banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml,
+          styleName,
+          {level:level,duration:duration,equipment:equipment,goal:goal,injuries:injuries},
+          'Session'
+        );
+      }
     } else {
       throw new Error('No response from AI');
     }
@@ -3646,7 +3656,7 @@ function filterPeptides() {
         </div>
         <div class="cp-fg">
           <div class="cp-field"><label>Emergency Contact Phone</label><input type="tel" id="cf-emerg-phone" placeholder="(555) 555-5555"></div>
-          <div class="cp-field">&nbsp;</div>
+          <div class="cp-field"><label>Client Email</label><input type="email" id="cf-email" placeholder="client@email.com"></div>
         </div>
         <div class="cp-section-label">Physician / Specialist</div>
         <div class="cp-fg cp-fg-full">
@@ -4132,6 +4142,7 @@ function filterPeptides() {
     <div class="cp-modal-actions">
       <button class="cp-action-btn cp-action-primary" onclick="cpOpenAiChat()">💬 Ask AI About This Client</button>
       <button class="cp-action-btn cp-action-secondary" onclick="cpOpenWorkoutBuilder()">🏋️ Build Workout</button>
+      <button class="cp-action-btn cp-action-secondary" onclick="if(cpViewingClient)openSessionHistory(cpViewingClient.id)">📋 Session History</button>
       <button class="cp-action-btn cp-action-secondary" onclick="cpOpenCalcWithClient()">🔢 Run Calculators</button>
       <button class="cp-action-btn cp-action-secondary" id="cpPrintBtn">🖨️ Print Summary</button>
       <button class="cp-action-btn cp-action-secondary" id="cpEditBtn">✏️ Edit Profile</button>
@@ -6622,6 +6633,7 @@ function cpCollectForm() {
     language: document.getElementById('cf-language').value,
     emergName: document.getElementById('cf-emerg-name').value,
     emergPhone: document.getElementById('cf-emerg-phone').value,
+    email: document.getElementById('cf-email').value,
     underPhysician: document.getElementById('cf-under-physician').checked,
     physicianName: document.getElementById('cf-physician-name').value,
     physClearanceObtained: document.getElementById('cf-phys-clearance-obtained').checked,
@@ -6753,7 +6765,7 @@ function cpPopulateForm(c) {
   // New fields v9
   const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
   setVal('cf-language', c.language);
-  setVal('cf-emerg-name', c.emergName); setVal('cf-emerg-phone', c.emergPhone);
+  setVal('cf-emerg-name', c.emergName); setVal('cf-emerg-phone', c.emergPhone); setVal('cf-email', c.email);
   if (c.underPhysician) { document.getElementById('cf-under-physician').checked = true; document.getElementById('cf-physician-name-row').style.display='block'; }
   setVal('cf-physician-name', c.physicianName);
   if (c.physClearanceObtained) document.getElementById('cf-phys-clearance-obtained').checked = true;
@@ -6940,7 +6952,8 @@ function renderClients() {
       ${specialTags ? '<div class="cp-card-tags">'+specialTags+'</div>' : ''}
       <div class="cp-card-goal">${c.success ? '"'+c.success.substring(0,80)+(c.success.length>80?'...':'')+'"' : goalLabel}</div>
       <div class="cp-card-actions">
-        <button class="cp-btn-view" onclick="viewClient('${c.id}')">View Profile & AI Suggestions</button>
+        <button class="cp-btn-view" onclick="viewClient('${c.id}')">View Profile</button>
+        <button class="cp-btn-edit" style="background:rgba(96,165,250,0.1);border-color:rgba(96,165,250,0.4);color:#60a5fa;" onclick="openSessionHistory('${c.id}')" title="Session History">📋</button>
         <button class="cp-btn-edit" style="background:var(--gold-dim);border-color:var(--gold);color:var(--gold);" onclick="setActiveClient('${c.id}')" title="Set as Active Client">⭐</button>
         <button class="cp-btn-edit" onclick="openClientForm('${c.id}')">✏️</button>
         <button class="cp-btn-del" onclick="deleteClient('${c.id}')">🗑</button>
@@ -7547,6 +7560,199 @@ document.querySelectorAll('.lang-btn').forEach(b => {
 
 // Initialize
 updateSysPromptLang('en');
+
+/* ══ SESSION HISTORY SYSTEM ══ */
+var SESSION_HISTORY_KEY = 'drfitness_session_history';
+
+function getClientSessions(clientId) {
+  try { var all = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}'); return all[clientId] || []; }
+  catch(e) { return []; }
+}
+
+function saveClientSession(clientId, session) {
+  try {
+    var all = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}');
+    if (!all[clientId]) all[clientId] = [];
+    all[clientId].unshift(session);
+    localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(all));
+  } catch(e) { console.error('Failed to save session', e); }
+}
+
+function deleteClientSession(clientId, sessionId) {
+  try {
+    var all = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}');
+    if (all[clientId]) {
+      all[clientId] = all[clientId].filter(function(s) { return s.id !== sessionId; });
+      localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(all));
+    }
+  } catch(e) {}
+}
+
+function updateSessionNote(clientId, sessionId, note) {
+  try {
+    var all = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}');
+    if (all[clientId]) {
+      var s = all[clientId].find(function(x) { return x.id === sessionId; });
+      if (s) { s.notes = note; localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(all)); }
+    }
+  } catch(e) {}
+}
+
+function markSessionSent(clientId, sessionId) {
+  try {
+    var all = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}');
+    if (all[clientId]) {
+      var s = all[clientId].find(function(x) { return x.id === sessionId; });
+      if (s) { s.sent = true; s.sentDate = new Date().toISOString(); localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(all)); }
+    }
+  } catch(e) {}
+}
+
+// Auto-save generated workouts
+function autoSaveSession(content, style, questionnaire, type) {
+  var c = window.cpActiveClient;
+  if (!c || !c.id) return;
+  var session = {
+    id: 'ses_' + Date.now(),
+    date: new Date().toISOString(),
+    type: type || 'Session',
+    style: style || 'General',
+    content: content,
+    questionnaire: questionnaire || {},
+    notes: '',
+    sent: false,
+    sentDate: null
+  };
+  saveClientSession(c.id, session);
+}
+
+// Session History Modal
+function openSessionHistory(clientId) {
+  cpLoadClients();
+  var client = cpClients.find(function(x) { return x.id === clientId; });
+  if (!client) return;
+  var sessions = getClientSessions(clientId);
+  var name = (client.fname || '') + ' ' + (client.lname || '');
+
+  // Stats
+  var totalSessions = sessions.length;
+  var styleCounts = {};
+  sessions.forEach(function(s) { styleCounts[s.style] = (styleCounts[s.style]||0)+1; });
+  var topStyle = Object.keys(styleCounts).sort(function(a,b){return styleCounts[b]-styleCounts[a];})[0] || 'None';
+  var lastDate = sessions.length > 0 ? new Date(sessions[0].date).toLocaleDateString() : 'No sessions';
+  var weekAgo = Date.now() - 7*24*60*60*1000;
+  var streak = sessions.filter(function(s){return new Date(s.date).getTime() > weekAgo;}).length;
+
+  var typeBadge = function(t) {
+    var colors = {'Session':'background:var(--gold-dim);color:var(--gold);border-color:var(--gold)','7-Day Program':'background:rgba(96,165,250,0.1);color:#60a5fa;border-color:rgba(96,165,250,0.3)','Nutrition Plan':'background:var(--green-dim);color:var(--green);border-color:rgba(45,198,83,0.3)'};
+    var style = colors[t] || colors['Session'];
+    return '<span style="font-size:0.62rem;font-weight:700;letter-spacing:0.06em;padding:2px 7px;border-radius:10px;border:1px solid;'+style+'">'+t+'</span>';
+  };
+
+  var sessionHtml = sessions.length === 0
+    ? '<div style="text-align:center;padding:3rem;color:var(--text3);">No sessions generated yet for this client.</div>'
+    : sessions.map(function(s) {
+      var preview = (s.content||'').replace(/<[^>]*>/g,'').substring(0, 150) + '...';
+      var dateStr = new Date(s.date).toLocaleString();
+      return '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:8px;" id="sh_'+s.id+'">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;flex-wrap:wrap;gap:6px;">' +
+          '<div>'+typeBadge(s.type)+' <span style="font-size:0.78rem;color:var(--text);font-weight:500;margin-left:4px;">'+s.style+'</span></div>' +
+          '<span style="font-size:0.72rem;color:var(--text3);">'+dateStr+(s.sent?' · <span style="color:var(--green);">Sent</span>':'')+'</span>' +
+        '</div>' +
+        '<div style="font-size:0.8rem;color:var(--text2);line-height:1.5;margin-bottom:8px;">'+preview+'</div>' +
+        '<details><summary style="font-size:0.72rem;color:var(--gold);cursor:pointer;margin-bottom:6px;">View full content</summary><div style="font-size:0.8rem;color:var(--text2);line-height:1.7;padding:8px;background:var(--navy2);border-radius:var(--radius-sm);max-height:300px;overflow-y:auto;">'+s.content+'</div></details>' +
+        '<div style="margin-top:8px;"><textarea placeholder="Add trainer notes..." onblur="updateSessionNote(\''+clientId+'\',\''+s.id+'\',this.value)" style="width:100%;padding:8px 10px;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.8rem;resize:vertical;min-height:36px;outline:none;" onfocus="this.style.borderColor=\'var(--gold)\'" onblurr="this.style.borderColor=\'var(--border2)\'">'+(s.notes||'')+'</textarea></div>' +
+        '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">' +
+          '<button onclick="emailSession(\''+clientId+'\',\''+s.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.7rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">EMAIL TO CLIENT</button>' +
+          '<button onclick="printSession(\''+s.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.7rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">PRINT</button>' +
+          '<button onclick="if(confirm(\'Delete this session?\')){ deleteClientSession(\''+clientId+'\',\''+s.id+'\'); document.getElementById(\'sh_'+s.id+'\').remove(); }" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.7rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">DELETE</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+  var modal = document.createElement('div');
+  modal.id = 'sessionHistoryModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:760px;width:100%;margin:2rem auto;padding:0;">' +
+    '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">' +
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);letter-spacing:0.05em;">'+name+' — Session History</h3>' +
+      '<button onclick="document.getElementById(\'sessionHistoryModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
+    '</div>' +
+    '<div style="padding:1rem 1.5rem;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border-bottom:1px solid var(--border2);">' +
+      '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">'+totalSessions+'</div><div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Total Sessions</div></div>' +
+      '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:var(--gold);">'+topStyle+'</div><div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Top Style</div></div>' +
+      '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:var(--gold);">'+lastDate+'</div><div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Last Session</div></div>' +
+      '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">'+streak+'</div><div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">This Week</div></div>' +
+    '</div>' +
+    '<div style="padding:1.5rem;">'+sessionHtml+'</div>' +
+  '</div>';
+  document.body.appendChild(modal);
+}
+window.openSessionHistory = openSessionHistory;
+window.updateSessionNote = updateSessionNote;
+window.deleteClientSession = deleteClientSession;
+
+// Print a specific session
+window.printSession = function(sessionId) {
+  var el = document.querySelector('#sh_' + sessionId + ' details div');
+  if (!el) return;
+  var w = window.open('', '_blank');
+  w.document.write('<html><head><title>Session</title><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:800px;margin:0 auto;line-height:1.7;}</style></head><body>' + el.innerHTML + '</body></html>');
+  w.document.close();
+  setTimeout(function() { w.print(); }, 500);
+};
+
+/* ══ EMAIL SYSTEM ══ */
+function buildMailtoLink(toEmail, clientName, style, type, content) {
+  var date = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  var trainerName = 'Dr. Michael P. Lovato EdD';
+  if (window.cpActiveClient && window.cpActiveClient.trainerName) trainerName = window.cpActiveClient.trainerName;
+  var plainContent = (content||'').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+  var subject = 'Your Training Session from Dr. Fitness — ' + date;
+  var body = 'DR. FITNESS TRAINER REFERENCE SYSTEM\n' +
+    'Prepared by: ' + trainerName + '\n' +
+    'Client: ' + clientName + '\n' +
+    'Date: ' + date + '\n' +
+    'Session Type: ' + (type||'Session') + '\n' +
+    'Training Style: ' + (style||'General') + '\n\n' +
+    '---\n\n' +
+    plainContent + '\n\n' +
+    '---\n' +
+    'Questions about this session? Ask your trainer at your next appointment.\n' +
+    'Generated by Dr. Fitness Trainer Reference System — drfitness-trainer.netlify.app';
+  return 'mailto:' + encodeURIComponent(toEmail) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+
+function emailSession(clientId, sessionId) {
+  cpLoadClients();
+  var client = cpClients.find(function(x) { return x.id === clientId; });
+  if (!client) { alert('Client not found.'); return; }
+  if (!client.email) {
+    var email = prompt('No email saved for ' + client.fname + '. Enter their email address:');
+    if (!email) return;
+    client.email = email;
+    var idx = cpClients.findIndex(function(x) { return x.id === clientId; });
+    if (idx >= 0) cpClients[idx] = client;
+    cpSaveClients();
+  }
+  var sessions = getClientSessions(clientId);
+  var session = sessions.find(function(s) { return s.id === sessionId; });
+  if (!session) { alert('Session not found.'); return; }
+  var link = buildMailtoLink(client.email, client.fname, session.style, session.type, session.content);
+  window.open(link, '_self');
+  markSessionSent(clientId, sessionId);
+}
+window.emailSession = emailSession;
+
+// Email from the output modal (uses last generated session)
+window.wccEmailSession = function() {
+  var c = window.cpActiveClient;
+  if (!c || !c.id) { alert('Set an active client first to email sessions.'); return; }
+  var sessions = getClientSessions(c.id);
+  if (sessions.length === 0) { alert('No session to email. Generate a workout first.'); return; }
+  emailSession(c.id, sessions[0].id);
+};
 
 </script>
 <!-- ══ PERSISTENT FLOATING CHAT ══ -->
