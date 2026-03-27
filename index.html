@@ -297,6 +297,19 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <button class="nav-tab" data-tab="resources">🔗 Resources</button>
 </div>
 
+<!-- ACTIVE CLIENT BANNER -->
+<div id="activeClientBanner" style="display:none;background:rgba(240,165,0,0.06);border-bottom:1px solid var(--border);padding:6px 1.25rem;align-items:center;gap:10px;font-size:0.78rem;position:sticky;top:97px;z-index:89;">
+  <div id="acbAvatar" style="width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;flex-shrink:0;"></div>
+  <span style="color:var(--text2);">Active Client:</span>
+  <strong id="acbName" style="color:var(--text);font-weight:600;"></strong>
+  <span id="acbTags" style="display:flex;gap:4px;flex-wrap:wrap;"></span>
+  <a href="#" id="acbChangeLink" onclick="event.preventDefault();document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=clients]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=clients]').classList.add('active');" style="color:var(--gold);font-size:0.72rem;margin-left:auto;text-decoration:none;white-space:nowrap;">Change Client</a>
+  <button onclick="clearActiveClient()" style="background:transparent;border:none;color:var(--text3);font-size:0.72rem;cursor:pointer;white-space:nowrap;">✕ Clear</button>
+</div>
+<div id="activeClientBannerEmpty" style="display:none;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border2);padding:5px 1.25rem;font-size:0.72rem;color:var(--text3);position:sticky;top:97px;z-index:89;">
+  No active client selected — <a href="#" onclick="event.preventDefault();document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=clients]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=clients]').classList.add('active');" style="color:var(--gold);text-decoration:none;">select a client</a> to personalize AI responses
+</div>
+
 <main>
 
 <!-- ══ ASK PANEL ══ -->
@@ -2140,10 +2153,48 @@ function filterPeptides() {
     <p>Pre-written sessions, weekly program templates, and exercise libraries for every training style. Use the AI Builder for unlimited custom sessions tailored to your client.</p>
   </div>
 
-  <!-- AI Builder CTA -->
-  <div class="wl-ai-box">
-    <p><strong>Need a custom session?</strong> The AI Workout Builder generates a complete, personalized session based on your client's profile, goal, equipment, and duration in seconds.</p>
-    <button class="wl-ai-btn" style="width:auto;min-width:160px;" onclick="openAiBuilder()">⚡ AI Workout Builder</button>
+  <!-- AI WORKOUT BUILDER FORM -->
+  <div class="wl-ai-box" style="flex-direction:column;align-items:stretch;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+      <p style="margin:0;"><strong>AI Workout Builder</strong> — Fill in the form below to generate a complete, personalized session.</p>
+      <button class="wl-ai-btn" style="width:auto;min-width:100px;font-size:0.72rem;padding:6px 12px;" onclick="document.getElementById('wbFormSection').style.display=document.getElementById('wbFormSection').style.display==='none'?'block':'none'">Toggle Form</button>
+    </div>
+    <div id="wbFormSection" class="workout-builder-form">
+      <div id="wbActiveClientNote" style="display:none;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:6px 10px;margin-bottom:0.75rem;font-size:0.75rem;color:var(--green);"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="calc-field"><label>Client Level</label><select id="wb-level"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="advanced">Advanced</option></select></div>
+        <div class="calc-field"><label>NASM OPT Phase</label><select id="wb-phase"><option value="1">Phase 1 — Stabilization Endurance</option><option value="2">Phase 2 — Strength Endurance</option><option value="3" selected>Phase 3 — Muscular Development</option><option value="4">Phase 4 — Maximal Strength</option><option value="5">Phase 5 — Power</option></select></div>
+        <div class="calc-field"><label>Session Duration</label><select id="wb-duration"><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="calc-field"><label>Training Focus</label><select id="wb-focus"><option value="full_body" selected>Full Body</option><option value="upper_body">Upper Body</option><option value="lower_body">Lower Body</option><option value="push">Push</option><option value="pull">Pull</option><option value="legs">Legs</option><option value="athletic">Athletic Performance</option><option value="corrective">Corrective Exercise</option></select></div>
+        <div class="calc-field"><label>Equipment</label><select id="wb-equipment"><option value="full_gym" selected>Full Gym</option><option value="dumbbells_only">Dumbbells Only</option><option value="barbell_rack">Barbell and Rack</option><option value="cables">Cables</option><option value="bodyweight">Bodyweight Only</option><option value="bands">Resistance Bands</option></select></div>
+        <div class="calc-field"><label>Goal</label><select id="wb-goal"><option value="muscle_gain">Muscle Gain</option><option value="fat_loss">Fat Loss</option><option value="endurance">Endurance</option><option value="strength">Strength</option><option value="maintenance">Maintenance</option><option value="glp1">GLP-1 Support</option><option value="post_rehab">Post-Rehab</option><option value="general" selected>General Fitness</option></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="calc-field"><label>Client Name (optional)</label><input type="text" id="wb-name" placeholder="e.g. Sarah"></div>
+        <div class="calc-field"><label>Special Population (optional)</label><input type="text" id="wb-special" placeholder="e.g. GLP-1 client, post-surgical knee"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="calc-field"><label>Injuries / Restrictions (optional)</label><input type="text" id="wb-injuries" placeholder="e.g. Avoid overhead pressing, knee pain below 90 degrees"></div>
+        <div class="calc-field"><label>Additional Notes (optional)</label><input type="text" id="wb-notes" placeholder="e.g. First session back after 3 weeks off"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="wb-warmup-toggle" checked> Include warm-up and cool-down
+        </label>
+      </div>
+      <button class="wl-ai-btn" id="wb-generate" onclick="generateWorkout()" style="width:100%;">⚡ Generate Workout</button>
+    </div>
+  </div>
+
+  <!-- Workout Output Area -->
+  <div id="workoutOutput" style="display:none;margin-bottom:1.5rem;">
+    <div style="display:flex;gap:8px;margin-bottom:1rem;">
+      <button class="wl-print-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+      <button class="wl-print-btn" onclick="resetBuilder()">← Build Another</button>
+    </div>
+    <div id="woContent"></div>
   </div>
 
   <!-- Category Tabs -->
@@ -3253,15 +3304,23 @@ function filterPeptides() {
         <div class="cp-section-label">Contact & Administrative</div>
         <div class="cp-fg">
           <div class="cp-field"><label>Primary Language</label><select id="cf-language"><option value="">Select</option><option value="english">English</option><option value="spanish">Spanish</option><option value="portuguese">Portuguese</option><option value="french">French</option><option value="mandarin">Mandarin</option><option value="haitian_creole">Haitian Creole</option><option value="other">Other</option></select></div>
-          <div class="cp-field"><label>Race / Ethnicity (optional, self-reported)</label><select id="cf-race"><option value="">Prefer not to say</option><option value="white">White / Caucasian</option><option value="black">Black / African American</option><option value="hispanic">Hispanic / Latino</option><option value="asian">Asian</option><option value="native">American Indian / Alaska Native</option><option value="pacific">Native Hawaiian / Pacific Islander</option><option value="multiracial">Multiracial</option><option value="other">Other</option></select></div>
-        </div>
-        <div class="cp-fg">
           <div class="cp-field"><label>Emergency Contact Name</label><input type="text" id="cf-emerg-name" placeholder="Full name"></div>
-          <div class="cp-field"><label>Emergency Contact Phone</label><input type="tel" id="cf-emerg-phone" placeholder="(555) 555-5555"></div>
         </div>
         <div class="cp-fg">
-          <div class="cp-field"><label>Primary Care Physician (PCP) Name</label><input type="text" id="cf-pcp-name" placeholder="Dr. Smith"></div>
-          <div class="cp-field"><label>PCP Phone / Clinic</label><input type="tel" id="cf-pcp-phone" placeholder="(555) 555-5555"></div>
+          <div class="cp-field"><label>Emergency Contact Phone</label><input type="tel" id="cf-emerg-phone" placeholder="(555) 555-5555"></div>
+          <div class="cp-field">&nbsp;</div>
+        </div>
+        <div class="cp-section-label">Physician / Specialist</div>
+        <div class="cp-fg cp-fg-full">
+          <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text2);cursor:pointer;margin-bottom:6px;">
+            <input type="checkbox" id="cf-under-physician" onchange="document.getElementById('cf-physician-name-row').style.display=this.checked?'block':'none'"> Client is currently under physician or specialist care
+          </label>
+          <div id="cf-physician-name-row" style="display:none;margin-top:6px;">
+            <div class="cp-field"><label>Physician or Specialist Name (optional)</label><input type="text" id="cf-physician-name" placeholder="e.g. Dr. Smith, Cardiology"></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text2);cursor:pointer;margin-top:8px;">
+            <input type="checkbox" id="cf-phys-clearance-obtained"> Physician clearance for exercise obtained
+          </label>
         </div>
         <div class="cp-section-label">Lifestyle</div>
         <div class="cp-fg">
@@ -3271,6 +3330,18 @@ function filterPeptides() {
         <div class="cp-fg">
           <div class="cp-field"><label>Stress Level</label><select id="cf-stress"><option value="">Select</option><option value="low">Low — generally relaxed</option><option value="moderate">Moderate — manageable stress</option><option value="high">High — frequently stressed</option><option value="very_high">Very high — chronic stress</option></select></div>
           <div class="cp-field"><label>Smoker / Tobacco Use</label><select id="cf-smoking"><option value="">Select</option><option value="no">No</option><option value="former">Former smoker</option><option value="yes">Current smoker</option></select></div>
+        </div>
+        <div class="cp-section-label">Current Medications</div>
+        <div class="cp-fg cp-fg-full">
+          <div class="cp-field"><label>Current Medications, Supplements, or Compounds</label><textarea id="cf-current-meds" placeholder="List any current medications, supplements, or compounds"></textarea></div>
+        </div>
+        <div class="cp-section-label">Preferred Training Location</div>
+        <div class="cp-checkgroup" id="cf-train-location">
+          <span class="cp-check" data-val="gym">Gym</span>
+          <span class="cp-check" data-val="home">Home</span>
+          <span class="cp-check" data-val="outdoor">Outdoor</span>
+          <span class="cp-check" data-val="virtual">Virtual</span>
+          <span class="cp-check" data-val="no_pref">No Preference</span>
         </div>
       </div>
 
@@ -3289,15 +3360,43 @@ function filterPeptides() {
           <span class="cp-check" data-val="weight_management">Weight Maintenance</span>
           <span class="cp-check" data-val="functional">Functional Independence (55+)</span>
         </div>
-        <div class="cp-section-label" style="margin-top:1rem;">Special Population</div>
+        <div class="cp-section-label" style="margin-top:1rem;">Special Population (select all that apply)</div>
         <div class="cp-checkgroup" id="cf-special">
           <span class="cp-check" data-val="glp1">GLP-1 / AOM Client</span>
+          <span class="cp-check" data-val="gip_aom">GIP / Next-Gen AOM</span>
           <span class="cp-check" data-val="older_adult">Older Adult 55+</span>
           <span class="cp-check" data-val="post_rehab">Post-Rehab</span>
           <span class="cp-check" data-val="prenatal">Prenatal</span>
           <span class="cp-check" data-val="postpartum">Postpartum</span>
           <span class="cp-check" data-val="youth">Youth Athlete</span>
+          <span class="cp-check" data-val="bariatric">Bariatric Post-Op</span>
+          <span class="cp-check" data-val="cardiac_rehab">Cardiac Rehab</span>
+          <span class="cp-check" data-val="diabetic">Diabetic / Pre-Diabetic</span>
+          <span class="cp-check" data-val="osteoporosis">Osteoporosis / Bone Health</span>
+          <span class="cp-check" data-val="neurological">Neurological Condition</span>
+          <span class="cp-check" data-val="autism_sensory">Autism / Sensory</span>
+          <span class="cp-check" data-val="anxiety_depression">Anxiety / Depression</span>
+          <span class="cp-check" data-val="ptsd">PTSD / Trauma-Informed</span>
+          <span class="cp-check" data-val="veteran">Veteran / First Responder</span>
+          <span class="cp-check" data-val="wheelchair">Wheelchair / Limited Mobility</span>
+          <span class="cp-check" data-val="amputee">Amputee / Limb Difference</span>
+          <span class="cp-check" data-val="chronic_pain">Chronic Pain</span>
+          <span class="cp-check" data-val="obesity">Obesity / High BMI</span>
+          <span class="cp-check" data-val="beginner_decond">Beginner / Deconditioned</span>
+          <span class="cp-check" data-val="competition">Competition Athlete</span>
           <span class="cp-check" data-val="none">None</span>
+        </div>
+        <!-- Conditional GLP-1 detail section -->
+        <div id="cf-glp1-conditional" style="display:none;margin-top:0.75rem;background:rgba(244,162,97,0.06);border:1px solid rgba(244,162,97,0.2);border-radius:var(--radius);padding:1rem 1.25rem;">
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);margin-bottom:0.75rem;">GLP-1 / AOM Medication Details</div>
+          <div class="cp-fg">
+            <div class="cp-field"><label>Medication Name</label><select id="cf-glp1-med-name"><option value="">Select medication</option><option value="semaglutide_ozempic">Semaglutide (Ozempic)</option><option value="semaglutide_wegovy">Semaglutide (Wegovy)</option><option value="tirzepatide_mounjaro">Tirzepatide (Mounjaro)</option><option value="tirzepatide_zepbound">Tirzepatide (Zepbound)</option><option value="liraglutide_saxenda">Liraglutide (Saxenda)</option><option value="retatrutide">Retatrutide</option><option value="other_glp1_med">Other</option></select></div>
+            <div class="cp-field"><label>Current Dose</label><input type="text" id="cf-glp1-dose-new" placeholder="e.g. 0.5mg weekly"></div>
+          </div>
+          <div class="cp-fg">
+            <div class="cp-field"><label>Weeks on Medication</label><input type="number" id="cf-glp1-weeks" placeholder="e.g. 12" min="0"></div>
+            <div class="cp-field">&nbsp;</div>
+          </div>
         </div>
         <div class="cp-section-label" style="margin-top:1rem;">Sport or Competition Goals</div>
         <div class="cp-fg cp-fg-full">
@@ -5424,7 +5523,8 @@ function getEquipment() {
 function resetBuilder() {
   document.getElementById('workoutOutput').classList.remove('show');
   document.getElementById('workoutOutput').style.display = 'none';
-  document.querySelector('.workout-builder-form').style.display = 'block';
+  var form = document.getElementById('wbFormSection');
+  if (form) form.style.display = 'block';
   document.getElementById('woContent').innerHTML = '';
 }
 
@@ -5489,9 +5589,12 @@ async function generateWorkout() {
   const goal = document.getElementById('wb-goal').value;
   const duration = document.getElementById('wb-duration').value;
   const focus = document.getElementById('wb-focus').value;
-  const equipment = getEquipment();
+  const equipEl = document.getElementById('wb-equipment');
+  const equipment = equipEl ? equipEl.options[equipEl.selectedIndex].text : 'full gym';
   const injuries = document.getElementById('wb-injuries').value.trim();
   const notes = document.getElementById('wb-notes').value.trim();
+  const specialPop = (document.getElementById('wb-special')||{}).value||'';
+  const includeWarmup = document.getElementById('wb-warmup-toggle').checked;
 
   const profile = { name, level, phase, goal, duration, focus };
 
@@ -5516,8 +5619,10 @@ CLIENT PROFILE:
 - Session Duration: ${duration} minutes
 - Training Focus: ${focus.replace(/_/g,' ')}
 - Available Equipment: ${equipment || 'full gym'}
+${specialPop ? '- Special Population: ' + specialPop : ''}
 ${injuries ? '- Injury Flags/Restrictions: ' + injuries : ''}
 ${notes ? '- Additional Notes: ' + notes : ''}
+${!includeWarmup ? '- SKIP warm-up and cool-down sections — client will warm up independently' : ''}
 
 FORMAT THE SESSION EXACTLY AS FOLLOWS with these section headers:
 
@@ -5550,7 +5655,8 @@ Be specific, practical, and aligned to NASM OPT principles. Use professional tra
 
   // Show loading
   document.getElementById('workoutOutput').style.display = 'block';
-  document.querySelector('.workout-builder-form').style.display = 'none';
+  var wbf = document.getElementById('wbFormSection');
+  if (wbf) wbf.style.display = 'none';
   document.getElementById('woContent').innerHTML = `<div class="wo-loading"><p style="color:var(--text2);font-size:0.9rem;">Building your session plan...</p><div class="wo-loading-dots"><span></span><span></span><span></span></div></div>`;
   document.getElementById('wb-generate').disabled = true;
 
@@ -5573,7 +5679,8 @@ Be specific, practical, and aligned to NASM OPT principles. Use professional tra
     }
   } catch(err) {
     document.getElementById('woContent').innerHTML = `<div class="wo-err">⚠️ Could not generate workout. Check your connection and try again.<br><small>${err.message}</small></div>`;
-    document.querySelector('.workout-builder-form').style.display = 'block';
+    var wbfErr = document.getElementById('wbFormSection');
+    if (wbfErr) wbfErr.style.display = 'block';
   }
   document.getElementById('wb-generate').disabled = false;
 }
@@ -5921,11 +6028,16 @@ function cpCollectForm() {
     updatedAt: new Date().toISOString(),
     // New fields v9
     language: document.getElementById('cf-language').value,
-    race: document.getElementById('cf-race').value,
     emergName: document.getElementById('cf-emerg-name').value,
     emergPhone: document.getElementById('cf-emerg-phone').value,
-    pcpName: document.getElementById('cf-pcp-name').value,
-    pcpPhone: document.getElementById('cf-pcp-phone').value,
+    underPhysician: document.getElementById('cf-under-physician').checked,
+    physicianName: document.getElementById('cf-physician-name').value,
+    physClearanceObtained: document.getElementById('cf-phys-clearance-obtained').checked,
+    currentMeds: document.getElementById('cf-current-meds').value,
+    trainLocation: cpGetChecked('cf-train-location'),
+    glp1MedName: document.getElementById('cf-glp1-med-name').value,
+    glp1DoseNew: document.getElementById('cf-glp1-dose-new').value,
+    glp1Weeks: document.getElementById('cf-glp1-weeks').value,
     prevTrainer: document.getElementById('cf-prev-trainer').value,
     prevTrainerNotes: document.getElementById('cf-prev-trainer-notes').value,
     sessionFreq: document.getElementById('cf-session-freq').value,
@@ -6048,9 +6160,17 @@ function cpPopulateForm(c) {
   document.getElementById('cf-final-notes').value = c.finalNotes||'';
   // New fields v9
   const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
-  setVal('cf-language', c.language); setVal('cf-race', c.race);
+  setVal('cf-language', c.language);
   setVal('cf-emerg-name', c.emergName); setVal('cf-emerg-phone', c.emergPhone);
-  setVal('cf-pcp-name', c.pcpName); setVal('cf-pcp-phone', c.pcpPhone);
+  if (c.underPhysician) { document.getElementById('cf-under-physician').checked = true; document.getElementById('cf-physician-name-row').style.display='block'; }
+  setVal('cf-physician-name', c.physicianName);
+  if (c.physClearanceObtained) document.getElementById('cf-phys-clearance-obtained').checked = true;
+  setVal('cf-current-meds', c.currentMeds);
+  cpSetChecked('cf-train-location', c.trainLocation);
+  setVal('cf-glp1-med-name', c.glp1MedName); setVal('cf-glp1-dose-new', c.glp1DoseNew); setVal('cf-glp1-weeks', c.glp1Weeks);
+  // Show GLP-1 conditional if applicable
+  var sp = c.special || [];
+  if (sp.indexOf('glp1') !== -1 || sp.indexOf('gip_aom') !== -1) { var gs=document.getElementById('cf-glp1-conditional'); if(gs) gs.style.display='block'; }
   setVal('cf-prev-trainer', c.prevTrainer); setVal('cf-prev-trainer-notes', c.prevTrainerNotes);
   setVal('cf-session-freq', c.sessionFreq); setVal('cf-format-pref', c.formatPref);
   setVal('cf-goal-short', c.goalShort); setVal('cf-goal-long', c.goalLong);
@@ -6090,8 +6210,12 @@ function cpResetForm() {
   ['cf-goals','cf-special','cf-equipment','cf-conditions','cf-injuries',
    'cf-ohsa-foot','cf-ohsa-knee','cf-ohsa-lphc','cf-ohsa-shoulder'
   ].forEach(id => cpSetChecked(id, []));
-  ['cf-allergies','cf-recovery-habits'].forEach(id => cpSetChecked(id, []));
-  ['cf-language','cf-race','cf-emerg-name','cf-emerg-phone','cf-pcp-name','cf-pcp-phone',
+  ['cf-allergies','cf-recovery-habits','cf-train-location'].forEach(id => cpSetChecked(id, []));
+  ['cf-under-physician','cf-phys-clearance-obtained'].forEach(id => { var el=document.getElementById(id); if(el) el.checked=false; });
+  var pnr=document.getElementById('cf-physician-name-row'); if(pnr) pnr.style.display='none';
+  var glpC=document.getElementById('cf-glp1-conditional'); if(glpC) glpC.style.display='none';
+  ['cf-language','cf-emerg-name','cf-emerg-phone','cf-physician-name','cf-current-meds',
+   'cf-glp1-med-name','cf-glp1-dose-new','cf-glp1-weeks',
    'cf-prev-trainer','cf-prev-trainer-notes','cf-session-freq','cf-format-pref',
    'cf-goal-short','cf-goal-long','cf-goal-rank1','cf-goal-rank2','cf-goal-rank3',
    'cf-glp1-dose','cf-glp1-start','cf-current-supps','cf-injury-list','cf-phys-clearance-date','cf-reassess-sched',
@@ -6156,7 +6280,17 @@ document.querySelectorAll('.cp-step').forEach(el => {
 });
 
 document.querySelectorAll('.cp-check').forEach(el => {
-  el.addEventListener('click', () => el.classList.toggle('checked'));
+  el.addEventListener('click', () => {
+    el.classList.toggle('checked');
+    // Show/hide GLP-1 conditional section
+    if (el.closest('#cf-special')) {
+      var specialChecked = Array.from(document.querySelectorAll('#cf-special .cp-check.checked')).map(function(e){return e.dataset.val;});
+      var glpSection = document.getElementById('cf-glp1-conditional');
+      if (glpSection) {
+        glpSection.style.display = (specialChecked.indexOf('glp1') !== -1 || specialChecked.indexOf('gip_aom') !== -1) ? 'block' : 'none';
+      }
+    }
+  });
 });
 
 function cpSaveClient() {
@@ -6215,6 +6349,7 @@ function renderClients() {
       <div class="cp-card-goal">${c.success ? '"'+c.success.substring(0,80)+(c.success.length>80?'...':'')+'"' : goalLabel}</div>
       <div class="cp-card-actions">
         <button class="cp-btn-view" onclick="viewClient('${c.id}')">View Profile & AI Suggestions</button>
+        <button class="cp-btn-edit" style="background:var(--gold-dim);border-color:var(--gold);color:var(--gold);" onclick="setActiveClient('${c.id}')" title="Set as Active Client">⭐</button>
         <button class="cp-btn-edit" onclick="openClientForm('${c.id}')">✏️</button>
         <button class="cp-btn-del" onclick="deleteClient('${c.id}')">🗑</button>
       </div>
@@ -6529,9 +6664,164 @@ if (typeof send === 'function') {
   };
 }
 
+/* ══ ACTIVE CLIENT SYSTEM ══ */
+function setActiveClient(id) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===id;});
+  if (!c) return;
+  localStorage.setItem('drfitness_active_client', JSON.stringify(c));
+  window.cpActiveClient = c;
+  window.cpClientContext = cpBuildClientContext(c);
+  updateActiveClientBanner();
+  populateWorkoutFormFromClient(c);
+  renderClients();
+}
+window.setActiveClient = setActiveClient;
+
+function clearActiveClient() {
+  localStorage.removeItem('drfitness_active_client');
+  window.cpActiveClient = null;
+  window.cpClientContext = '';
+  updateActiveClientBanner();
+}
+window.clearActiveClient = clearActiveClient;
+
+function loadActiveClient() {
+  try {
+    var stored = localStorage.getItem('drfitness_active_client');
+    if (stored) {
+      var c = JSON.parse(stored);
+      window.cpActiveClient = c;
+      window.cpClientContext = cpBuildClientContext(c);
+      updateActiveClientBanner();
+      populateWorkoutFormFromClient(c);
+    } else {
+      updateActiveClientBanner();
+    }
+  } catch(e) { updateActiveClientBanner(); }
+}
+
+function updateActiveClientBanner() {
+  var banner = document.getElementById('activeClientBanner');
+  var emptyBanner = document.getElementById('activeClientBannerEmpty');
+  if (!banner || !emptyBanner) return;
+  var c = window.cpActiveClient;
+  if (c && c.fname) {
+    banner.style.display = 'flex';
+    emptyBanner.style.display = 'none';
+    var initials = (c.fname||'').charAt(0).toUpperCase() + (c.lname||'').charAt(0).toUpperCase();
+    document.getElementById('acbAvatar').textContent = initials;
+    document.getElementById('acbName').textContent = c.fname + ' ' + (c.lname||'');
+    var tags = [];
+    var levelMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Advanced'};
+    var lvl = levelMap[c.trainingAge] || '';
+    if (lvl) tags.push('<span style="font-size:0.62rem;padding:2px 6px;border-radius:10px;background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);">' + lvl + '</span>');
+    (c.special||[]).filter(function(s){return s&&s!=='none';}).forEach(function(s){
+      tags.push('<span style="font-size:0.62rem;padding:2px 6px;border-radius:10px;background:var(--gold-dim);color:var(--gold);border:1px solid var(--border);">' + s.replace(/_/g,' ') + '</span>');
+    });
+    document.getElementById('acbTags').innerHTML = tags.join('');
+    // Update nutrition targets if visible
+    updateNutritionTargets(c);
+    // Update injury considerations
+    updateInjuryConsiderations(c);
+  } else {
+    banner.style.display = 'none';
+    emptyBanner.style.display = 'block';
+  }
+}
+
+function populateWorkoutFormFromClient(c) {
+  if (!c) return;
+  var note = document.getElementById('wbActiveClientNote');
+  if (note) {
+    note.style.display = 'block';
+    note.textContent = 'Pre-filled from ' + c.fname + ' ' + (c.lname||'') + ' profile';
+  }
+  var nameEl = document.getElementById('wb-name');
+  if (nameEl) nameEl.value = c.fname + ' ' + (c.lname||'');
+  var levelMap = {none:'beginner','0to6mo':'beginner','6to12mo':'beginner','1to2yr':'intermediate','2to5yr':'intermediate','5to10yr':'advanced','10yr+':'advanced'};
+  var levelEl = document.getElementById('wb-level');
+  if (levelEl && c.trainingAge) levelEl.value = levelMap[c.trainingAge] || 'intermediate';
+  var phaseEl = document.getElementById('wb-phase');
+  if (phaseEl && c.optPhase) phaseEl.value = c.optPhase;
+  var goalMap = {fat_loss:'fat_loss',muscle_gain:'muscle_gain',strength:'strength',athletic:'general',general:'general',glp1:'glp1',older_adult:'general',post_rehab:'post_rehab'};
+  var goalEl = document.getElementById('wb-goal');
+  var firstGoal = (c.goals||[])[0];
+  var firstSpecial = (c.special||[]).filter(function(s){return s&&s!=='none';})[0];
+  if (goalEl) {
+    if (firstSpecial && goalMap[firstSpecial]) goalEl.value = goalMap[firstSpecial];
+    else if (firstGoal && goalMap[firstGoal]) goalEl.value = goalMap[firstGoal];
+  }
+  var specialEl = document.getElementById('wb-special');
+  if (specialEl) specialEl.value = (c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ');
+  var injEl = document.getElementById('wb-injuries');
+  if (injEl && c.injuryNotes) injEl.value = c.injuryNotes;
+}
+
+function updateNutritionTargets(c) {
+  // Add/update a targets box at top of nutrition panel if it exists
+  var nutMain = document.querySelector('[data-panel="nutrition"] .nut-main');
+  if (!nutMain) return;
+  var existing = document.getElementById('acNutritionTargets');
+  if (!c || !c.weight) { if (existing) existing.remove(); return; }
+  var kg = c.weight * 0.453592;
+  var age = parseInt(c.age) || 30;
+  var rmr = c.sex === 'male' ? Math.round((10*kg)+(6.25*170)-(5*age)+5) : Math.round((10*kg)+(6.25*165)-(5*age)-161);
+  var actMap = {sedentary:1.2,lightly_active:1.375,moderately_active:1.55,very_active:1.725,extra_active:1.9};
+  var tdee = Math.round(rmr * (actMap[c.activity]||1.55));
+  var isGlp = (c.special||[]).indexOf('glp1') !== -1;
+  var isOlder = (c.special||[]).indexOf('older_adult') !== -1;
+  var protMin = isGlp ? 1.8 : isOlder ? 1.6 : 1.6;
+  var protMax = isGlp ? 2.4 : isOlder ? 2.0 : 2.2;
+  var protTarget = Math.round(kg * ((protMin+protMax)/2));
+  var calTarget = (c.goals||[]).indexOf('fat_loss') !== -1 ? tdee - 400 : (c.goals||[]).indexOf('muscle_gain') !== -1 ? tdee + 300 : tdee;
+  var hydration = Math.round(c.weight * 0.5);
+  var html = '<div id="acNutritionTargets" style="background:rgba(240,165,0,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:0.875rem 1.25rem;margin-bottom:1rem;">' +
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Active Client: ' + c.fname + ' ' + (c.lname||'') + ' — Calculated Targets</div>' +
+    '<div style="display:flex;gap:1rem;flex-wrap:wrap;">' +
+    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">' + calTarget + '</div><div style="font-size:0.62rem;color:var(--text3);">DAILY KCAL</div></div>' +
+    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--green);">' + protTarget + 'g</div><div style="font-size:0.62rem;color:var(--text3);">PROTEIN</div></div>' +
+    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--teal);">' + hydration + 'oz</div><div style="font-size:0.62rem;color:var(--text3);">WATER</div></div>' +
+    '</div></div>';
+  if (existing) { existing.outerHTML = html; }
+  else { nutMain.insertAdjacentHTML('afterbegin', html); }
+}
+
+function updateInjuryConsiderations(c) {
+  var injPanel = document.querySelector('[data-panel="injury"] .ref-panel');
+  if (!injPanel) return;
+  var existing = document.getElementById('acInjuryBox');
+  var injTags = (c.special||[]).filter(function(s) {
+    return ['post_rehab','chronic_pain','osteoporosis','cardiac_rehab','wheelchair','amputee'].indexOf(s) !== -1;
+  });
+  var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';});
+  if ((!c) || (injTags.length === 0 && injuries.length === 0)) { if (existing) existing.remove(); return; }
+  var html = '<div id="acInjuryBox" style="background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.25);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">' +
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);margin-bottom:0.4rem;">Active Client: ' + c.fname + ' — Injury Considerations</div>' +
+    '<p style="font-size:0.8rem;color:var(--text2);line-height:1.6;">';
+  if (injuries.length) html += '<strong>Injury areas:</strong> ' + injuries.join(', ').replace(/_/g,' ') + '. ';
+  if (injTags.length) html += '<strong>Special considerations:</strong> ' + injTags.join(', ').replace(/_/g,' ') + '. ';
+  if (c.injuryNotes) html += '<br><strong>Notes:</strong> ' + c.injuryNotes;
+  html += '</p></div>';
+  if (existing) { existing.outerHTML = html; }
+  else { injPanel.insertAdjacentHTML('afterbegin', html); }
+}
+
+// Override cpBuildClientContext with expanded version
+cpBuildClientContext = function(c) {
+  if (!c) return '';
+  var special = (c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ')||'none';
+  var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).join(', ')||'none reported';
+  var conditions = (c.conditions||[]).filter(function(x){return x&&x!=='none_hx';}).join(', ')||'none reported';
+  var meds = c.currentMeds || c.medications || 'none listed';
+  var clearance = c.physClearanceObtained ? 'yes' : 'not confirmed';
+  return '\n\nACTIVE CLIENT: Name ' + (c.fname||'') + ' ' + (c.lname||'') + ', Age ' + (c.age||'N/A') + ', Weight ' + (c.weight||'N/A') + 'lbs, Level ' + (c.trainingAge||'not assessed') + ', OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + ', Goal ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Medications ' + meds + ', Physician Clearance ' + clearance + '. Tailor all responses to this client.';
+};
+
 // Init
 cpLoadClients();
 renderClients();
+loadActiveClient();
 
 /* ══ LANGUAGE SYSTEM ══ */
 const i18n = {
