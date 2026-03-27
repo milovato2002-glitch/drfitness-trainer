@@ -4456,9 +4456,18 @@ if(heroSearchEl){
 function heroSend(){
   var text=(document.getElementById('heroSearch').value||'').trim();
   if(!text)return;
-  qi.value=text;
   document.getElementById('heroSearch').value='';
-  send();
+  document.getElementById('heroSearch').style.height='auto';
+  // Open the floating chat panel and submit there
+  if(typeof fcOpenPanel==='function') fcOpenPanel();
+  var fcInput=document.getElementById('fcQi');
+  if(fcInput){
+    fcInput.value=text;
+    // Small delay to let panel open, then submit
+    setTimeout(function(){
+      if(typeof fcSendMsg==='function') fcSendMsg();
+    },350);
+  }
 }
 window.heroSend=heroSend;
 
@@ -7080,7 +7089,7 @@ updateSysPromptLang('en');
 
 <div class="fc-panel" id="fcPanel">
   <div class="fc-header">
-    <div><h3>Dr. Fitness</h3><p>AI Trainer Reference</p></div>
+    <div><h3>DR. FITNESS AI</h3><p>AI Trainer Reference</p></div>
     <button class="fc-close" onclick="fcClose()">✕ Close</button>
   </div>
   <div class="fc-mode-row" id="fcModeRow">
@@ -7103,7 +7112,7 @@ updateSysPromptLang('en');
   </div>
 </div>
 
-<button class="fc-btn" id="fcBtn" onclick="fcToggle()" title="Ask Dr. Fitness">💬</button>
+<button class="fc-btn" id="fcBtn" onclick="fcToggle()" title="DR. FITNESS AI">💬</button>
 
 <script>
 (function(){
@@ -7186,6 +7195,7 @@ updateSysPromptLang('en');
     fcLoading = false;
     document.getElementById('fcSend').disabled = false;
   }
+  window.fcSendMsg = fcSendMsg;
 })();
 </script>
 </body>
