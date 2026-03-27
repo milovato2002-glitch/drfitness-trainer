@@ -290,25 +290,12 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </header>
 
 <div class="nav-tabs">
-  <button class="nav-tab" data-tab="clients">👤 Clients</button>
-  <button class="nav-tab active" data-tab="ask">Ask Dr. Fitness</button>
-  <button class="nav-tab" data-tab="calories">Calorie & Macro Calculator</button>
-  <button class="nav-tab" data-tab="opt">OPT Model</button>
-  <button class="nav-tab" data-tab="olympic">Olympic Lifting</button>
-  <button class="nav-tab" data-tab="recovery">Recovery Methods</button>
-  <button class="nav-tab" data-tab="strength">Strength & Power</button>
-  <button class="nav-tab" data-tab="injury">Injury Guide</button>
-  <button class="nav-tab" data-tab="nutrition">Nutrition</button>
-  <button class="nav-tab" data-tab="warmup">Warmups</button>
-  <button class="nav-tab" data-tab="special">Special Populations</button>
-  <button class="nav-tab" data-tab="qref">Quick Ref</button>
-  <button class="nav-tab" data-tab="exlib">📖 Exercise Library</button>
-  <button class="nav-tab" data-tab="calcs">🔢 Calculators</button>
-  <button class="nav-tab" data-tab="workout">🏋️ Workout Builder</button>
-  <button class="nav-tab" data-tab="plbb">🏆 PL &amp; BB</button>
-  <button class="nav-tab" data-tab="youtube">📺 Resources</button>
-  <button class="nav-tab" data-tab="peptides">🔬 Peptides</button>
-  <button class="nav-tab" data-tab="resources">🔗 Resources</button>
+  <button class="nav-tab" data-tab="clients">👤 CLIENTS</button>
+  <button class="nav-tab active" data-tab="ask">⚡ BUILD SESSION</button>
+  <button class="nav-tab" data-tab="nutrition">🥗 NUTRITION</button>
+  <button class="nav-tab" data-tab="calcs">🔢 CALCULATORS</button>
+  <button class="nav-tab" data-tab="reflib">📚 REFERENCE LIBRARY</button>
+  <button class="nav-tab" data-tab="quickref">⚡ QUICK REF</button>
 </div>
 
 <!-- ACTIVE CLIENT BANNER -->
@@ -376,8 +363,21 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <div class="chat-layout" style="width:100%;">
     <div class="chat-main" style="width:100%;">
       <div class="welcome" id="welcomeEl">
+        <!-- STEP 1: CLIENT CONTEXT -->
+        <div id="buildStepClient" style="padding:20px 2rem 0;max-width:900px;margin:0 auto;width:100%;">
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">STEP 1 — ACTIVE CLIENT</div>
+          <div id="buildClientActive" style="display:none;background:rgba(240,165,0,0.06);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius);padding:12px 16px;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div id="buildClientAvatar" style="width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;flex-shrink:0;"></div>
+            <div><strong id="buildClientName" style="color:var(--text);font-size:0.95rem;"></strong><div id="buildClientMeta" style="font-size:0.75rem;color:var(--text3);margin-top:2px;"></div></div>
+            <span id="buildClientTags" style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;"></span>
+          </div>
+          <div id="buildClientEmpty" style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 20px;text-align:center;">
+            <p style="font-size:0.88rem;color:var(--text2);margin-bottom:10px;">No client selected — select a client first for personalized session building</p>
+            <button onclick="document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=clients]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=clients]').classList.add('active');" style="padding:10px 24px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">SELECT CLIENT</button>
+          </div>
+        </div>
         <!-- HERO -->
-        <div style="padding:60px 2rem 0;max-width:900px;margin:0 auto;width:100%;">
+        <div style="padding:40px 2rem 0;max-width:900px;margin:0 auto;width:100%;">
           <h1 style="font-family:Bebas Neue,sans-serif;font-size:clamp(2.5rem,6vw,5rem);letter-spacing:2px;color:var(--gold);line-height:1.02;margin-bottom:0.75rem;">YOUR CLIENT. ANY GOAL. ANY LEVEL.</h1>
           <p style="font-size:1.2rem;color:var(--text2);line-height:1.7;font-weight:300;max-width:620px;margin:0 auto 2rem;">The most complete AI trainer reference system — built for professionals who work with everyone.</p>
         </div>
@@ -393,11 +393,22 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
         <div style="width:100vw;margin-left:calc(-50vw + 50%);background:rgba(10,22,40,0.8);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 2rem;margin-top:2rem;margin-bottom:2.5rem;">
           <div class="capability-strip-text" style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-align:center;line-height:1.8;">400+ Exercises &nbsp;·&nbsp; 14 Workout Styles &nbsp;·&nbsp; GLP-1 and Next-Gen AOM Protocols &nbsp;·&nbsp; Olympic Lifting &nbsp;·&nbsp; Special Populations &nbsp;·&nbsp; Injury Modifications &nbsp;·&nbsp; Nutrition Science &nbsp;·&nbsp; Recovery Methods</div>
         </div>
-        <!-- WORKOUT STYLE COMMAND CENTER -->
-        <div style="padding:0 1.5rem 60px;max-width:1100px;margin:0 auto;width:100%;">
-          <h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px;margin-bottom:0.3rem;">SELECT A TRAINING STYLE</h2>
-          <p style="font-size:0.9rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6;">Not sure which style fits your client? Each style includes a guide to help you choose.</p>
+        <!-- STEP 2: TRAINING STYLE -->
+        <div style="padding:0 1.5rem 40px;max-width:1100px;margin:0 auto;width:100%;">
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">STEP 2 — SELECT YOUR TRAINING STYLE</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+            <div>
+              <h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px;margin-bottom:0.2rem;">CHOOSE A STYLE</h2>
+              <p style="font-size:0.85rem;color:var(--text2);line-height:1.5;">Select your training approach, then answer 5 quick questions to generate a complete session.</p>
+            </div>
+            <button onclick="openHelpMeChoose()" style="padding:9px 20px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">HELP ME CHOOSE</button>
+          </div>
           <div id="styleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
+        </div>
+        <!-- AI CHAT SECTION -->
+        <div style="padding:0 1.5rem 20px;max-width:1100px;margin:0 auto;width:100%;border-top:1px solid var(--border2);padding-top:1.5rem;">
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">DR. FITNESS AI</div>
+          <p style="font-size:0.82rem;color:var(--text3);margin-bottom:0;">Ask anything about training, nutrition, injury mods, or special populations.</p>
         </div>
       </div>
       <div class="messages hidden" id="msgsEl"></div>
@@ -4668,6 +4679,79 @@ function filterPeptides() {
 </div>
 </div>
 
+<!-- ══ REFERENCE LIBRARY ══ -->
+<div class="panel" data-panel="reflib">
+  <div class="ref-panel" style="max-width:1000px;margin:0 auto;padding:2rem 1.5rem;">
+    <div style="margin-bottom:1.5rem;">
+      <h2 style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.5rem;">Reference Library</h2>
+      <p style="font-size:0.88rem;color:var(--text2);margin-bottom:1rem;">All reference content in one searchable location. Click any section to expand.</p>
+      <input type="text" id="refLibSearch" placeholder="Search the reference library..." oninput="filterRefLib()" style="width:100%;padding:12px 16px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.92rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    <div id="refLibAccordions" style="display:flex;flex-direction:column;gap:8px;">
+      <div class="accord reflib-section" data-refpanel="calories"><button class="accord-hdr" onclick="togRefLib(this,'calories')">🔢 Calorie and Macro Calculator <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="opt"><button class="accord-hdr" onclick="togRefLib(this,'opt')">📐 NASM OPT Model <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="olympic"><button class="accord-hdr" onclick="togRefLib(this,'olympic')">🏅 Olympic Lifting <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="recovery"><button class="accord-hdr" onclick="togRefLib(this,'recovery')">🧊 Recovery Methods <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="strength"><button class="accord-hdr" onclick="togRefLib(this,'strength')">⚡ Strength and Power <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="injury"><button class="accord-hdr" onclick="togRefLib(this,'injury')">🩹 Injury Guide <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="warmup"><button class="accord-hdr" onclick="togRefLib(this,'warmup')">🔥 Warmups <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="special"><button class="accord-hdr" onclick="togRefLib(this,'special')">👥 Special Populations <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="exlib"><button class="accord-hdr" onclick="togRefLib(this,'exlib')">📖 Exercise Library <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="workout"><button class="accord-hdr" onclick="togRefLib(this,'workout')">🏋️ Workout Builder and Library <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="plbb"><button class="accord-hdr" onclick="togRefLib(this,'plbb')">🏆 Powerlifting and Bodybuilding <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="peptides"><button class="accord-hdr" onclick="togRefLib(this,'peptides')">🔬 Peptides <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="youtube"><button class="accord-hdr" onclick="togRefLib(this,'youtube')">📺 Video Resources <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="resources"><button class="accord-hdr" onclick="togRefLib(this,'resources')">🔗 External Resources and Links <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section" data-refpanel="qref"><button class="accord-hdr" onclick="togRefLib(this,'qref')">📋 Quick Reference Tables <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUICK REF ══ -->
+<div class="panel" data-panel="quickref">
+  <div class="ref-panel" style="max-width:800px;margin:0 auto;padding:2rem 1.5rem;">
+    <h2 style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.5rem;">Quick Reference</h2>
+    <p style="font-size:0.88rem;color:var(--text2);margin-bottom:1.5rem;">Fast-access queries. Click any item to send it directly to DR. FITNESS AI.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="accord"><button class="accord-hdr open" onclick="tog(this)">🩹 INJURY MODS <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="accord-body open" style="display:flex;flex-direction:column;gap:6px;padding-top:8px;">
+          <button class="qa-btn inj" data-p="My client has knee pain when squatting. What modifications can I make to keep them training safely?">Knee pain — squat mods</button>
+          <button class="qa-btn inj" data-p="Client has lower back pain during deadlifts. What are the safest modifications and exercise swaps?">Low back pain — deadlift</button>
+          <button class="qa-btn inj" data-p="Client has shoulder impingement. What movements to avoid and what substitutes?">Shoulder impingement</button>
+          <button class="qa-btn inj" data-p="Client has plantar fasciitis. How do I modify their cardio and lower body training?">Plantar fasciitis mods</button>
+        </div>
+      </div>
+      <div class="accord"><button class="accord-hdr" onclick="tog(this)">🥗 NUTRITION <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="accord-body" style="display:none;flex-direction:column;gap:6px;padding-top:8px;">
+          <button class="qa-btn nut" data-p="What are the protein recommendations for a GLP-1/AOM client trying to preserve muscle during weight loss?">GLP-1 protein targets</button>
+          <button class="qa-btn nut" data-p="Give me pre-workout and post-workout nutrition guidelines for a general fat loss client.">Pre/post workout nutrition</button>
+          <button class="qa-btn nut" data-p="What are daily hydration recommendations for a client training 4-5 days per week?">Hydration guidelines</button>
+          <button class="qa-btn nut" data-p="What supplements are evidence-based and safe for a trainer to educate general clients about?">Evidence-based supps</button>
+        </div>
+      </div>
+      <div class="accord"><button class="accord-hdr" onclick="tog(this)">🏋️ WORKOUTS <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="accord-body" style="display:none;flex-direction:column;gap:6px;padding-top:8px;">
+          <button class="qa-btn wrk" data-p="Generate a complete 60-minute beginner resistance training session for NASM OPT Phase 1 Stabilization Endurance.">Beginner OPT Phase 1</button>
+          <button class="qa-btn wrk" data-p="Build a 50-minute intermediate full-body workout for OPT Phase 3 Muscular Development.">Intermediate OPT Phase 3</button>
+          <button class="qa-btn wrk" data-p="Design a 45-minute circuit training session for a general weight loss client.">Weight loss circuit</button>
+          <button class="qa-btn wrk" data-p="Build a strength training session for a client over 65. Prioritize functional strength, joint safety, and balance.">Older adult strength</button>
+          <button class="qa-btn wrk" data-p="Create a resistance training session for a GLP-1/AOM client focused on muscle preservation.">GLP-1 muscle preservation</button>
+        </div>
+      </div>
+      <div class="accord"><button class="accord-hdr" onclick="tog(this)">🏅 OLYMPIC LIFTING AND RECOVERY <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="accord-body" style="display:none;flex-direction:column;gap:6px;padding-top:8px;">
+          <button class="qa-btn oli" data-p="Explain the snatch coaching model phases. How do I teach the snatch to a novice lifter step by step?">Snatch coaching model</button>
+          <button class="qa-btn oli" data-p="What are the most common errors in the snatch start position and second pull, and how do I correct them?">Snatch common errors and cues</button>
+          <button class="qa-btn rec" data-p="What does the research say about cold water immersion (CWI) and contrast water therapy (CWT) for recovery?">CWI and CWT protocols</button>
+          <button class="qa-btn rec" data-p="What are the most effective evidence-based recovery methods? Rank them and give practical protocols.">Recovery methods ranked</button>
+          <button class="qa-btn spc" data-p="What are NASM and ACE guidelines for training clients over 65?">Training clients 65+</button>
+          <button class="qa-btn spc" data-p="A post-rehab client has been cleared by their PT. How do I structure their first 4 weeks back?">Post-rehab return plan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <script>
@@ -4741,6 +4825,124 @@ function closeSidebar(){
 }
 window.openSidebar=openSidebar;
 window.closeSidebar=closeSidebar;
+
+/* ══ REFERENCE LIBRARY ══ */
+function togRefLib(btn, panelId) {
+  btn.classList.toggle('open');
+  var body = btn.nextElementSibling;
+  var isOpen = btn.classList.contains('open');
+  if (isOpen) {
+    // Load content from the original panel
+    var srcPanel = document.querySelector('[data-panel="'+panelId+'"]');
+    if (srcPanel && !body.dataset.loaded) {
+      // Clone the inner content (skip the panel wrapper)
+      var inner = srcPanel.querySelector('.ref-panel, .nut-layout, .calc-wrap, .wl-wrap, .el-wrap, .plbb-wrap, .cp-wrap') || srcPanel;
+      body.innerHTML = inner.innerHTML;
+      body.dataset.loaded = '1';
+    }
+    body.style.display = 'block';
+  } else {
+    body.style.display = 'none';
+  }
+}
+window.togRefLib = togRefLib;
+
+function filterRefLib() {
+  var query = (document.getElementById('refLibSearch').value || '').toLowerCase();
+  document.querySelectorAll('.reflib-section').forEach(function(sec) {
+    var text = sec.textContent.toLowerCase();
+    sec.style.display = text.indexOf(query) !== -1 ? '' : 'none';
+  });
+}
+window.filterRefLib = filterRefLib;
+
+/* ══ HELP ME CHOOSE ══ */
+function openHelpMeChoose() {
+  var html = '<div style="position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;" id="hmcModal" onclick="if(event.target===this)this.remove()">' +
+    '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:500px;width:100%;padding:1.5rem;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">Help Me Choose</h3><button onclick="document.getElementById(\'hmcModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:4px 10px;cursor:pointer;">X</button></div>' +
+    '<div style="margin-bottom:1rem;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">PRIMARY GOAL</div><div id="hmcGoal" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>' +
+    '<div style="margin-bottom:1rem;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">CLIENT LEVEL</div><div id="hmcLevel" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>' +
+    '<div style="margin-bottom:1.25rem;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">ANY LIMITATIONS</div><div id="hmcLimits" style="display:flex;flex-wrap:wrap;gap:6px;"></div></div>' +
+    '<button onclick="runHelpMeChoose()" style="width:100%;padding:12px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">SHOW RECOMMENDATIONS</button>' +
+    '<div id="hmcResults" style="margin-top:1rem;"></div>' +
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+  var mkChip = function(id, vals, multi) {
+    var el = document.getElementById(id);
+    el.innerHTML = vals.map(function(v){ return '<span class="wcc-chip" data-val="'+v+'" onclick="'+(multi?'this.classList.toggle(\'active\')':'hmcRadio(this)')+'">'+v+'</span>'; }).join('');
+  };
+  mkChip('hmcGoal',['Strength','Size','Fat Loss','Performance','Rehab','General Fitness'],false);
+  mkChip('hmcLevel',['Beginner','Intermediate','Advanced'],false);
+  mkChip('hmcLimits',['Injuries','Pregnancy','Age 55+','GLP-1 Medication','None'],true);
+}
+window.openHelpMeChoose = openHelpMeChoose;
+window.hmcRadio = function(chip){ chip.parentElement.querySelectorAll('.wcc-chip').forEach(function(c){c.classList.remove('active');}); chip.classList.add('active'); };
+
+window.runHelpMeChoose = function() {
+  var goal = ''; document.querySelectorAll('#hmcGoal .wcc-chip.active').forEach(function(c){goal=c.dataset.val;});
+  var level = ''; document.querySelectorAll('#hmcLevel .wcc-chip.active').forEach(function(c){level=c.dataset.val;});
+  var limits = []; document.querySelectorAll('#hmcLimits .wcc-chip.active').forEach(function(c){limits.push(c.dataset.val);});
+
+  var recs = {
+    'Strength':['powerlifting','sandc','strongman'],
+    'Size':['bodybuilding','kettlebell','calisthenics'],
+    'Fat Loss':['hiit','crossfit','hyrox'],
+    'Performance':['sandc','olympic','sport'],
+    'Rehab':['corrective','mobility','senior'],
+    'General Fitness':['hiit','sandc','kettlebell']
+  };
+  var matches = recs[goal] || ['sandc','hiit','bodybuilding'];
+  if (limits.indexOf('Pregnancy') !== -1) matches = ['prenatal'];
+  if (limits.indexOf('Age 55+') !== -1) matches = ['senior','corrective','mobility'];
+  if (limits.indexOf('GLP-1 Medication') !== -1) matches = ['glp1','corrective'];
+  if (limits.indexOf('Injuries') !== -1 && matches.indexOf('corrective') === -1) matches.unshift('corrective');
+
+  document.getElementById('hmcResults').innerHTML = '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">RECOMMENDED STYLES</div>' +
+    matches.slice(0,3).map(function(id) {
+      var card = document.querySelector('#styleGrid .style-card[data-style="'+id+'"]');
+      var name = card ? card.querySelector('[style*="text-transform"]').textContent : id;
+      return '<div style="background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:6px;cursor:pointer;" onclick="document.getElementById(\'hmcModal\').remove();var c=document.querySelector(\'#styleGrid .style-card[data-style=\\\''+id+'\\\']\');if(c)c.click();"><span style="font-size:0.62rem;padding:2px 6px;background:var(--gold);color:var(--navy);border-radius:4px;font-weight:700;margin-right:6px;">RECOMMENDED</span><strong style="color:var(--text);font-size:0.85rem;">'+name+'</strong></div>';
+    }).join('');
+};
+
+/* ══ BUILD STEP CLIENT CONTEXT ══ */
+function updateBuildStepClient() {
+  var c = window.cpActiveClient;
+  var activeDiv = document.getElementById('buildClientActive');
+  var emptyDiv = document.getElementById('buildClientEmpty');
+  if (!activeDiv || !emptyDiv) return;
+  if (c && c.fname) {
+    activeDiv.style.display = 'flex';
+    emptyDiv.style.display = 'none';
+    var initials = (c.fname||'').charAt(0).toUpperCase() + (c.lname||'').charAt(0).toUpperCase();
+    document.getElementById('buildClientAvatar').textContent = initials;
+    document.getElementById('buildClientName').textContent = c.fname + ' ' + (c.lname||'');
+    var meta = [];
+    if (c.age) meta.push(c.age + ' yrs');
+    if (c.optPhase) meta.push('OPT Phase ' + c.optPhase);
+    var levelMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Advanced'};
+    if (c.trainingAge) meta.push(levelMap[c.trainingAge]||'');
+    document.getElementById('buildClientMeta').textContent = meta.filter(Boolean).join(' · ');
+    var tags = (c.special||[]).filter(function(s){return s&&s!=='none';}).map(function(s){
+      return '<span style="font-size:0.62rem;padding:2px 6px;border-radius:10px;background:var(--gold-dim);color:var(--gold);border:1px solid var(--border);">'+s.replace(/_/g,' ')+'</span>';
+    }).join('');
+    document.getElementById('buildClientTags').innerHTML = tags;
+  } else {
+    activeDiv.style.display = 'none';
+    emptyDiv.style.display = 'block';
+  }
+}
+// Hook into active client changes
+var _origUpdateBanner = typeof updateActiveClientBanner === 'function' ? updateActiveClientBanner : null;
+if (_origUpdateBanner) {
+  updateActiveClientBanner = function() {
+    _origUpdateBanner();
+    updateBuildStepClient();
+  };
+}
+// Initial call on load
+setTimeout(updateBuildStepClient, 500);
 
 /* HERO SEARCH BAR */
 var heroSearchEl=document.getElementById('heroSearch');
