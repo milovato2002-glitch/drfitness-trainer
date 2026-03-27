@@ -393,17 +393,11 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
         <div style="width:100vw;margin-left:calc(-50vw + 50%);background:rgba(10,22,40,0.8);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 2rem;margin-top:2rem;margin-bottom:2.5rem;">
           <div class="capability-strip-text" style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-align:center;line-height:1.8;">400+ Exercises &nbsp;·&nbsp; 14 Workout Styles &nbsp;·&nbsp; GLP-1 and Next-Gen AOM Protocols &nbsp;·&nbsp; Olympic Lifting &nbsp;·&nbsp; Special Populations &nbsp;·&nbsp; Injury Modifications &nbsp;·&nbsp; Nutrition Science &nbsp;·&nbsp; Recovery Methods</div>
         </div>
-        <!-- FEATURE CARDS -->
-        <div class="welcome-grid" style="padding:0 1.5rem 60px;">
-          <div class="w-card" data-p="My client has knee pain when squatting. What safe modifications can I make?" data-m="injury"><div class="w-card-icon">🦵</div><div class="w-card-title">ANY INJURY. ANY CLIENT.</div><div class="w-card-text">Symptom-based exercise swaps and modifications within scope of practice. Knee, shoulder, back, and more.</div></div>
-          <div class="w-card" data-p="Generate a complete 60-minute NASM OPT Phase 1 beginner resistance training session with warm-up and cool-down." data-m="workout"><div class="w-card-icon">🏋️</div><div class="w-card-title">BUILD ANY WORKOUT.</div><div class="w-card-text">Complete sessions aligned to NASM OPT, ACE IFT, and EPI models. Sets, reps, tempo, rest, and coaching cues.</div></div>
-          <div class="w-card" data-p="What are the protein targets and nutrition priorities for a GLP-1 client trying to preserve muscle during weight loss?" data-m="nutrition"><div class="w-card-icon">💊</div><div class="w-card-title">WEIGHT LOSS MEDICATIONS.</div><div class="w-card-text">GLP-1, GIP, and next-generation AOM protocols. Muscle preservation, protein targets, and training modifications.</div></div>
-          <div class="w-card" data-p="Explain the snatch coaching model phases and how to teach a novice lifter step by step." data-m="general"><div class="w-card-icon">🏅</div><div class="w-card-title">OLYMPIC LIFTING.</div><div class="w-card-text">EPI snatch and clean coaching models, phase progressions, common errors, and technical cues.</div></div>
-          <div class="w-card" data-p="What recovery methods are most effective for athletes? Rank them with protocols including CWI, CWT, and active recovery." data-m="recovery"><div class="w-card-icon">🧊</div><div class="w-card-title">RECOVERY SCIENCE.</div><div class="w-card-text">Cold water immersion, contrast therapy, compression, sleep, and active recovery protocols with evidence grades.</div></div>
-          <div class="w-card" data-p="Explain macronutrient targets, meal timing, and supplement recommendations for a fat loss client." data-m="nutrition"><div class="w-card-icon">🥗</div><div class="w-card-title">NUTRITION FOR ANY GOAL.</div><div class="w-card-text">Macros, meal timing, supplement stacks, GLP-1 nutrition, and scope-of-practice-aware dietary education.</div></div>
-          <div class="w-card" data-p="Build a safe 45-minute resistance training session for a client over 65 with balance and fall prevention focus." data-m="older"><div class="w-card-icon">👥</div><div class="w-card-title">ALL POPULATIONS.</div><div class="w-card-text">55+, prenatal, postpartum, post-rehab, GLP-1 users, veterans, youth athletes, beginners to elite.</div></div>
-          <div class="w-card" data-p="Explain strength and power development: force-velocity curve, motor unit recruitment, and how to train rate of force development." data-m="general"><div class="w-card-icon">⚡</div><div class="w-card-title">STRENGTH AND POWER.</div><div class="w-card-text">Force-velocity curve, motor unit recruitment, complex training, PAP, and periodization for strength sports.</div></div>
-          <div class="w-card" data-p="What are the most important corrective exercise strategies for a client with upper crossed syndrome and forward head posture?" data-m="general"><div class="w-card-icon">🧘</div><div class="w-card-title">CORRECTIVE EXERCISE.</div><div class="w-card-text">OHSA deviations, overactive and underactive muscles, and corrective strategies from NASM CES protocols.</div></div>
+        <!-- WORKOUT STYLE COMMAND CENTER -->
+        <div style="padding:0 1.5rem 60px;max-width:1100px;margin:0 auto;width:100%;">
+          <h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px;margin-bottom:0.3rem;">SELECT A TRAINING STYLE</h2>
+          <p style="font-size:0.9rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6;">Not sure which style fits your client? Each style includes a guide to help you choose.</p>
+          <div id="styleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
         </div>
       </div>
       <div class="messages hidden" id="msgsEl"></div>
@@ -428,6 +422,304 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
     </div>
   </div>
 </div>
+
+<!-- QUESTIONNAIRE MODAL -->
+<div id="wccQuestionModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease;">
+  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;padding:0;position:relative;animation:scaleIn 0.2s ease;">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <h3 id="wccModalTitle" style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);letter-spacing:0.05em;"></h3>
+      <button onclick="closeWccModal('wccQuestionModal')" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">✕</button>
+    </div>
+    <div style="padding:1.25rem 1.5rem;">
+      <div id="wccPrefillNote" style="display:none;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:1rem;font-size:0.78rem;color:var(--green);"></div>
+      <div style="margin-bottom:1.25rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q1 — CLIENT LEVEL</div><div id="wccLevel" class="cp-checkgroup" style="gap:8px;"></div></div>
+      <div style="margin-bottom:1.25rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q2 — SESSION DURATION</div><div id="wccDuration" class="cp-checkgroup" style="gap:8px;"></div></div>
+      <div style="margin-bottom:1.25rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q3 — EQUIPMENT AVAILABLE (select all)</div><div id="wccEquipment" class="cp-checkgroup" style="gap:8px;"></div></div>
+      <div style="margin-bottom:1.25rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q4 — PRIMARY GOAL FOR THIS SESSION</div><div id="wccGoal" class="cp-checkgroup" style="gap:8px;"></div></div>
+      <div style="margin-bottom:1.5rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q5 — ACTIVE INJURIES OR LIMITATIONS</div><input type="text" id="wccInjuries" placeholder="e.g. left knee meniscus, rotator cuff impingement, lower back — leave blank if none" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></div>
+      <button id="wccGenerateBtn" onclick="wccGenerate()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;">GENERATE WORKOUT</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT OUTPUT MODAL -->
+<div id="wccOutputModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;animation:fadeIn 0.2s ease;">
+  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;width:100%;margin:2rem auto;padding:0;position:relative;animation:scaleIn 0.2s ease;">
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">
+      <h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Generated Workout</h3>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button onclick="wccCopyWorkout()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">COPY</button>
+        <button onclick="window.print()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">PRINT</button>
+        <button onclick="closeWccModal('wccOutputModal')" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">✕</button>
+      </div>
+    </div>
+    <div id="wccOutputContent" style="padding:1.5rem;font-size:0.88rem;color:var(--text2);line-height:1.75;"></div>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+#styleGrid .style-card{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.1rem;cursor:pointer;transition:all 0.2s;text-align:left;}
+#styleGrid .style-card:hover{border-color:var(--gold);background:var(--navy3);box-shadow:0 0 20px rgba(240,165,0,0.08);}
+#styleGrid .style-card.selected{border-color:var(--gold);background:rgba(240,165,0,0.06);box-shadow:0 0 16px rgba(240,165,0,0.1);}
+.wcc-chip{display:inline-flex;padding:8px 16px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:all 0.12s;user-select:none;}
+.wcc-chip:hover{border-color:var(--gold);color:var(--gold);}
+.wcc-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+@media(max-width:768px){
+  #styleGrid{grid-template-columns:1fr 1fr!important;}
+  #wccQuestionModal>div,#wccOutputModal>div{max-width:100%!important;margin:0!important;border-radius:0!important;min-height:100vh;}
+}
+@media(max-width:480px){#styleGrid{grid-template-columns:1fr!important;}}
+</style>
+
+<script>
+(function(){
+/* ══ WORKOUT COMMAND CENTER ══ */
+var WCC_STYLES = [
+  {id:'bodybuilding',name:'BODYBUILDING / HYPERTROPHY',icon:'💪',who:'Clients focused on muscle size, definition, and aesthetics',why:'Best for volume-based muscle growth using isolation and compound movements'},
+  {id:'powerlifting',name:'POWERLIFTING',icon:'🏋️',who:'Clients focused on maximal strength in squat, bench, and deadlift',why:'Best for absolute strength development using low rep heavy loading'},
+  {id:'olympic',name:'OLYMPIC WEIGHTLIFTING',icon:'🏅',who:'Athletes developing explosive power through snatch and clean and jerk',why:'Best for developing rate of force development and total body power'},
+  {id:'sandc',name:'STRENGTH AND CONDITIONING',icon:'⚡',who:'Athletes and clients needing a blend of strength, speed, and conditioning',why:'Best when performance across multiple physical qualities is the goal'},
+  {id:'hiit',name:'HIIT AND METABOLIC CONDITIONING',icon:'🔥',who:'Clients focused on fat loss, cardiovascular fitness, and time efficiency',why:'Best for maximizing caloric burn and cardiovascular adaptation in short sessions'},
+  {id:'crossfit',name:'CROSSFIT AND FUNCTIONAL FITNESS',icon:'🏆',who:'Clients who thrive in competitive community-based varied programming',why:'Best for general physical preparedness and constantly varied stimulus'},
+  {id:'hyrox',name:'HYROX AND HYBRID RACING',icon:'🏃',who:'Athletes training for Hyrox events or similar hybrid race formats',why:'Best for combining running endurance with functional strength stations'},
+  {id:'strongman',name:'STRONGMAN',icon:'🪨',who:'Clients who want unconventional loading and real-world strength',why:'Best for developing grip, carry, and odd-object strength that transfers to life'},
+  {id:'ocr',name:'OCR AND OBSTACLE COURSE RACING',icon:'🧗',who:'Clients training for Spartan, Tough Mudder, or similar events',why:'Best for combining running fitness with grip, climbing, and obstacle-specific skills'},
+  {id:'corrective',name:'CORRECTIVE EXERCISE AND REHAB',icon:'🩹',who:'Post-surgical, injury recovery, and movement dysfunction clients',why:'Best when the primary goal is restoring movement quality before loading'},
+  {id:'kettlebell',name:'KETTLEBELL TRAINING',icon:'🔔',who:'Clients wanting full-body functional training with minimal equipment',why:'Best for combining strength, power, and endurance in a single implement'},
+  {id:'calisthenics',name:'CALISTHENICS AND BODYWEIGHT',icon:'🤸',who:'Clients with no equipment access or focused on relative strength',why:'Best for building functional strength using bodyweight leverage progressions'},
+  {id:'endurance',name:'ENDURANCE AND CARDIO BASE',icon:'❤️',who:'Runners, cyclists, and clients building aerobic capacity',why:'Best for developing the aerobic base that supports all other fitness qualities'},
+  {id:'mobility',name:'MOBILITY AND FLEXIBILITY',icon:'🧘',who:'Clients with movement restrictions, desk workers, or recovery focus',why:'Best for improving joint range of motion and reducing injury risk'},
+  {id:'prenatal',name:'PRENATAL AND POSTPARTUM',icon:'🤰',who:'Pregnant and recently postpartum clients',why:'Best for maintaining fitness safely during pregnancy and restoring function after birth'},
+  {id:'youth',name:'YOUTH ATHLETIC DEVELOPMENT',icon:'🧒',who:'Athletes aged 8-18 developing fundamental movement skills',why:'Best for building the movement foundation that supports sport performance'},
+  {id:'senior',name:'SENIOR AND 55 PLUS FUNCTIONAL FITNESS',icon:'👴',who:'Clients 55 and older focused on independence, strength, and longevity',why:'Best for maintaining functional capacity and quality of life as we age'},
+  {id:'glp1',name:'GLP-1 AND AOM ADAPTIVE TRAINING',icon:'💊',who:'Clients on semaglutide, tirzepatide, or other weight loss medications',why:'Best for preserving muscle mass and supporting metabolic health during medication-assisted weight loss'},
+  {id:'sport',name:'SPORT SPECIFIC PERFORMANCE',icon:'🎯',who:'Athletes training for a specific sport season or position demands',why:'Best when training must directly transfer to sport-specific movement patterns'},
+  {id:'deka',name:'DEKA FIT AND FUNCTIONAL RACING',icon:'🎪',who:'Athletes training for DEKA FIT events and functional fitness competitions',why:'Best for preparing for the 10-station DEKA format combining ski erg, sled, and functional movements'}
+];
+
+var WCC_COACHES = {
+  bodybuilding:'Jeff Nippard (hypertrophy science) youtube.com/@JeffNippard|Renaissance Periodization — Mike Israetel (volume landmarks) youtube.com/@RPStrength|Cbum — Chris Bumstead (aesthetic bodybuilding) youtube.com/@ChrisBumstead',
+  powerlifting:'Juggernaut Training Systems — Chad Wesley Smith youtube.com/@JuggernautTraining|Stefi Cohen PhD youtube.com/@steficohen|Alan Thrall youtube.com/@AlanThrall',
+  olympic:'Catalyst Athletics — Greg Everett youtube.com/@CatalystAthletics|Hookgrip — Dmitry Klokov youtube.com/@hookgrip|Don McCauley USAW',
+  sandc:'NSCA resources nsca.com|Eric Cressey youtube.com/@EricCressey|Joel Jamieson youtube.com/@JoelJamieson',
+  hiit:'Precision Nutrition precisionnutrition.com|Mike Boyle youtube.com/@BodyByBoyle|Ben Bergeron youtube.com/@BenBergeron',
+  crossfit:'Ben Bergeron youtube.com/@BenBergeron|CompTrain comptrain.co|CrossFit HQ youtube.com/@CrossFit',
+  hyrox:'Hyrox official hyrox.com|Hunter McIntyre youtube.com/@HunterMcIntyre|Lauren Weeks',
+  strongman:'Brian Shaw youtube.com/@ShawStrength|Robert Oberst youtube.com/@RobertOberst|Starting Strongman startingstrongman.com',
+  ocr:'Yancy Camp yancycamp.com|Hunter McIntyre youtube.com/@HunterMcIntyre|Spartan Race official spartan.com',
+  corrective:'NASM CES resources nasm.org|Gray Cook FMS functionalmovement.com|Eric Cressey youtube.com/@EricCressey',
+  kettlebell:'StrongFirst — Pavel Tsatsouline strongfirst.com|Mike Salemi youtube.com/@KettlebellExpert|Pat Flynn youtube.com/@PatFlynn',
+  calisthenics:'Simonster — Simon Ata youtube.com/@Simonster|FitnessFAQs — Daniel Vadnal youtube.com/@FitnessFAQs|Al Kavadlo youtube.com/@AlKavadlo',
+  endurance:'Matt Fitzgerald 8020endurance.com|80/20 Endurance youtube.com/@8020Endurance|The Running Channel youtube.com/@TheRunningChannel',
+  mobility:'Kelly Starrett — The Ready State youtube.com/@TheReadyState|Tom Morrison youtube.com/@TomMorrison|GMB Fitness youtube.com/@GMBFitness',
+  prenatal:'Every Mother — Leah Keller everymotherfitness.com|BeFit Mom — Helene Byrne befitmom.com|ACOG guidelines acog.org',
+  youth:'NSCA Youth guidelines nsca.com|Mike Boyle youtube.com/@BodyByBoyle|Brian Grasso IYCA iyca.org',
+  senior:'ACE Senior Fitness acefitness.org|Mark Lauren youtube.com/@MarkLauren|ACSM senior guidelines acsm.org',
+  glp1:'NASM GLP-1 resources nasm.org|Layne Norton — BioLayne youtube.com/@biolayne|Precision Nutrition precisionnutrition.com',
+  sport:'NSCA Sport Specific nsca.com|Fergus Connolly|Dan John youtube.com/@DanJohn',
+  deka:'DEKA official dfrfit.com|Dr. Michael Lovato EdD — AILG|Functional fitness community'
+};
+
+var selectedStyle = null;
+
+// Render style grid
+var gridEl = document.getElementById('styleGrid');
+if (gridEl) {
+  gridEl.innerHTML = WCC_STYLES.map(function(s){
+    return '<div class="style-card" data-style="'+s.id+'" onclick="wccSelectStyle(this,\''+s.id+'\')">' +
+      '<div style="font-size:1.3rem;margin-bottom:4px;">'+s.icon+'</div>' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">'+s.name+'</div>' +
+      '<div style="font-size:0.72rem;color:var(--text2);line-height:1.45;margin-bottom:2px;"><strong style="color:var(--text3);">WHO:</strong> '+s.who+'</div>' +
+      '<div style="font-size:0.72rem;color:var(--text3);line-height:1.45;"><strong>WHY:</strong> '+s.why+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+window.wccSelectStyle = function(el, id) {
+  document.querySelectorAll('#styleGrid .style-card').forEach(function(c){c.classList.remove('selected');});
+  el.classList.add('selected');
+  selectedStyle = WCC_STYLES.find(function(s){return s.id===id;});
+  openQuestionModal();
+};
+
+function openQuestionModal(){
+  if(!selectedStyle) return;
+  document.getElementById('wccModalTitle').textContent = selectedStyle.icon + ' ' + selectedStyle.name;
+  // Build chips
+  buildRadioChips('wccLevel',['Beginner','Intermediate','Advanced','Elite'],'Intermediate');
+  buildRadioChips('wccDuration',['30 min','45 min','60 min','75 min','90 min'],'60 min');
+  buildCheckChips('wccEquipment',['Full Gym','Barbell and Rack','Dumbbells','Kettlebells','Cables','Bodyweight Only','Resistance Bands','Specialty Equipment']);
+  buildRadioChips('wccGoal',['Strength','Hypertrophy','Fat Loss','Endurance','Power','Skill Development','Recovery','Rehab'],'Strength');
+  document.getElementById('wccInjuries').value = '';
+  // Pre-fill from active client
+  var note = document.getElementById('wccPrefillNote');
+  if (window.cpActiveClient && window.cpActiveClient.fname) {
+    var c = window.cpActiveClient;
+    note.style.display = 'block';
+    note.textContent = 'Pre-filled from ' + c.fname + ' ' + (c.lname||'') + ' profile — adjust as needed';
+    var lvlMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Elite'};
+    if(c.trainingAge) selectChip('wccLevel', lvlMap[c.trainingAge]||'Intermediate');
+    if(c.injuryNotes) document.getElementById('wccInjuries').value = c.injuryNotes;
+    var inj = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';});
+    if(inj.length && !c.injuryNotes) document.getElementById('wccInjuries').value = inj.join(', ').replace(/_/g,' ');
+  } else {
+    note.style.display = 'none';
+  }
+  showModal('wccQuestionModal');
+}
+
+function buildRadioChips(containerId, options, defaultVal) {
+  var el = document.getElementById(containerId);
+  el.innerHTML = options.map(function(o){
+    return '<span class="wcc-chip'+(o===defaultVal?' active':'')+'" data-val="'+o+'" onclick="wccRadioSelect(this)">'+o+'</span>';
+  }).join('');
+}
+function buildCheckChips(containerId, options) {
+  var el = document.getElementById(containerId);
+  el.innerHTML = options.map(function(o){
+    return '<span class="wcc-chip" data-val="'+o+'" onclick="this.classList.toggle(\'active\')">'+o+'</span>';
+  }).join('');
+}
+window.wccRadioSelect = function(chip) {
+  chip.parentElement.querySelectorAll('.wcc-chip').forEach(function(c){c.classList.remove('active');});
+  chip.classList.add('active');
+};
+function selectChip(containerId, val) {
+  document.querySelectorAll('#'+containerId+' .wcc-chip').forEach(function(c){
+    if(c.dataset.val===val){c.classList.add('active');}else{c.classList.remove('active');}
+  });
+}
+function getSelected(containerId) {
+  var active = document.querySelectorAll('#'+containerId+' .wcc-chip.active');
+  return Array.from(active).map(function(c){return c.dataset.val;}).join(', ');
+}
+
+function showModal(id){
+  var m=document.getElementById(id);
+  m.style.display='flex';
+}
+window.closeWccModal = function(id){
+  document.getElementById(id).style.display='none';
+};
+// ESC to close
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    closeWccModal('wccQuestionModal');
+    closeWccModal('wccOutputModal');
+  }
+});
+// Click overlay to close
+['wccQuestionModal','wccOutputModal'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el) el.addEventListener('click',function(e){if(e.target===el)closeWccModal(id);});
+});
+
+window.wccGenerate = async function(){
+  var level = getSelected('wccLevel')||'Intermediate';
+  var duration = getSelected('wccDuration')||'60 min';
+  var equipment = getSelected('wccEquipment')||'Full Gym';
+  var goal = getSelected('wccGoal')||'Strength';
+  var injuries = document.getElementById('wccInjuries').value.trim();
+  var styleName = selectedStyle ? selectedStyle.name : 'General';
+  var styleId = selectedStyle ? selectedStyle.id : 'sandc';
+
+  closeWccModal('wccQuestionModal');
+  showModal('wccOutputModal');
+  document.getElementById('wccOutputContent').innerHTML = '<div style="text-align:center;padding:3rem 2rem;"><div style="font-size:2rem;margin-bottom:1rem;animation:tdot 1.2s infinite;">⚡</div><div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">DR. FITNESS AI is building your session</div><div style="font-size:0.82rem;color:var(--text3);margin-top:0.5rem;">'+styleName+' · '+level+' · '+duration+' · '+goal+'</div></div>';
+
+  var clientCtx = '';
+  if(window.cpActiveClient && window.cpActiveClient.fname){
+    clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(window.cpActiveClient) : '';
+  }
+
+  var injuryInstructions = '';
+  if(injuries){
+    injuryInstructions = '\n\nINJURY INTELLIGENCE: The client has the following injuries or limitations: '+injuries+'. For EVERY exercise in the workout, check if it conflicts with these injuries. If it does, add a clearly labeled modification section below that exercise: "Modification for [injury]: [alternative exercise or technique change]". Format these so they can be collapsed/expanded.';
+  }
+
+  var prompt = 'Generate a complete professional '+styleName+' training session.\n\n' +
+    'TRAINING STYLE: '+styleName+'\n' +
+    'CLIENT LEVEL: '+level+'\n' +
+    'SESSION DURATION: '+duration+'\n' +
+    'EQUIPMENT: '+equipment+'\n' +
+    'PRIMARY GOAL: '+goal+'\n' +
+    (injuries ? 'INJURIES/LIMITATIONS: '+injuries+'\n' : '') +
+    clientCtx + injuryInstructions +
+    '\n\nFORMAT REQUIREMENTS:\n' +
+    '- Apply NASM OPT phase appropriate to the client level\n' +
+    '- Include a warm-up section (NASM OPT sequence: Inhibit, Lengthen, Activate, Integrate)\n' +
+    '- Include main training block with: Exercise Name, Sets x Reps, Tempo, Rest Period, Load Guidance, and one Coaching Cue per exercise\n' +
+    '- Include a cool-down section with specific stretches and hold times\n' +
+    '- Include Trainer Notes section with progressive overload recommendation\n' +
+    '- If injuries are noted, mark affected exercises with a warning icon and provide modification alternatives\n' +
+    '- Be specific, practical, and aligned to evidence-based training principles\n' +
+    '- Use professional trainer language';
+
+  try{
+    var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
+    var res = await fetch('/.netlify/functions/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
+    });
+    var d = await res.json();
+    if(d.content && d.content[0]){
+      var text = d.content[0].text;
+      var formatted = text
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.25rem 0 0.4rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>')
+        .replace(/^\- (.+)$/gm,'<li>$1</li>')
+        .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;display:flex;flex-direction:column;gap:3px;">'+m+'</ul>';})
+        .replace(/<\/ul>\s*<ul[^>]*>/g,'')
+        .replace(/\n\n/g,'</p><p style="margin-bottom:0.4rem;">')
+        .replace(/([^>])\n([^<])/g,'$1<br>$2');
+
+      // Injury warning banner
+      var banner = '';
+      if(injuries){
+        banner = '<div style="background:rgba(240,165,0,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start;"><span style="font-size:1.1rem;flex-shrink:0;">⚠️</span><div><strong style="color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;">INJURY PROTOCOL ACTIVE</strong><p style="font-size:0.82rem;color:var(--text2);margin-top:4px;">Modifications applied for '+injuries+'. Exercises marked with ⚠ include alternative options.</p></div></div>';
+      }
+
+      // Coaches reference
+      var coaches = WCC_COACHES[styleId] || '';
+      var coachHtml = '';
+      if(coaches){
+        var coachList = coaches.split('|').map(function(c){
+          var parts = c.trim();
+          var urlMatch = parts.match(/(youtube\.com\/\S+|[\w]+\.com\S*|[\w]+\.org\S*|[\w]+\.co\S*)/);
+          var url = urlMatch ? 'https://www.'+urlMatch[1] : '#';
+          var name = parts.replace(/(https?:\/\/)?[\w]+\.(com|org|co)\S*/g,'').trim();
+          return '<li style="margin-bottom:4px;"><a href="'+url+'" target="_blank" style="color:var(--gold);text-decoration:none;">'+name+'</a></li>';
+        }).join('');
+        coachHtml = '<div style="margin-top:1.5rem;border-top:1px solid var(--border2);padding-top:1rem;">' +
+          '<details><summary style="font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);cursor:pointer;">REFERENCE COACHES AND ATHLETES FOR '+styleName+'</summary>' +
+          '<ul style="margin:0.75rem 0 0 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;">'+coachList+'</ul></details></div>';
+      }
+
+      document.getElementById('wccOutputContent').innerHTML = banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml;
+    } else {
+      throw new Error('No response from AI');
+    }
+  }catch(err){
+    document.getElementById('wccOutputContent').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red);">Could not generate workout. Check your connection and try again.<br><small>'+err.message+'</small></div>';
+  }
+};
+
+window.wccCopyWorkout = function(){
+  var el = document.getElementById('wccOutputContent');
+  if(!el) return;
+  var text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var btn = el.parentElement.querySelector('[onclick*="wccCopyWorkout"]');
+    if(btn){var orig=btn.textContent;btn.textContent='COPIED';setTimeout(function(){btn.textContent=orig;},1500);}
+  });
+};
+
+})();
+</script>
 
 <!-- ══ CALORIE & MACRO CALCULATOR ══ -->
 <div class="panel" data-panel="calories">
