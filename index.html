@@ -394,6 +394,13 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
         <div style="width:100vw;margin-left:calc(-50vw + 50%);background:rgba(10,22,40,0.8);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 2rem;margin-top:2rem;margin-bottom:2.5rem;">
           <div class="capability-strip-text" style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-align:center;line-height:1.8;">400+ Exercises &nbsp;·&nbsp; 14 Workout Styles &nbsp;·&nbsp; GLP-1 and Next-Gen AOM Protocols &nbsp;·&nbsp; Olympic Lifting &nbsp;·&nbsp; Special Populations &nbsp;·&nbsp; Injury Modifications &nbsp;·&nbsp; Nutrition Science &nbsp;·&nbsp; Recovery Methods</div>
         </div>
+        <!-- COMPLETE PROGRAM CTA -->
+        <div style="padding:0 1.5rem 1.5rem;max-width:1100px;margin:0 auto;width:100%;">
+          <div style="background:rgba(240,165,0,0.06);border:2px solid var(--gold);border-radius:var(--radius);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">COMPLETE PROGRAM BUILDER</div><div style="font-size:0.82rem;color:var(--text2);">Generate training + nutrition + supplements + mindset in one integrated program</div></div>
+            <button onclick="openCompleteProgramBuilder()" style="padding:12px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">BUILD COMPLETE PROGRAM</button>
+          </div>
+        </div>
         <!-- STEP 2: TRAINING STYLE -->
         <div style="padding:0 1.5rem 40px;max-width:1100px;margin:0 auto;width:100%;">
           <div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">STEP 2 — SELECT YOUR TRAINING STYLE</div>
@@ -4811,6 +4818,43 @@ function filterPeptides() {
       <input type="text" id="refLibSearch" placeholder="Search the reference library..." oninput="filterRefLib()" style="width:100%;padding:12px 16px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.92rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <div id="refLibAccordions" style="display:flex;flex-direction:column;gap:8px;">
+      <!-- RESEARCH AND EVIDENCE BASE -->
+      <div class="accord reflib-section" data-refpanel="research"><button class="accord-hdr" onclick="tog(this)">🔬 Research and Evidence Base <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="accord-body">
+          <p style="font-size:0.82rem;color:var(--text2);margin-bottom:1.25rem;">Science-backed protocols with direct links to primary sources. All evidence grades based on systematic review quality.</p>
+          <input type="text" id="researchSearch" placeholder="Search research topics..." oninput="document.querySelectorAll('.research-card').forEach(function(c){c.style.display=c.textContent.toLowerCase().indexOf(this.value.toLowerCase())!==-1?'':'none'}.bind(this))" style="width:100%;padding:9px 12px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.85rem;margin-bottom:1rem;outline:none;">
+
+          <h4 style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:1rem 0 0.5rem;">TRAINING RESEARCH</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:1.5rem;">
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">Progressive Overload Science</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">Systematic increases in training volume, intensity, or density are the primary driver of continued adaptation. Meta-analyses confirm progressive overload produces superior strength and hypertrophy outcomes.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=progressive+overload+resistance+training" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://www.nasm.org/resources" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">NASM</a></div></div>
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">GLP-1 and Resistance Training</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">Without resistance training, 25-40% of GLP-1 medication weight loss is lean mass. Resistance training 3-4x/week with high protein intake significantly preserves muscle during medication-assisted weight loss.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=semaglutide+resistance+training+muscle" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://www.nih.gov" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">NIH</a></div></div>
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">Strength Training for 55 Plus</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">Resistance training in older adults reduces falls by 40%, improves bone density, combats sarcopenia, and improves cognitive function. ACSM recommends 2-3 sessions/week at moderate to vigorous intensity.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=resistance+training+older+adults+sarcopenia" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://www.acsm.org" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">ACSM</a></div></div>
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">Prenatal Exercise Guidelines (ACOG)</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">ACOG recommends 150 min/week moderate-intensity exercise during uncomplicated pregnancy. Benefits include reduced gestational diabetes risk, improved mood, and easier labor recovery.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=exercise+pregnancy+ACOG+guidelines" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://www.acog.org" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">ACOG</a></div></div>
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">PTSD and Exercise Therapy</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);">GRADE B</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">Resistance and aerobic exercise significantly reduce PTSD symptoms. The VA Whole Health approach integrates exercise as complementary therapy. Trauma-informed programming is essential.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=exercise+PTSD+veterans+therapy" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://www.va.gov/wholehealth" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">VA Whole Health</a></div></div>
+          </div>
+
+          <h4 style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:1rem 0 0.5rem;">NUTRITION RESEARCH</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:1.5rem;">
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">Protein Synthesis and Muscle Building</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">1.6-2.2g/kg protein daily maximizes muscle protein synthesis. Leucine threshold of 2-3g per meal required. Distribution across 4-5 meals optimizes 24-hour MPS.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=protein+muscle+synthesis+dose+response" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://examine.com/supplements/protein-supplement/" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">Examine</a></div></div>
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">Creatine Research Summary</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">Most studied supplement in history. 3-5g/day improves strength, power, muscle mass, sprint performance, and cognitive function. Safe for long-term use. Kidney concerns are a myth in healthy individuals.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=creatine+monohydrate+systematic+review" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://examine.com/supplements/creatine/" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">Examine</a></div></div>
+            <div class="research-card" style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;"><h4 style="font-size:0.88rem;color:var(--text);margin-bottom:4px;">GLP-1 Nutrition Protocols</h4><span style="font-size:0.6rem;padding:2px 6px;border-radius:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);">GRADE A</span><p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-top:6px;">GLP-1 clients need 1.8-2.4g/kg protein, protein-first eating, and often protein supplementation. Appetite suppression makes hitting targets challenging. Micronutrient supplementation is critical.</p><div style="display:flex;gap:8px;margin-top:6px;"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=semaglutide+protein+muscle+preservation" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">PubMed</a><a href="https://www.precisionnutrition.com" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">Precision Nutrition</a></div></div>
+          </div>
+
+          <h4 style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:1rem 0 0.5rem;">QUICK REFERENCE LINKS</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+            <a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">PubMed</strong><br><span style="font-size:0.72rem;color:var(--text3);">pubmed.ncbi.nlm.nih.gov</span></a>
+            <a href="https://examine.com" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">Examine.com</strong><br><span style="font-size:0.72rem;color:var(--text3);">examine.com</span></a>
+            <a href="https://scholar.google.com" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">Google Scholar</strong><br><span style="font-size:0.72rem;color:var(--text3);">scholar.google.com</span></a>
+            <a href="https://www.cochranelibrary.com" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">Cochrane Library</strong><br><span style="font-size:0.72rem;color:var(--text3);">cochranelibrary.com</span></a>
+            <a href="https://www.nasm.org/resources" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">NASM Research</strong><br><span style="font-size:0.72rem;color:var(--text3);">nasm.org/resources</span></a>
+            <a href="https://www.acsm.org" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">ACSM Guidelines</strong><br><span style="font-size:0.72rem;color:var(--text3);">acsm.org</span></a>
+            <a href="https://www.acog.org" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">ACOG Prenatal</strong><br><span style="font-size:0.72rem;color:var(--text3);">acog.org</span></a>
+            <a href="https://www.va.gov/wholehealth" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">VA Whole Health</strong><br><span style="font-size:0.72rem;color:var(--text3);">va.gov/wholehealth</span></a>
+            <a href="https://www.teamrwb.org" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">Team RWB</strong><br><span style="font-size:0.72rem;color:var(--text3);">teamrwb.org</span></a>
+            <a href="https://www.ncoa.org" target="_blank" style="display:block;padding:10px 14px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:0.82rem;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'"><strong style="color:var(--gold);">National Council on Aging</strong><br><span style="font-size:0.72rem;color:var(--text3);">ncoa.org</span></a>
+          </div>
+        </div>
+      </div>
       <div class="accord reflib-section" data-refpanel="calories"><button class="accord-hdr" onclick="togRefLib(this,'calories')">🔢 Calorie and Macro Calculator <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="opt"><button class="accord-hdr" onclick="togRefLib(this,'opt')">📐 NASM OPT Model <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="olympic"><button class="accord-hdr" onclick="togRefLib(this,'olympic')">🏅 Olympic Lifting <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
@@ -7872,8 +7916,16 @@ cpBuildClientContext = function(c) {
     toneRule = '\n\nRESPONSE TONE: Client confidence is HIGH ('+confidence+'/10). Use direct, technical, performance-focused language. Challenge them. Push progression.';
   }
   if(mentalHealth !== 'none'){
-    toneRule += ' MENTAL HEALTH NOTE: Client has flagged '+mentalHealth+'. Use trauma-informed, encouraging language. Never reference weight negatively. Focus on capability and strength.';
+    toneRule += '\n\nMENTAL HEALTH FLAGS ACTIVE: '+mentalHealth+'.';
+    var mhArr = (c.mentalHealth||[]);
+    if(mhArr.indexOf('ptsd_military')!==-1||mhArr.indexOf('ptsd_other')!==-1) toneRule += ' PTSD: Use trauma-informed language. Avoid combat or military metaphors. Frame challenges as opportunities not battles. Include: If at any point this feels overwhelming take a break — your wellbeing always comes first.';
+    if(mhArr.indexOf('anxiety')!==-1) toneRule += ' ANXIETY: Avoid overwhelming with too many options. Structure outputs as simple numbered steps. Include breathing cue: Take 3 deep breaths before beginning.';
+    if(mhArr.indexOf('depression')!==-1) toneRule += ' DEPRESSION: Lead with compassion. Acknowledge that showing up is the win. Include: Movement is medicine — even this session is a powerful act of self-care.';
+    if(mhArr.indexOf('eating_disorder')!==-1) toneRule += ' EATING DISORDER HISTORY: Never mention calories in workout output. Focus on strength and capability not appearance. Never use burn off or earn your food language.';
+    if(mhArr.indexOf('addiction_recovery')!==-1) toneRule += ' ADDICTION RECOVERY: Acknowledge the discipline it takes. Frame fitness as a positive healthy habit replacing old patterns.';
+    if(mhArr.indexOf('body_dysmorphia')!==-1) toneRule += ' BODY DYSMORPHIA: Focus entirely on performance metrics not appearance. Never comment on body shape or size.';
   }
+  toneRule += '\n\nMINDSET REQUIREMENT: Every generated program must end with a MINDSET AND HABIT section containing: 1) One specific habit to build this week aligned with their goal, 2) One mindset reframe relevant to their primary barrier, 3) One accountability suggestion, 4) One self-compassion reminder.';
 
   return '\n\nACTIVE CLIENT: Name ' + (c.fname||'') + ' ' + (c.lname||'') + ', Age ' + (c.age||'N/A') + ', Weight ' + (c.weight||'N/A') + 'lbs, Level ' + (c.trainingAge||'not assessed') + ', OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + ', Goal ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Medications ' + meds + ', Physician Clearance ' + clearance + ', Confidence Level ' + confidence + '/10, Primary Motivation ' + motivation + ', Barriers ' + barriers + '. Tailor all responses to this client.' + toneRule;
 };
@@ -7960,6 +8012,93 @@ window.selectProgramTimeframe = function(tfId, tfName) {
     var sg = document.getElementById('styleGrid');
     if(sg) sg.scrollIntoView({behavior:'smooth',block:'center'});
   }, 300);
+};
+
+/* ══ COMPLETE PROGRAM BUILDER ══ */
+window.openCompleteProgramBuilder = function() {
+  var c = window.cpActiveClient;
+  if (!c || !c.fname) {
+    alert('Set an active client first. Go to the Clients tab and click SET ACTIVE on a client card.');
+    return;
+  }
+  var timeframes = [{id:'7day',name:'7 Days'},{id:'14day',name:'14 Days'},{id:'21day',name:'21 Days'},{id:'monthly',name:'Monthly (4 Weeks)'},{id:'12week',name:'12 Weeks'}];
+  var modal = document.createElement('div');
+  modal.id = 'completeProgramModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  var name = c.fname + ' ' + (c.lname||'');
+  var goals = (c.goals||[]).join(', ')||'General';
+  var special = (c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ')||'None';
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:640px;width:100%;padding:0;">' +
+    '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">Build Complete Program</h3><button onclick="document.getElementById(\'completeProgramModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button></div>' +
+    '<div style="padding:1.25rem 1.5rem;">' +
+      '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.25rem;font-size:0.82rem;color:var(--text2);">'+
+        '<strong style="color:var(--gold);">'+name+'</strong> · '+goals+' · '+special+
+        '<br><span style="font-size:0.75rem;color:var(--text3);">Confidence: '+(c.confidence||5)+'/10 · Phase: '+(c.optPhase?'Phase '+c.optPhase:'Not set')+'</span>'+
+      '</div>' +
+      '<div style="margin-bottom:1.25rem;"><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">PROGRAM TIMEFRAME</div><div id="cpbTimeframe" style="display:flex;flex-wrap:wrap;gap:8px;">' +
+        timeframes.map(function(t){return '<span class="wcc-chip" data-val="'+t.id+'" onclick="wccRadioSelect(this)">'+t.name+'</span>';}).join('') +
+      '</div></div>' +
+      '<div style="margin-bottom:1.25rem;"><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">TRAINING STYLE</div><div id="cpbStyle" style="display:flex;flex-wrap:wrap;gap:6px;">' +
+        ['Bodybuilding','Powerlifting','HIIT','Strength and Conditioning','CrossFit','Hyrox','Kettlebell','Corrective','Senior 55+','GLP-1 Adaptive','General Fitness'].map(function(s){return '<span class="wcc-chip" data-val="'+s+'" onclick="wccRadioSelect(this)">'+s+'</span>';}).join('') +
+      '</div></div>' +
+      '<div style="margin-bottom:1.25rem;"><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">SUPPLEMENT BUDGET PER MONTH</div><div id="cpbBudget" style="display:flex;flex-wrap:wrap;gap:8px;">' +
+        ['Under $50','$50-$100','$100-$200','Over $200'].map(function(b){return '<span class="wcc-chip" data-val="'+b+'" onclick="wccRadioSelect(this)">'+b+'</span>';}).join('') +
+      '</div></div>' +
+      '<button onclick="generateCompleteProgram()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;">GENERATE COMPLETE PROGRAM</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+};
+
+window.generateCompleteProgram = async function() {
+  var c = window.cpActiveClient;
+  if(!c) return;
+  var tf=''; document.querySelectorAll('#cpbTimeframe .wcc-chip.active').forEach(function(x){tf=x.dataset.val;});
+  var style=''; document.querySelectorAll('#cpbStyle .wcc-chip.active').forEach(function(x){style=x.dataset.val;});
+  var budget=''; document.querySelectorAll('#cpbBudget .wcc-chip.active').forEach(function(x){budget=x.dataset.val;});
+  if(!tf||!style){alert('Select a timeframe and training style.');return;}
+
+  document.getElementById('completeProgramModal').remove();
+  // Show output modal
+  var outModal = document.createElement('div');
+  outModal.id = 'cpbOutputModal';
+  outModal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  outModal.onclick = function(e){if(e.target===outModal)outModal.remove();};
+  outModal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;width:100%;margin:2rem auto;padding:0;">'+
+    '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">'+
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">Complete Program</h3>'+
+      '<div style="display:flex;gap:6px;"><button onclick="var t=document.getElementById(\'cpbContent\');if(t)navigator.clipboard.writeText(t.innerText)" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">COPY</button><button onclick="window.print()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">PRINT</button><button onclick="if(window.cpActiveClient)wccEmailSession()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">EMAIL</button><button onclick="document.getElementById(\'cpbOutputModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button></div>'+
+    '</div>'+
+    '<div id="cpbContent" style="padding:1.5rem;font-size:0.88rem;color:var(--text2);line-height:1.75;"><div style="text-align:center;padding:3rem;"><div style="font-size:2rem;margin-bottom:0.5rem;">⚡</div><div style="color:var(--gold);font-size:0.95rem;">DR. FITNESS AI is building your complete program...</div><div style="font-size:0.78rem;color:var(--text3);margin-top:0.5rem;">'+style+' · '+tf+' · Training + Nutrition + Supplements + Mindset</div></div></div>'+
+  '</div>';
+  document.body.appendChild(outModal);
+
+  var clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(c) : '';
+  var name = c.fname+' '+(c.lname||'');
+  var prompt = 'Generate a COMPLETE INTEGRATED PROGRAM for '+name+'.\n\n'+
+    'PROGRAM TIMEFRAME: '+tf+'\nTRAINING STYLE: '+style+'\nSUPPLEMENT BUDGET: '+(budget||'moderate')+'\n'+
+    clientCtx+
+    '\n\nGENERATE ALL 7 SECTIONS:\n\n'+
+    '## SECTION 1 — CLIENT OVERVIEW\nPersonalized opening addressing '+name+' specifically. Acknowledge their situation, barriers ('+((c.barriersChips||[]).join(', '))+'), and goals. Adjust tone to their confidence level.\n\n'+
+    '## SECTION 2 — TRAINING PROGRAM\nFull day-by-day schedule for '+tf+'. Each training day: complete session with exercises, sets, reps, tempo, rest, coaching cues. Include rest days. Progressive overload built in. NASM OPT phase appropriate. Apply injury modifications for: '+((c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).join(', ')||'none')+'.\n\n'+
+    '## SECTION 3 — NUTRITION PLAN\nDaily calorie and macro targets. Meal timing. Sample day of eating. Foods to prioritize. Simple meal prep tips.'+(((c.special||[]).indexOf('glp1')!==-1)?' Include GLP-1 protein-first protocol.':'')+'\n\n'+
+    '## SECTION 4 — SUPPLEMENT PROTOCOL\nPrioritized OTC stack for their goal and '+budget+' budget. When to take each. What to look for when buying. Evidence grade for each. Scope of practice disclaimer.\n\n'+
+    '## SECTION 5 — MINDSET AND HABIT PLAN\nWeek-by-week habit goals. Confidence building milestones. Accountability strategies. Self-compassion reminders adjusted to their mental health flags.\n\n'+
+    '## SECTION 6 — RESEARCH SUPPORT\n3-5 key research citations supporting this approach. PubMed search links. NASM/ACE guideline references.\n\n'+
+    '## SECTION 7 — TRAINER NOTES\nLeave a section header for the trainer to add observations after delivery.\n\n'+
+    'Be comprehensive, specific, and evidence-based. Use professional trainer language adjusted to client confidence level.';
+
+  try{
+    var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})});
+    var d = await res.json();
+    if(d.content&&d.content[0]){
+      var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.5rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
+      document.getElementById('cpbContent').innerHTML = '<p>'+text+'</p>';
+      // Auto-save
+      if(typeof autoSaveSession==='function') autoSaveSession('<p>'+text+'</p>', style, {timeframe:tf,budget:budget}, tf.indexOf('week')!==-1?'12-Week Transformation':tf==='monthly'?'Monthly Program':tf+' Program');
+    } else { throw new Error('No response'); }
+  }catch(err){ document.getElementById('cpbContent').innerHTML = '<div style="color:var(--red);padding:2rem;text-align:center;">Failed to generate program. '+err.message+'</div>'; }
 };
 
 /* ══ SESSION HISTORY SYSTEM ══ */
