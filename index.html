@@ -636,6 +636,103 @@ document.addEventListener('keydown',function(e){
   if(el) el.addEventListener('click',function(e){if(e.target===el)closeWccModal(id);});
 });
 
+/* EXERCISE TUTORIALS & IMAGES */
+var exerciseTutorials = {
+  'squat':{coach:'Alan Thrall',url:'https://www.youtube.com/watch?v=U3HlEF_E9fo'},'deadlift':{coach:'Alan Thrall',url:'https://www.youtube.com/watch?v=op9kVnSso6Q'},'bench press':{coach:'Alan Thrall',url:'https://www.youtube.com/watch?v=BYKScL2sgCs'},'overhead press':{coach:'Alan Thrall',url:'https://www.youtube.com/watch?v=wxwsNKo9MSc'},'barbell row':{coach:'Alan Thrall',url:'https://www.youtube.com/watch?v=G8l_8chR5BE'},'pull-up':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=eGo4IYlbE5g'},'push-up':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=IODxDxX7oi4'},'romanian deadlift':{coach:'Jeff Nippard',url:'https://www.youtube.com/watch?v=JCXUYuzwNrM'},'hip thrust':{coach:'Bret Contreras',url:'https://www.youtube.com/watch?v=LM8XHLYJoYs'},'lunge':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=QOVaHwm-Q6U'},'plank':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=yeKv5oX_6GY'},'bicep curl':{coach:'Jeff Nippard',url:'https://www.youtube.com/watch?v=ykJmrZ5v0Oo'},'tricep pushdown':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=-dcMDUX3CIs'},'lat pulldown':{coach:'Jeff Nippard',url:'https://www.youtube.com/watch?v=CAwf7n6Luuc'},'seated cable row':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=GZbfZ033f74'},'lateral raise':{coach:'Jeff Nippard',url:'https://www.youtube.com/watch?v=3VcKaXpzqRo'},'face pull':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=HSoHeSjvIdU'},'leg press':{coach:'Jeff Nippard',url:'https://www.youtube.com/watch?v=GvRgijoJ2xY'},'leg curl':{coach:'RP',url:'https://www.youtube.com/watch?v=1Tq3QdYUuHs'},'leg extension':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=YyvSfVjQeL0'},'calf raise':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=-M4-G8p1fCI'},'snatch':{coach:'Catalyst Athletics',url:'https://www.youtube.com/watch?v=9xQp2sldyts'},'clean':{coach:'Catalyst Athletics',url:'https://www.youtube.com/watch?v=kHLkpVfgYFw'},'kettlebell swing':{coach:'StrongFirst',url:'https://www.youtube.com/watch?v=sSESeQAir2M'},'turkish get up':{coach:'StrongFirst',url:'https://www.youtube.com/watch?v=5KNNDr3lQFo'},'box jump':{coach:'AthleanX',url:'https://www.youtube.com/watch?v=52loww6CcNs'},'foam roll':{coach:'Kelly Starrett',url:'https://www.youtube.com/watch?v=aCBz0-BHnrk'},'good morning':{coach:'Alan Thrall',url:'https://www.youtube.com/watch?v=YA-h3n9L4YU'}
+};
+var emojiByGroup={'chest':'💪','back':'🏋️','shoulder':'⬆️','arm':'💪','leg':'🦵','glute':'🍑','core':'⭕','full body':'🏋️','cardio':'❤️','olympic':'🥇','warm':'🔥','cool':'🧊','stretch':'🧘'};
+
+function getExerciseEmoji(name){
+  var n=name.toLowerCase();
+  if(n.indexOf('squat')!==-1||n.indexOf('lunge')!==-1||n.indexOf('leg')!==-1||n.indexOf('calf')!==-1) return '🦵';
+  if(n.indexOf('press')!==-1&&n.indexOf('bench')!==-1) return '💪';
+  if(n.indexOf('press')!==-1) return '⬆️';
+  if(n.indexOf('pull')!==-1||n.indexOf('row')!==-1||n.indexOf('lat')!==-1) return '🏋️';
+  if(n.indexOf('curl')!==-1||n.indexOf('tricep')!==-1) return '💪';
+  if(n.indexOf('hip')!==-1||n.indexOf('glute')!==-1||n.indexOf('thrust')!==-1) return '🍑';
+  if(n.indexOf('plank')!==-1||n.indexOf('crunch')!==-1||n.indexOf('core')!==-1) return '⭕';
+  if(n.indexOf('snatch')!==-1||n.indexOf('clean')!==-1||n.indexOf('jerk')!==-1) return '🥇';
+  if(n.indexOf('foam')!==-1||n.indexOf('stretch')!==-1||n.indexOf('mobility')!==-1) return '🧘';
+  if(n.indexOf('deadlift')!==-1||n.indexOf('rdl')!==-1) return '🏋️';
+  return '🏋️';
+}
+
+function getTutorialUrl(name){
+  var n=name.toLowerCase();
+  for(var key in exerciseTutorials){
+    if(n.indexOf(key)!==-1) return exerciseTutorials[key];
+  }
+  return {coach:'YouTube',url:'https://www.youtube.com/results?search_query='+encodeURIComponent(name+' proper form tutorial')};
+}
+
+function buildQuickView(rawText, styleName){
+  // Parse exercises from raw AI text
+  var lines=rawText.split('\n');
+  var exercises=[];
+  var currentSection='';
+  lines.forEach(function(line){
+    var trimmed=line.replace(/\*\*/g,'').replace(/^#+\s*/,'').trim();
+    if(!trimmed) return;
+    if(trimmed.match(/^(WARM|COOL|PHASE|MAIN|SECTION|TRAINER|MINDSET|RESEARCH)/i)){ currentSection=trimmed; return; }
+    // Try to parse exercise lines (numbered or bulleted with sets x reps pattern)
+    var exMatch=trimmed.match(/^[\d\-\.\)]*\s*(.+?)(?:\s*[-–—:]\s*(\d+)\s*[x×]\s*(\d+[\-\d]*))?(?:.*?(?:rest|⏱)\s*(\d+\s*s(?:ec)?)?)?/i);
+    if(exMatch && exMatch[1] && exMatch[1].length > 3 && exMatch[1].length < 80){
+      var name=exMatch[1].replace(/^[-\*]\s*/,'').replace(/\(.*?\)/g,'').trim();
+      if(name.match(/^(sets|reps|tempo|rest|load|note|tip|the|this|for|use|if|do|keep|your|with|and)/i)) return;
+      exercises.push({name:name, sets:exMatch[2]||'', reps:exMatch[3]||'', rest:exMatch[4]||'', section:currentSection, raw:trimmed});
+    }
+  });
+  if(exercises.length<3){
+    // Fallback: just show detail view if parsing fails
+    return '<p style="font-size:0.82rem;color:var(--text3);font-style:italic;">Quick View could not parse exercises from this output. Switch to Detail View.</p>';
+  }
+  var clientName=(window.cpActiveClient&&window.cpActiveClient.fname)?window.cpActiveClient.fname:'Client';
+  var html='<div style="background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
+  html+='<div><div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--text);text-transform:uppercase;">'+styleName+'</div><div style="font-size:0.75rem;color:var(--text3);">'+exercises.length+' exercises · '+clientName+'</div></div>';
+  html+='</div>';
+  // Progress bar
+  html+='<div id="wccProgressBar" style="height:4px;background:var(--navy3);border-radius:2px;margin-bottom:1rem;overflow:hidden;"><div id="wccProgressFill" style="height:100%;width:0%;background:var(--green);transition:width 0.3s;border-radius:2px;"></div></div>';
+  // Exercise rows
+  exercises.forEach(function(ex,i){
+    var emoji=getExerciseEmoji(ex.name);
+    var tut=getTutorialUrl(ex.name);
+    html+='<div class="qv-row" style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;transition:all 0.15s;" onmouseover="this.style.borderColor=\'var(--border)\'" onmouseout="this.style.borderColor=\'var(--border2)\'">';
+    html+='<div style="display:flex;align-items:center;gap:12px;">';
+    html+='<div style="width:44px;height:44px;border-radius:8px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">'+emoji+'</div>';
+    html+='<div style="flex:1;min-width:0;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);">'+ex.name+'</div>';
+    if(ex.sets&&ex.reps) html+='<span style="font-size:0.78rem;color:var(--gold);font-weight:600;">'+ex.sets+' x '+ex.reps+'</span>';
+    if(ex.rest) html+=' <span style="font-size:0.72rem;color:var(--text3);margin-left:6px;">⏱ '+ex.rest+'</span>';
+    html+='</div>';
+    html+='<label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;"><input type="checkbox" class="qv-check" onchange="updateQvProgress()" style="width:20px;height:20px;accent-color:var(--green);cursor:pointer;"></label>';
+    html+='</div>';
+    // Expandable detail
+    html+='<details style="margin-top:6px;"><summary style="font-size:0.7rem;color:var(--text3);cursor:pointer;">Details and tutorial</summary>';
+    html+='<div style="padding:6px 0 0 56px;font-size:0.78rem;color:var(--text2);line-height:1.5;">';
+    html+=ex.raw.replace(ex.name,'').substring(0,200);
+    html+='<div style="margin-top:6px;display:flex;gap:6px;"><a href="'+tut.url+'" target="_blank" style="padding:4px 10px;background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:12px;color:var(--red);font-size:0.68rem;font-weight:700;text-decoration:none;">▶ Tutorial — '+tut.coach+'</a></div>';
+    html+='</div></details>';
+    html+='</div>';
+  });
+  return html;
+}
+
+window.setWccView = function(view){
+  localStorage.setItem('drfitness_workout_view', view);
+  var qv=document.getElementById('wccQuickView');
+  var dv=document.getElementById('wccDetailView');
+  var qb=document.getElementById('wccQuickViewBtn');
+  var db=document.getElementById('wccDetailViewBtn');
+  if(view==='quick'){ if(qv)qv.style.display=''; if(dv)dv.style.display='none'; if(qb){qb.style.background='var(--gold)';qb.style.color='var(--navy)';} if(db){db.style.background='transparent';db.style.color='var(--text2)';} }
+  else { if(qv)qv.style.display='none'; if(dv)dv.style.display=''; if(db){db.style.background='var(--gold)';db.style.color='var(--navy)';} if(qb){qb.style.background='transparent';qb.style.color='var(--gold)';} }
+};
+window.updateQvProgress = function(){
+  var checks=document.querySelectorAll('.qv-check');
+  var done=0; checks.forEach(function(c){if(c.checked)done++;});
+  var pct=checks.length>0?Math.round((done/checks.length)*100):0;
+  var fill=document.getElementById('wccProgressFill');
+  if(fill) fill.style.width=pct+'%';
+};
+
 window.wccGenerate = async function(){
   var level = getSelected('wccLevel')||'Intermediate';
   var duration = getSelected('wccDuration')||'60 min';
@@ -724,7 +821,12 @@ window.wccGenerate = async function(){
           '<ul style="margin:0.75rem 0 0 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;">'+coachList+'</ul></details></div>';
       }
 
-      document.getElementById('wccOutputContent').innerHTML = banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml;
+      // Build Quick View + Detail View toggle
+      var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
+      var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
+      var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>';
+      var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(text, styleName) + '</div>';
+      document.getElementById('wccOutputContent').innerHTML = banner + toggleHtml + quickContent + detailContent + coachHtml;
       // Auto-save to client history
       if (typeof autoSaveSession === 'function') {
         autoSaveSession(
@@ -2187,21 +2289,130 @@ function buildSuppStack() {
 
 <!-- ══ PEPTIDES ══ -->
 <div class="panel" data-panel="peptides">
-  <div class="ref-panel">
+  <div class="ref-panel" style="max-width:1100px;margin:0 auto;">
     <div class="ref-header">
-      <h2>🔬 Peptide Research & Education</h2>
-      <p>Educational reference for certified trainers. Clients are increasingly asking about peptides — this tab gives you the scientific background to have informed, responsible conversations and know when to refer.</p>
+      <h2>🔬 DR. FITNESS PEPTIDES REFERENCE</h2>
+      <p>Comprehensive research-based peptide reference for fitness professionals. 46 compounds across 9 categories with evidence grades and research links.</p>
     </div>
+    <div style="background:rgba(240,165,0,0.06);border:2px solid var(--gold);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+      <h3 style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.12em;font-size:0.82rem;text-transform:uppercase;margin-bottom:0.6rem;">EDUCATIONAL USE ONLY</h3>
+      <p style="font-size:0.82rem;color:var(--text2);line-height:1.65;">This reference is provided for educational purposes to empower fitness professionals with knowledge. <strong style="color:var(--text);">Dr. Michael P. Lovato EdD is not a physician and is not making any medical recommendations.</strong> Peptides discussed here include both FDA-approved medications and research compounds. Always advise clients to consult a licensed physician before using any peptide or compound. This information is based on published research and is intended to help trainers have informed conversations with clients.</p></div>
     <div style="background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
       <h3 style="color:var(--red);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;font-size:0.82rem;text-transform:uppercase;margin-bottom:0.6rem;">⚕️ Scope of Practice Disclaimer</h3>
       <p style="font-size:0.82rem;color:var(--text2);line-height:1.65;"><strong style="color:var(--text);">Personal trainers cannot recommend, prescribe, or guide clients on peptide use.</strong> This information is strictly for trainer education — to understand what clients may be asking about and when to refer to a physician. All peptide decisions must be made under physician supervision. Most peptides listed here are <strong style="color:var(--text);">not FDA-approved for human use</strong> and are classified as research chemicals.</p>
     </div>
 
-    <div style="margin-bottom:1.25rem;">
-      <input type="text" id="peptideSearch" placeholder="Search peptides by name..." oninput="filterPeptides()" style="width:100%;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+    <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
+      <input type="text" id="peptideSearch" placeholder="Search peptides..." oninput="filterPeptides2()" style="flex:1;min-width:200px;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      <select id="peptideCategoryFilter" onchange="filterPeptides2()" style="padding:10px 12px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.85rem;"><option value="">All Categories</option><option value="Body Composition">Body Composition</option><option value="Metabolic">Metabolic</option><option value="Recovery">Recovery</option><option value="Neurological">Neurological</option><option value="Immune">Immune</option><option value="Sexual Health">Sexual Health</option><option value="Anti-Aging">Anti-Aging</option><option value="Sleep">Sleep</option><option value="Topical Skincare">Topical Skincare</option></select>
+      <span id="peptideCount" style="font-size:0.75rem;color:var(--text3);"></span>
     </div>
 
-    <div class="accord"><button class="accord-hdr open" onclick="tog(this)">What Are Peptides? — The Basics <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div id="peptideGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+  </div>
+</div>
+
+<script>
+var PEPTIDE_DB=[
+{name:'BPC-157',sub:'Body Protection Compound',cat:'Body Composition',route:'SubQ / Oral',status:'Strong animal, limited human',desc:'Accelerates healing of tendons, ligaments, muscles, and GI tract. Strong evidence in animal models for injury repair and gut healing.',mechanism:'Synthetic peptide derived from human gastric juice protein. Activates growth hormone receptors and promotes angiogenesis and collagen synthesis in injured tissue.',research:'Strong evidence in rodent models for accelerated tendon and muscle healing. Limited human clinical trials. Frequently cited in sports medicine communities.',benefits:'Accelerated tendon healing, gut lining repair, reduced inflammation, joint recovery support',risks:'Limited human safety data, injection site reactions, nausea possible',wada:'Not currently on WADA prohibited list but under monitoring',trainer:'Many clients ask about this for injury recovery. Acknowledge the animal research is compelling but human trials are limited. Always recommend physician consultation.'},
+{name:'TB-500',sub:'Thymosin Beta-4 Fragment',cat:'Body Composition',route:'SubQ / IM',status:'Animal plus anecdotal',desc:'Promotes cell migration and proliferation, reduces inflammation, supports tissue repair. Often stacked with BPC-157.',mechanism:'Synthetic fragment of Thymosin Beta-4. Promotes actin polymerization, cell migration, and blood vessel formation in damaged tissue.',research:'Strong animal research supporting wound healing and cardiac repair. Very limited human trials.',benefits:'Tissue repair, reduced inflammation, improved flexibility, cardiac protection in animal models',risks:'Limited human safety data, potential immune modulation, injection site reactions',wada:'Prohibited in competition',trainer:'WADA banned — important for any competitive athlete clients.'},
+{name:'Sermorelin',sub:'GHRH Analog',cat:'Body Composition',route:'SubQ',status:'FDA-approved pediatric',desc:'Stimulates pituitary to release GH naturally. Considered safer long-term than exogenous HGH.',mechanism:'Synthetic version of growth hormone releasing hormone. Stimulates the pituitary gland to produce and release growth hormone naturally.',research:'Well-studied for pediatric GH deficiency. Adult off-label use supported by clinical experience.',benefits:'Increased GH secretion, improved body composition, better sleep quality, anti-aging effects',risks:'Injection site reactions, headache, flushing, potential pituitary desensitization',wada:'Prohibited',trainer:'FDA approved for GH deficiency in children. Adults using it off-label via compounding pharmacy with physician prescription.'},
+{name:'Ipamorelin',sub:'GH Secretagogue',cat:'Body Composition',route:'SubQ',status:'Clinical trials completed',desc:'Selective GHRP with minimal cortisol or prolactin elevation. Promotes fat loss, lean mass, and recovery.',mechanism:'Selective growth hormone releasing peptide that binds ghrelin receptors without significantly raising cortisol or prolactin.',research:'Clinical trials demonstrate GH secretion with favorable side effect profile.',benefits:'Increased GH, fat loss, lean mass preservation, improved recovery, better sleep',risks:'Water retention, mild hunger increase, injection site reactions',wada:'Prohibited',trainer:'One of the most commonly discussed peptides in anti-aging clinics.'},
+{name:'CJC-1295',sub:'GHRH Analog (DAC)',cat:'Body Composition',route:'SubQ',status:'Clinical stage',desc:'GHRH analog that extends GH pulse duration. Stacked with Ipamorelin for body composition.',mechanism:'Modified GHRH analog with extended half-life. DAC version binds albumin extending duration.',research:'Phase I and II trials show effective GH elevation. The Ipamorelin + CJC-1295 stack is well-studied.',benefits:'Sustained GH elevation, improved body composition, recovery, sleep quality',risks:'Water retention, tingling, injection site reactions',wada:'Prohibited',trainer:'The CJC-1295 + Ipamorelin combination is one of the most commonly prescribed stacks in anti-aging medicine.'},
+{name:'AOD-9604',sub:'Anti-Obesity Drug Fragment',cat:'Body Composition',route:'SubQ / Oral',status:'Phase II completed',desc:'C-terminal fragment of HGH. Stimulates fat burning without affecting IGF-1.',mechanism:'Isolated lipolytic region of growth hormone. Activates fat breakdown without growth-promoting or insulin-desensitizing effects.',research:'Phase II trials showed fat loss without HGH side effects. Did not progress to Phase III.',benefits:'Fat loss, no impact on blood sugar or IGF-1, oral bioavailability possible',risks:'Limited long-term safety data, not FDA approved',wada:'Not currently prohibited',trainer:'Phase II trials did not show enough efficacy to advance. Important context for clients considering it.'},
+{name:'Fragment 176-191',sub:'HGH Fragment',cat:'Body Composition',route:'SubQ',status:'Limited human trials',desc:'Isolated lipolytic region of HGH. Burns fat without raising blood glucose.',mechanism:'Specific 16 amino acid fragment retaining fat-burning properties without growth-promoting effects.',research:'Animal and in vitro studies support fat loss mechanism. Very limited human data.',benefits:'Targeted fat loss, no anabolic side effects, no glucose impact',risks:'Limited safety data, injection site reactions',wada:'Not currently prohibited',trainer:'Very limited human evidence. Popular in bodybuilding community.'},
+{name:'GHRP-2',sub:'Growth Hormone Releasing Peptide-2',cat:'Body Composition',route:'SubQ',status:'Clinical trials',desc:'Potent GH secretagogue. Higher cortisol and prolactin elevation than Ipamorelin.',mechanism:'Ghrelin receptor agonist with potent GH release. Also elevates cortisol and prolactin.',research:'Well-studied in clinical trials. Effective GH stimulator but less favorable side effect profile than Ipamorelin.',benefits:'Strong GH release, muscle gain, fat loss, appetite stimulation',risks:'Cortisol elevation, prolactin increase, water retention, hunger',wada:'Prohibited',trainer:'Appetite stimulation can be useful for underweight clients or GLP-1 clients.'},
+{name:'GHRP-6',sub:'Growth Hormone Releasing Peptide-6',cat:'Body Composition',route:'SubQ',status:'Clinical trials',desc:'Strong GH secretagogue with significant appetite stimulation via ghrelin.',mechanism:'Ghrelin mimetic that stimulates GH release and significantly increases appetite.',research:'Clinically studied. Effective GH stimulator. Appetite stimulation can be benefit or drawback.',benefits:'GH release, muscle gain, appetite increase, recovery',risks:'Significant hunger, cortisol and prolactin elevation, water retention',wada:'Prohibited',trainer:'The appetite stimulation can actually be useful for underweight clients.'},
+{name:'Hexarelin',sub:'Examorelin',cat:'Body Composition',route:'SubQ',status:'Phase II and III',desc:'Most potent GHRP. Direct cardiac protective effects independent of GH.',mechanism:'Most potent GHRP with direct cardioprotective effects via cardiac receptors independent of GH release.',research:'Phase II and III trials. Well-documented GH release and cardiac research.',benefits:'Strong GH release, cardiac protection, recovery',risks:'Rapid desensitization requiring cycling, cortisol elevation',wada:'Prohibited',trainer:'Desensitizes quickly — clients should know cycling is required.'},
+{name:'Semaglutide',sub:'Ozempic / Wegovy',cat:'Metabolic',route:'SubQ / Oral',status:'FDA-approved',desc:'GLP-1 receptor agonist. Reduces appetite, blood sugar, and body weight. Weekly injection or oral.',mechanism:'Mimics GLP-1 hormone. Reduces appetite via hypothalamic satiety centers, slows gastric emptying, improves insulin secretion.',research:'STEP trials showed 15-17% average body weight loss. SELECT trial demonstrated cardiovascular benefits. Muscle loss of 25-40% of total weight lost is a critical concern.',benefits:'Significant weight loss, blood sugar control, cardiovascular risk reduction',risks:'Nausea, vomiting, diarrhea, constipation, muscle loss, pancreatitis risk, thyroid concerns',wada:'Not prohibited',trainer:'Muscle preservation is the trainer primary job. Resistance training 3-4x/week minimum. Protein 1.0-1.2g/lb bodyweight.'},
+{name:'Tirzepatide',sub:'Mounjaro / Zepbound',cat:'Metabolic',route:'SubQ',status:'FDA-approved',desc:'Dual GIP and GLP-1 agonist. Superior weight loss outcomes vs semaglutide in trials.',mechanism:'Activates both GLP-1 and GIP receptors. SURMOUNT trials showed superior results.',research:'SURMOUNT-1 showed average 22.5% body weight loss at highest dose — exceeding semaglutide.',benefits:'Superior weight loss vs semaglutide, better GI tolerance, blood sugar control',risks:'Similar GI side effects, muscle loss concern, cost',wada:'Not prohibited',trainer:'Faster weight loss makes muscle preservation even more urgent.'},
+{name:'Liraglutide',sub:'Victoza / Saxenda',cat:'Metabolic',route:'SubQ',status:'FDA-approved',desc:'Daily GLP-1 agonist. Predecessor to semaglutide with well-established safety profile.',mechanism:'Daily GLP-1 receptor agonist with shorter half-life than semaglutide.',research:'SCALE trials showed 5-8% average weight loss. Extensive long-term safety data.',benefits:'Weight loss, blood sugar control, well-established safety record',risks:'Daily injection, GI side effects, less potent than newer options',wada:'Not prohibited',trainer:'Well-established safety profile. Good option for clients starting GLP-1 therapy.'},
+{name:'Retatrutide',sub:'Triple Agonist',cat:'Metabolic',route:'SubQ',status:'Phase 3 — NOT FDA APPROVED',desc:'Triple receptor GLP-1, GIP, and glucagon agonist. Unprecedented weight loss outcomes.',mechanism:'Activates GLP-1, GIP, and glucagon receptors simultaneously.',research:'TRIUMPH-4 Phase 3 showed 28.7% average body weight loss. Approaching surgical outcomes.',benefits:'Unprecedented weight loss, cardiovascular risk reduction',risks:'Not yet approved. Long-term safety unknown. Cost will likely exceed current GLP-1 options.',wada:'Not yet evaluated',trainer:'Not FDA approved as of 2026. Muscle preservation concern with 28% weight loss is extreme.'},
+{name:'Tesamorelin',sub:'Egrifta',cat:'Metabolic',route:'SubQ',status:'FDA-approved (specific indication)',desc:'FDA-approved GHRH analog for HIV-associated lipodystrophy. Reduces visceral fat.',mechanism:'Synthetic GHRH stimulating pituitary GH release. FDA approved for HIV lipodystrophy.',research:'Well-studied for HIV lipodystrophy. Off-label for metabolic syndrome.',benefits:'Visceral fat reduction, body composition improvement, GH stimulation',risks:'Fluid retention, joint pain, carpal tunnel, glucose elevation',wada:'Prohibited',trainer:'FDA approved for a specific medical condition. Off-label use growing in anti-aging.'},
+{name:'MOTS-c',sub:'Mitochondrial Peptide',cat:'Metabolic',route:'SubQ / IM',status:'Preclinical plus early human',desc:'Mitochondria-derived peptide improving insulin sensitivity and AMPK activation.',mechanism:'Encoded by mitochondrial DNA. Activates AMPK pathway — same as exercise and metformin.',research:'Strong preclinical data. Early human studies emerging. Often called an exercise mimetic.',benefits:'Insulin sensitivity, metabolic health, potential performance enhancement',risks:'Very limited human safety data, research compound only',wada:'Not currently listed but under review',trainer:'Interesting research compound. Not ready for recommendation.'},
+{name:'5-Amino-1MQ',sub:'NNMT Inhibitor',cat:'Metabolic',route:'Oral',status:'Preclinical',desc:'Inhibits NNMT enzyme. Activates fat cell metabolism and increases NAD+.',mechanism:'Inhibits nicotinamide N-methyltransferase, activating dormant fat cells.',research:'Preclinical only. Compelling animal data for fat loss without diet changes.',benefits:'Potential fat loss activation, NAD+ elevation, lean mass preservation in animals',risks:'No human safety data, research chemical only',wada:'Not listed',trainer:'Preclinical only. Not ready for any recommendation.'},
+{name:'LL-37',sub:'Cathelicidin Antimicrobial',cat:'Recovery',route:'Topical / SubQ',status:'Preclinical plus pilot studies',desc:'Promotes wound healing, reduces biofilm. Studied for chronic wounds and skin infections.',mechanism:'Endogenous human antimicrobial peptide. Disrupts bacterial membranes and promotes wound healing.',research:'Well-studied in wound care. Clinical pilot studies for acne and chronic wounds.',benefits:'Wound healing, antimicrobial activity, anti-inflammatory effects',risks:'Potential skin irritation, formulation stability challenges',wada:'Not listed',trainer:'Within scope to discuss for general wound care awareness.'},
+{name:'Selank',sub:'TP-7 Anxiolytic',cat:'Neurological',route:'Intranasal / SubQ',status:'Approved in Russia',desc:'Anxiolytic peptide that reduces anxiety without sedation or dependence.',mechanism:'Synthetic heptapeptide from tuftsin. Modulates GABA, serotonin, dopamine. Increases BDNF.',research:'Approved and used clinically in Russia. Limited Western peer-reviewed trials.',benefits:'Anxiety reduction, cognitive enhancement, no sedation or dependence',risks:'Limited Western safety data, not FDA-evaluated',wada:'Not listed',trainer:'Some clients with anxiety may ask about this. Suggest they discuss with psychiatrist.'},
+{name:'Semax',sub:'ACTH 4-7 PGP',cat:'Neurological',route:'Intranasal',status:'Approved in Russia',desc:'Nootropic peptide increasing BDNF. Used for stroke recovery, ADHD, cognitive enhancement.',mechanism:'Synthetic ACTH fragment analog. Increases BDNF, NGF, modulates neurotransmitters.',research:'Approved in Russia for neurological conditions. Western clinical trials limited.',benefits:'Cognitive enhancement, neuroprotection, mood improvement',risks:'Limited Western data, potential agitation at high doses',wada:'Not listed',trainer:'Russian-approved nootropic. Limited Western evidence.'},
+{name:'Dihexa',sub:'PNB-0408',cat:'Neurological',route:'Oral / Topical',status:'Preclinical',desc:'Angiotensin IV analog. One of the most potent nootropics studied.',mechanism:'Activates AT4 receptors. Dramatically increases synaptogenesis and synaptic density.',research:'Preclinical only. Animal data extraordinarily compelling for cognitive enhancement.',benefits:'Synaptogenesis, learning and memory enhancement in animals',risks:'No human safety data, research chemical',wada:'Not listed',trainer:'Preclinical only. Not ready for any recommendation.'},
+{name:'Cerebrolysin',sub:'FPE 1070',cat:'Neurological',route:'IV / IM',status:'Approved in 50+ countries',desc:'Multi-peptide complex from pig brain. Used clinically for stroke, TBI, dementia.',mechanism:'Mixture of peptides containing BDNF, NGF, and neurotrophic factors.',research:'Approved and widely used in Eastern Europe and China. Meta-analyses support stroke recovery.',benefits:'Stroke recovery, TBI support, dementia symptom management',risks:'IV administration required, expensive, allergic reactions',wada:'Not listed',trainer:'Approved internationally. Not FDA approved in US.'},
+{name:'P21',sub:'CNTF Fragment',cat:'Neurological',route:'SubQ / Intranasal',status:'Preclinical',desc:'Neurogenic peptide promoting neuroplasticity and neurogenesis.',mechanism:'Derived from ciliary neurotrophic factor. Activates STAT3 and BDNF pathways.',research:'Preclinical animal data only. Shows promise for learning and memory.',benefits:'Neurogenesis, memory enhancement in animals, neuroprotection',risks:'No human data, research chemical',wada:'Not listed',trainer:'Research compound. Not ready for recommendation.'},
+{name:'Thymosin Alpha-1',sub:'Zadaxin',cat:'Immune',route:'SubQ',status:'Approved internationally',desc:'Immune modulator approved in 35+ countries. Enhances T-cell activity.',mechanism:'Naturally occurring thymic peptide enhancing T-cell and dendritic cell activity.',research:'Approved in over 35 countries. Extensive clinical data for hepatitis and immune support.',benefits:'Immune enhancement, chronic infection support, cancer adjunct therapy',risks:'Generally well-tolerated. Injection site reactions. Not FDA approved in US.',wada:'Not listed',trainer:'Approved internationally for immune support. Not FDA approved in US.'},
+{name:'VIP',sub:'Vasoactive Intestinal Peptide',cat:'Immune',route:'Intranasal / IV',status:'Clinical research ongoing',desc:'Anti-inflammatory neuropeptide studied for CIRS, autoimmune conditions, and autism.',mechanism:'Endogenous neuropeptide with potent anti-inflammatory effects.',research:'Small clinical trials for CIRS and pulmonary hypertension.',benefits:'Anti-inflammatory, immune modulation, pulmonary support',risks:'Significant hypotension risk with IV use, flushing',wada:'Not listed',trainer:'Growing use in functional medicine. Physician supervision required.'},
+{name:'KPV',sub:'Alpha-MSH Tripeptide',cat:'Immune',route:'Oral / Topical',status:'Preclinical plus limited human',desc:'Potent anti-inflammatory in GI tract. Studied for IBD and colitis.',mechanism:'Derived from alpha-MSH. Reduces pro-inflammatory cytokine production locally.',research:'Strong animal data for IBD and colitis. Limited human data.',benefits:'GI anti-inflammatory, potential IBD support',risks:'Limited human data, research compound',wada:'Not listed',trainer:'Interesting for GI health context. Physician territory.'},
+{name:'Larazotide',sub:'AT-1001',cat:'Immune',route:'Oral',status:'Phase II trials',desc:'Tight junction regulator reducing intestinal permeability. Studied for celiac disease.',mechanism:'Synthetic peptide inhibiting zonulin and stabilizing tight junctions.',research:'Phase II trials for celiac disease completed.',benefits:'Reduced intestinal permeability, potential celiac management',risks:'Phase II only, not approved',wada:'Not listed',trainer:'Interesting for clients with gut health concerns. Not yet approved.'},
+{name:'PT-141',sub:'Bremelanotide / Vyleesi',cat:'Sexual Health',route:'SubQ / Intranasal',status:'FDA-approved for HSDD in women',desc:'Melanocortin receptor agonist for sexual arousal. FDA-approved.',mechanism:'Activates MC3R and MC4R in CNS. Works on brain not vascular system.',research:'FDA approved as Vyleesi for HSDD in premenopausal women.',benefits:'Improved sexual desire and arousal, effective in both sexes',risks:'Nausea, flushing, blood pressure changes, hyperpigmentation',wada:'Not listed',trainer:'FDA approved for a specific medical condition. Physician territory.'},
+{name:'Kisspeptin-10',sub:'Metastin Fragment',cat:'Sexual Health',route:'SubQ / IV',status:'Clinical trials',desc:'Triggers GnRH and LH release, boosting testosterone and libido.',mechanism:'Activates GPR54 receptors stimulating GnRH pulsatility.',research:'Clinical trials for hypogonadism and fertility.',benefits:'Testosterone support, fertility improvement, libido enhancement',risks:'Limited long-term data, injection administration',wada:'Not currently listed',trainer:'Natural testosterone pathway. Physician supervised.'},
+{name:'Melanotan II',sub:'MT-2',cat:'Sexual Health',route:'SubQ / Intranasal',status:'Not approved — research only',desc:'Melanocortin agonist. Tanning agent that also increases libido. Not FDA-approved.',mechanism:'Non-selective melanocortin agonist activating MC1R for tanning and MC3R/MC4R for arousal.',research:'Never completed clinical trials. Widespread recreational use despite no approval.',benefits:'Skin tanning, libido increase, appetite suppression reported',risks:'Nausea, flushing, spontaneous erections, mole darkening, melanoma concerns',wada:'Not listed but not approved',trainer:'Not FDA approved. Significant side effects. Refer to dermatologist if client mentions current use.'},
+{name:'GHK-Cu',sub:'Copper Peptide',cat:'Anti-Aging',route:'Topical / SubQ',status:'Moderate — good topical evidence',desc:'Stimulates collagen synthesis, wound healing, anti-inflammatory. Used in skincare.',mechanism:'Naturally occurring plasma peptide with high copper affinity. Activates tissue repair pathways.',research:'Good evidence for topical wound healing and skin remodeling.',benefits:'Collagen synthesis, wound healing, skin remodeling, anti-inflammatory',risks:'Generally well-tolerated topically',wada:'Not listed',trainer:'Within scope for skincare discussion. Top recommendation for post-weight-loss skin laxity.'},
+{name:'Epithalon',sub:'Epitalon',cat:'Anti-Aging',route:'SubQ / Intranasal',status:'Animal plus limited human',desc:'Tetrapeptide activating telomerase. Used for longevity and sleep regulation.',mechanism:'Stimulates telomerase enzyme activity. Also normalizes circadian rhythms.',research:'Russian clinical studies show longevity improvements. Western peer review limited.',benefits:'Potential telomere preservation, sleep regulation, antioxidant effects',risks:'Limited Western clinical data, research compound',wada:'Not listed',trainer:'Interesting longevity research. Very limited Western evidence.'},
+{name:'Humanin',sub:'Mitochondria-Derived Peptide',cat:'Anti-Aging',route:'SubQ / Intranasal',status:'Preclinical',desc:'Neuroprotective and cardioprotective. Declines with age.',mechanism:'Small peptide from mitochondrial DNA. Activates STAT3 and reduces apoptosis.',research:'Strong preclinical data. Levels decline significantly with age.',benefits:'Neuroprotection, insulin sensitivity, cardiovascular protection',risks:'Limited human data, research compound',wada:'Not listed',trainer:'Research compound. Not ready for recommendation.'},
+{name:'SS-31 (Elamipretide)',sub:'Mitochondrial Peptide',cat:'Anti-Aging',route:'SubQ',status:'Phase II and III trials',desc:'Cardiolipin-targeting peptide supporting mitochondrial function.',mechanism:'Targets cardiolipin in inner mitochondrial membrane. Reduces ROS.',research:'Phase II and III trials for heart failure and mitochondrial myopathy.',benefits:'Mitochondrial function, cardiac support, reduced oxidative stress',risks:'Injection site reactions, limited approval, expensive',wada:'Not listed',trainer:'In clinical trials. Promising for cardiac and aging research.'},
+{name:'Collagen Peptides',sub:'Hydrolyzed Collagen',cat:'Anti-Aging',route:'Oral',status:'Strong RCT evidence — OTC',desc:'Increases skin elasticity, joint comfort, and bone density. Well-studied.',mechanism:'Hydrolyzed collagen provides amino acids stimulating fibroblast activity.',research:'Multiple RCTs support skin elasticity, joint pain reduction, bone density.',benefits:'Skin elasticity, joint comfort, bone density, muscle recovery',risks:'None significant. Allergy consideration for bovine or marine sources.',wada:'Not prohibited',trainer:'Within NASM CNC scope. Particularly valuable for GLP-1 clients and 55+ for joint and bone support. 10-20g daily.'},
+{name:'NAD+ / NMN',sub:'Nicotinamide Adenine Dinucleotide',cat:'Anti-Aging',route:'IV / SubQ / Oral',status:'Strong preclinical, human trials ongoing',desc:'Coenzyme critical to cellular energy and DNA repair. Declines with age.',mechanism:'Essential for mitochondrial function, DNA repair, and sirtuin longevity pathways. Declines 40-50% between ages 40-60.',research:'Extraordinary preclinical longevity data. Human trials ongoing.',benefits:'Cellular energy, DNA repair, metabolic health, potential longevity',risks:'IV can cause discomfort. Oral NMN well-tolerated. Cost significant.',wada:'Not listed',trainer:'Oral NMN is an OTC supplement within scope to discuss. IV NAD+ is a clinical procedure.'},
+{name:'DSIP',sub:'Delta Sleep Inducing Peptide',cat:'Sleep',route:'SubQ / Intranasal',status:'Limited human',desc:'Modulates delta wave sleep. Used for insomnia and stress normalization.',mechanism:'Naturally occurring neuropeptide promoting slow-wave delta sleep.',research:'Limited but positive human studies for insomnia and stress.',benefits:'Improved delta sleep, stress reduction, potential pain management',risks:'Limited safety data, research compound',wada:'Not listed',trainer:'Limited evidence. Physician territory.'},
+{name:'Matrixyl',sub:'Palmitoyl Pentapeptide-4',cat:'Topical Skincare',route:'Topical OTC',status:'Good cosmetic evidence',desc:'Anti-aging collagen stimulator in premium skincare products.',mechanism:'Stimulates collagen I, III, and IV synthesis.',research:'In vitro and clinical studies show collagen stimulation.',benefits:'Collagen production, wrinkle reduction, skin firmness',risks:'Generally safe. Mild irritation possible.',wada:'N/A — cosmetic',trainer:'OTC skincare ingredient. Synergistic with retinol.'},
+{name:'Argireline',sub:'Acetyl Hexapeptide-3',cat:'Topical Skincare',route:'Topical OTC',status:'Pilot studies',desc:'Topical botox-like effect reducing expression lines.',mechanism:'Inhibits neurotransmitter release at surface level reducing muscle contraction.',research:'Pilot studies show 30% reduction in wrinkle depth at 10% concentration.',benefits:'Expression wrinkle reduction, non-invasive',risks:'Cosmetic use only. Not a Botox replacement.',wada:'N/A — cosmetic',trainer:'OTC adjunct between professional treatments.'},
+{name:'SNAP-8',sub:'Acetyl Octapeptide-3',cat:'Topical Skincare',route:'Topical OTC',status:'Studies available',desc:'Extended version of Argireline with stronger wrinkle reduction.',mechanism:'8-amino acid version with enhanced SNARE complex inhibition.',research:'Studies suggest superior results to Argireline alone.',benefits:'Stronger wrinkle reduction than Argireline',risks:'Cosmetic use only.',wada:'N/A — cosmetic',trainer:'Premium formulations use this over standard Argireline.'},
+{name:'Syn-Coll',sub:'Palmitoyl Tripeptide-5',cat:'Topical Skincare',route:'Topical OTC',status:'Cosmetic studies',desc:'Collagen synthesis via TGF-beta activation.',mechanism:'Activates TGF-beta pathway for collagen production.',research:'Cosmetic studies support skin firmness improvement.',benefits:'Skin firmness, collagen production, texture improvement',risks:'Generally safe topically.',wada:'N/A — cosmetic',trainer:'Good for general skin firmness.'},
+{name:'GLP-1 Skin Protocol',sub:'Post-Weight-Loss Skin Care',cat:'Topical Skincare',route:'Protocol',status:'Evidence-based protocol',desc:'Complete skin care approach for GLP-1 and rapid weight loss clients experiencing skin laxity.',mechanism:'Resistance training builds muscle under skin. Protein supports collagen synthesis. Topical peptides treat surface. Professional treatments enhance results.',research:'Combination approach supported by dermatology and exercise science literature.',benefits:'Improved skin elasticity, reduced laxity, confidence support',risks:'Skin continues remodeling for 1-2 years after weight stabilization. Patience required.',wada:'N/A',trainer:'Trainers can recommend resistance training, protein optimization, collagen supplementation, and hydration. Refer to licensed esthetician for professional treatments. Debora Lovato — Licensed Esthetician, Laser Certified — specializes in post-weight-loss skin care.'}
+];
+
+// Render peptide grid
+function renderPeptideGrid(){
+  var grid=document.getElementById('peptideGrid');
+  if(!grid)return;
+  var q=(document.getElementById('peptideSearch').value||'').toLowerCase();
+  var cat=document.getElementById('peptideCategoryFilter').value;
+  var filtered=PEPTIDE_DB.filter(function(p){
+    if(cat&&p.cat!==cat)return false;
+    if(q&&(p.name+' '+p.sub+' '+p.desc+' '+p.cat).toLowerCase().indexOf(q)===-1)return false;
+    return true;
+  });
+  document.getElementById('peptideCount').textContent=filtered.length+' of '+PEPTIDE_DB.length+' peptides';
+  var statusColor=function(s){
+    if(s.indexOf('FDA')!==-1)return 'background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3)';
+    if(s.indexOf('Strong')!==-1||s.indexOf('Phase II')!==-1||s.indexOf('Phase 3')!==-1||s.indexOf('Approved')!==-1||s.indexOf('Clinical')!==-1)return 'background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)';
+    if(s.indexOf('Moderate')!==-1||s.indexOf('Good')!==-1||s.indexOf('Studies')!==-1||s.indexOf('Pilot')!==-1)return 'background:rgba(244,162,97,0.12);color:var(--amber);border:1px solid rgba(244,162,97,0.3)';
+    return 'background:rgba(255,255,255,0.05);color:var(--text3);border:1px solid var(--border2)';
+  };
+  var catColor=function(c){
+    var m={'Body Composition':'var(--gold)','Metabolic':'#60a5fa','Recovery':'var(--green)','Neurological':'#a78bfa','Immune':'var(--teal)','Sexual Health':'#f472b6','Anti-Aging':'var(--amber)','Sleep':'#818cf8','Topical Skincare':'#f9a8d4'};
+    return m[c]||'var(--text3)';
+  };
+  grid.innerHTML=filtered.map(function(p,i){
+    var id='pep_'+i;
+    return '<div class="peptide-entry" style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1.1rem 1.3rem;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'var(--border)\'" onmouseout="this.style.borderColor=\'var(--border2)\'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">' +
+        '<div><div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--text);">'+p.name+'</div><div style="font-size:0.75rem;color:var(--text3);">'+p.sub+'</div></div>' +
+        '<span style="font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap;'+statusColor(p.status)+'">'+p.status.toUpperCase()+'</span>' +
+      '</div>' +
+      '<p style="font-size:0.8rem;color:var(--text2);line-height:1.5;margin-bottom:8px;">'+p.desc+'</p>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">' +
+        '<span style="font-size:0.6rem;padding:2px 6px;border-radius:8px;border:1px solid;color:'+catColor(p.cat)+';border-color:'+catColor(p.cat)+';opacity:0.8;">'+p.cat+'</span>' +
+        '<span style="font-size:0.6rem;padding:2px 6px;border-radius:8px;background:var(--navy3);color:var(--text3);border:1px solid var(--border2);">'+p.route+'</span>' +
+      '</div>' +
+      '<details style="margin-top:4px;"><summary style="font-size:0.72rem;color:var(--gold);cursor:pointer;">View full detail</summary>' +
+        '<div style="margin-top:8px;font-size:0.78rem;color:var(--text2);line-height:1.6;">' +
+          '<strong style="color:var(--text3);">HOW IT WORKS:</strong> '+p.mechanism+'<br><br>' +
+          '<strong style="color:var(--text3);">RESEARCH:</strong> '+p.research+'<br><br>' +
+          '<strong style="color:var(--text3);">BENEFITS:</strong> '+p.benefits+'<br><br>' +
+          '<strong style="color:var(--text3);">RISKS:</strong> '+p.risks+'<br><br>' +
+          '<strong style="color:var(--text3);">WADA:</strong> '+p.wada+'<br><br>' +
+          '<strong style="color:var(--gold);">TRAINER TALKING POINTS:</strong> '+p.trainer+'<br><br>' +
+          '<a href="https://pubmed.ncbi.nlm.nih.gov/?term='+encodeURIComponent(p.name)+'" target="_blank" style="color:var(--gold);font-size:0.72rem;text-decoration:none;margin-right:8px;">PubMed Search</a>' +
+          '<span style="font-size:0.68rem;color:var(--text3);font-style:italic;">Trainers may educate on this topic but may not recommend, prescribe, or supervise use.</span>' +
+        '</div>' +
+      '</details>' +
+    '</div>';
+  }).join('');
+}
+function filterPeptides2(){renderPeptideGrid();}
+window.filterPeptides2=filterPeptides2;
+renderPeptideGrid();
+</script>
+
+    <div style="display:none;"><!-- old peptide content hidden --><div class="accord"><button class="accord-hdr open" onclick="tog(this)">What Are Peptides? — The Basics <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
       <div class="accord-body open">
         <span class="sub-lbl">Definition</span>Peptides are short chains of amino acids (2–50) that act as signaling molecules throughout the body. Many naturally occurring hormones — including insulin and GLP-1 — are peptides. The fitness and wellness industry uses the term specifically for <strong>synthetic research peptides</strong> being explored for recovery, performance, and anti-aging.
         <span class="sub-lbl">Why Clients Are Asking</span><ul><li>Popularized by Joe Rogan, Andrew Huberman, and other high-profile figures</li><li>Wellness clinics and anti-aging centers are increasingly promoting peptide "stacks"</li><li>Online communities share anecdotal recovery results</li><li>RFK Jr. publicly discussed reducing FDA restrictions on peptides in 2025</li><li>Seen as a "natural" alternative to steroids or pharmaceuticals</li></ul>
@@ -2341,6 +2552,7 @@ function buildSuppStack() {
         <span class="sub-lbl">Trainer Talking Points</span>"LL-37 is actually a natural part of your immune system. The synthetic version being sold in clinics is a different story — we do not have clinical trial data for injecting it. Please discuss with your physician if you are considering this."
       </div>
     </div>
+    </div><!-- end hidden old peptide content -->
 
   </div>
 </div>
