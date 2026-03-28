@@ -488,6 +488,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
 <style>
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse-gold{0%,100%{outline-color:var(--gold);}50%{outline-color:transparent;}}
 @keyframes scaleIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
 #styleGrid .style-card{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.1rem;cursor:pointer;transition:all 0.2s;text-align:left;}
 #styleGrid .style-card:hover{border-color:var(--gold);background:var(--navy3);box-shadow:0 0 20px rgba(240,165,0,0.08);}
@@ -8215,7 +8216,7 @@ cpBuildClientContext = function(c) {
     'MOVEMENT: Level ' + (c.iwFitnessLevel||c.trainingAge||'not assessed') + ', Experience ' + moveExp + ', Pain ' + (c.currentPain||painInfo||'none') + ', Injuries ' + injuries + (c.injuryNotes?' ('+c.injuryNotes+')':'') + ', Difficult Movements ' + difficultMoves + ', Limitations ' + (c.iwMoveLimitations||'none') + '\n' +
     'LIFESTYLE: Training ' + (trainDays||'3') + ' days/week, ' + (sessLen||'60 min') + ' sessions, Location ' + trainLoc + ', Equipment ' + ((c.equipment||[]).join(', ')||'full gym') + ', Eating ' + (c.diet||'standard') + ', Hydration ' + (c.hydration||'moderate') + '\n' +
     'MEDICAL: Clearance ' + clearance + ', Conditions ' + conditions + ', Medications ' + meds + ', GLP-1 ' + (c.glp1Med&&c.glp1Med!=='no'?c.glp1Med+(c.glp1Dose?' dose '+c.glp1Dose:''):'no') + ', Allergies ' + (c.iwAllergies||'none') + '\n' +
-    'GOALS: Primary ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Target ' + (c.iwTargetWeight?c.iwTargetWeight+'lbs':'not set') + ', Non-negotiables ' + nonNeg + '\n' +
+    'GOALS (in priority order): ' + ((c.goals||[]).join(', ')||'not specified') + '. Program should address all goals with primary focus on the first selected. Special Populations ' + special + ', Target ' + (c.iwTargetWeight?c.iwTargetWeight+'lbs':'not set') + ', Non-negotiables ' + nonNeg + '\n' +
     'MINDSET: Confidence ' + confidence + '/10, Motivation ' + motivation + ', Gym Comfort ' + gymComfort + ', Body Image ' + bodyImage + ', Biggest Fear ' + biggestFear + ', Success Vision ' + successVision + ', Barriers ' + barriers + '\n' +
     'OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + '. Tailor all responses to this specific client.' + toneRule;
   return ctx;
@@ -8469,7 +8470,7 @@ function renderWizardStep() {
   html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:0;background:var(--navy2);">';
   html += iwStep > 0 ? '<button onclick="iwStep--;renderWizardStep()" style="padding:10px 24px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">← BACK</button>' : '<div></div>';
   if(iwStep < 6) html += '<button onclick="saveStepData();iwStep++;renderWizardStep()" style="padding:10px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">NEXT →</button>';
-  else html += '<div style="display:flex;gap:8px;"><button onclick="saveIntakeAsClient(true)" style="padding:10px 24px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">SAVE AND BUILD FIRST PROGRAM</button><button onclick="saveIntakeAsClient(false)" style="padding:10px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">SAVE PROFILE</button></div>';
+  else html += '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button onclick="saveIntakeAsClient(\'session\')" style="padding:10px 24px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">BUILD SESSION NOW</button><button onclick="saveIntakeAsClient(\'program\')" style="padding:10px 20px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">BUILD PROGRAM</button><button onclick="saveIntakeAsClient(false)" style="padding:10px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">SAVE PROFILE ONLY</button></div>';
   html += '</div>';
   overlay.innerHTML = html;
   document.body.appendChild(overlay);
@@ -8491,8 +8492,18 @@ function iwField(id, label, type, placeholder, required, options) {
     return '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">'+label+'</div><input type="range" data-iw="'+id+'" min="1" max="10" value="'+(v||'5')+'" style="width:100%;accent-color:var(--gold);" oninput="this.nextElementSibling.textContent=this.value"><div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);">'+(v||'5')+'</div></div>';
   if(type === 'cards')
     return '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">'+label+'</div><div data-iwg="'+id+'" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">'+options.map(function(o){var sel=(v===o);return '<div class="cp-check'+(sel?' checked':'')+'" data-val="'+o+'" onclick="this.parentElement.querySelectorAll(\'.cp-check\').forEach(function(c){c.classList.remove(\'checked\')});this.classList.add(\'checked\')" style="padding:12px;text-align:center;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;">'+o+'</div>';}).join('')+'</div></div>';
+  if(type === 'multiCards') {
+    var selArr = Array.isArray(v) ? v : (v ? [v] : []);
+    return '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">'+label+' <span id="'+id+'Count" style="color:var(--gold);font-size:0.68rem;"></span></div><div data-iwg="'+id+'" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">'+options.map(function(o){var sel=selArr.indexOf(o)!==-1;return '<div class="cp-check'+(sel?' checked':'')+'" data-val="'+o+'" onclick="this.classList.toggle(\'checked\');updateGoalCount(\''+id+'\')" style="padding:12px;text-align:center;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;">'+o+'</div>';}).join('')+'</div></div>';
+  }
   return '';
 }
+function updateGoalCount(id){
+  var ct=document.querySelectorAll('[data-iwg='+id+'] .cp-check.checked').length;
+  var el=document.getElementById(id+'Count');
+  if(el) el.textContent=ct>1?ct+' goals selected':'';
+}
+window.updateGoalCount=updateGoalCount;
 
 function buildStepContent(step) {
   var h = '';
@@ -8556,8 +8567,7 @@ function buildStepContent(step) {
     h += iwField('mentalHealth','Mental health flags','chips','',false,['None','Anxiety','Depression','PTSD Military','PTSD Other','Eating disorder history','Body image concerns','Chronic stress','Grief or loss','Addiction recovery','Prefer not to say']);
     h += '<div style="font-size:0.75rem;color:var(--gold);font-style:italic;margin-top:0.5rem;">These help us write your program to support your whole self. All information is confidential.</div>';
   } else if(step === 5) {
-    h += iwField('primaryGoal','Primary Goal','cards','',false,['Lose Body Fat','Build Muscle','Body Recomposition','Improve Strength','Athletic Performance','Improve Health and Longevity','Post-Rehab Recovery','GLP-1 Support','General Fitness','Competition Prep']);
-    h += iwField('secondaryGoal','Secondary Goal (optional)','cards','',false,['Lose Body Fat','Build Muscle','Improve Strength','Athletic Performance','General Fitness','None']);
+    h += iwField('primaryGoals','Select All Goals That Apply','multiCards','',false,['Lose Body Fat','Build Muscle','Body Recomposition','Improve Strength','Athletic Performance','Improve Health and Longevity','Post-Rehab Recovery','GLP-1 Support','General Fitness','Competition Prep']);
     h += iwField('eventDeadline','Specific event or deadline','textarea','What and when — leave blank if none');
     h += iwField('targetWeight','Target weight (optional)','number','lbs');
     h += iwField('nonNeg1','Non-negotiable 1','text','Things you will NOT give up');
@@ -8567,7 +8577,7 @@ function buildStepContent(step) {
   } else if(step === 6) {
     h += '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;">';
     h += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem;">PROFILE SUMMARY</div>';
-    var fields = [['Name',iwData.fname+' '+(iwData.lname||'')],['Age',iwData.dob?Math.floor((Date.now()-new Date(iwData.dob).getTime())/(365.25*24*60*60*1000))+'yrs':''],['Weight',(iwData.weight||'')+'lbs'],['Level',iwData.fitnessLevel||''],['Goal',iwData.primaryGoal||''],['Confidence',(iwData.confidence||'5')+'/10'],['Days/Week',iwData.trainingDays||''],['Duration',iwData.sessionLength||''],['GLP-1',iwData.glp1==='Yes'?(iwData.glp1Med||'Yes'):'No'],['Pain',iwData.currentPain||'No'],['Special Pop',(iwData.specialPop||[]).join(', ')||'None']];
+    var fields = [['Name',iwData.fname+' '+(iwData.lname||'')],['Age',iwData.dob?Math.floor((Date.now()-new Date(iwData.dob).getTime())/(365.25*24*60*60*1000))+'yrs':''],['Weight',(iwData.weight||'')+'lbs'],['Level',iwData.fitnessLevel||''],['Goals',(iwData.primaryGoals||[]).join(', ')||'None set'],['Confidence',(iwData.confidence||'5')+'/10'],['Days/Week',iwData.trainingDays||''],['Duration',iwData.sessionLength||''],['GLP-1',iwData.glp1==='Yes'?(iwData.glp1Med||'Yes'):'No'],['Pain',iwData.currentPain||'No'],['Special Pop',(iwData.specialPop||[]).join(', ')||'None']];
     h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;">';
     fields.forEach(function(f){ h += '<div style="font-size:0.78rem;color:var(--text2);"><strong style="color:var(--text3);">'+f[0]+':</strong> '+(f[1]||'—')+'</div>'; });
     h += '</div></div>';
@@ -8629,7 +8639,7 @@ function saveIntakeAsClient(buildProgram) {
     sleep: iwData.sleepHours==='Under 5'?'less5':iwData.sleepHours==='7-8'?'7to8':iwData.sleepHours==='8+'?'more8':'6to7',
     stress: parseInt(iwData.stressLevel||5)>7?'high':parseInt(iwData.stressLevel||5)>4?'moderate':'low',
     smoking: iwData.tobacco==='Yes'?'yes':iwData.tobacco==='Former user'?'former':'no',
-    goals: [goalMap[iwData.primaryGoal]||'general'],
+    goals: (iwData.primaryGoals||[]).map(function(g){return goalMap[g]||'general';}),
     special: iwData.specialPop||[],
     trainingAge: levelMap[iwData.fitnessLevel]||'none',
     optPhase: iwData.fitnessLevel==='Complete Beginner'?'1':iwData.fitnessLevel==='Some Experience'?'1':iwData.fitnessLevel==='Intermediate'?'2':iwData.fitnessLevel==='Advanced'?'3':'4',
@@ -8692,11 +8702,33 @@ function saveIntakeAsClient(buildProgram) {
   var overlay = document.getElementById('intakeWizardOverlay');
   if(overlay) overlay.remove();
   renderClients();
-  if(buildProgram) {
+  if(buildProgram === true || buildProgram === 'program') {
     setActiveClient(client.id);
+    showBuildToast(client.fname);
     setTimeout(function(){ openCompleteProgramBuilder(); }, 300);
+  } else if(buildProgram === 'session') {
+    setActiveClient(client.id);
+    showBuildToast(client.fname);
+    setTimeout(function(){ buildSessionNow(client.id); }, 300);
   }
 }
+
+function showBuildToast(name) {
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--gold);color:var(--navy);padding:10px 24px;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.08em;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.3s;';
+  toast.textContent = 'Building session for ' + name + ' — select a training style to begin';
+  document.body.appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; setTimeout(function(){ toast.remove(); }, 300); }, 3000);
+  // Highlight style grid
+  var sg = document.getElementById('styleGrid');
+  if(sg) {
+    sg.style.outline = '2px solid var(--gold)';
+    sg.style.outlineOffset = '4px';
+    sg.style.animation = 'pulse-gold 1s ease 3';
+    setTimeout(function(){ sg.style.outline='none'; sg.style.animation=''; }, 3000);
+  }
+}
+window.showBuildToast = showBuildToast;
 
 /* ══ SESSION HISTORY SYSTEM ══ */
 var SESSION_HISTORY_KEY = 'drfitness_session_history';
@@ -8894,9 +8926,9 @@ window.wccEmailSession = function() {
 </script>
 <!-- ══ PERSISTENT FLOATING CHAT ══ -->
 <style>
-.fc-btn{position:fixed;bottom:24px;right:24px;z-index:800;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:all 0.2s;font-size:1.3rem;}
+.fc-btn{position:fixed;bottom:24px;right:24px;z-index:99999;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:all 0.2s;font-size:1.3rem;}
 .fc-btn:hover{background:var(--gold2);transform:scale(1.08);}
-.fc-panel{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:var(--navy2);border-left:1px solid var(--border);z-index:900;display:flex;flex-direction:column;transition:right 0.25s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.3);}
+.fc-panel{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:var(--navy2);border-left:1px solid var(--border);z-index:99999;display:flex;flex-direction:column;transition:right 0.25s cubic-bezier(0.4,0,0.2,1);box-shadow:-4px 0 24px rgba(0,0,0,0.3);}
 .fc-panel.open{right:0;}
 .fc-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;background:var(--navy3);}
 .fc-header h3{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.06em;color:var(--gold);}
@@ -8931,8 +8963,11 @@ window.wccEmailSession = function() {
 
 <div class="fc-panel" id="fcPanel">
   <div class="fc-header">
-    <div><h3>DR. FITNESS AI</h3><p>AI Trainer Reference</p></div>
-    <button class="fc-close" onclick="fcClose()">✕ Close</button>
+    <div><h3>DR. FITNESS AI</h3><p id="fcClientLabel">General Training Expert</p></div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button onclick="clearFcHistory()" style="background:transparent;border:none;color:var(--text3);font-size:0.65rem;cursor:pointer;">Clear</button>
+      <button class="fc-close" onclick="fcClose()">✕ Close</button>
+    </div>
   </div>
   <div class="fc-mode-row" id="fcModeRow">
     <button class="fc-chip active" data-m="general">General</button>
@@ -8946,6 +8981,12 @@ window.wccEmailSession = function() {
     <div class="fc-msg ai"><div class="fc-bubble">Ask me anything — injury mods, workout ideas, nutrition guidance, GLP-1 protocols. I am here on every tab.</div></div>
   </div>
   <div class="fc-input-area">
+    <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
+      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What injury modifications should I make for my active client?')">Injury Mod</button>
+      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What are the GLP-1 training and nutrition protocols for my active client?')">GLP-1 Protocol</button>
+      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Give me nutrition recommendations for my active client based on their goals.')">Nutrition</button>
+      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Build an evidence-based supplement stack for my active client.')">Supplement Stack</button>
+    </div>
     <div class="fc-input-row">
       <textarea id="fcQi" placeholder="Ask Dr. Fitness..." rows="1"></textarea>
       <button class="fc-send" id="fcSend"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
@@ -9038,6 +9079,63 @@ window.wccEmailSession = function() {
     document.getElementById('fcSend').disabled = false;
   }
   window.fcSendMsg = fcSendMsg;
+
+  // Quick prompts
+  window.fcQuickPrompt = function(text) {
+    if (!fcOpen) fcOpenPanel();
+    fcQi.value = text;
+    setTimeout(fcSendMsg, 200);
+  };
+
+  // Update client label
+  window.updateFcClientLabel = function() {
+    var label = document.getElementById('fcClientLabel');
+    if (!label) return;
+    var c = window.cpActiveClient;
+    if (c && c.fname) {
+      label.textContent = 'Coaching for ' + c.fname + ' ' + (c.lname || '');
+    } else {
+      label.textContent = 'General Training Expert';
+    }
+  };
+  // Update label on panel open
+  var _origOpen = fcOpenPanel;
+  window.fcOpenPanel = function() {
+    _origOpen();
+    updateFcClientLabel();
+    // Restore chat history from localStorage
+    var saved = JSON.parse(localStorage.getItem('drfitness_fc_history') || '[]');
+    if (fcMsgsData.length === 0 && saved.length > 0) {
+      fcMsgsData = saved;
+      var msgsEl = document.getElementById('fcMsgs');
+      msgsEl.innerHTML = '';
+      saved.forEach(function(m) {
+        var div = document.createElement('div');
+        div.className = 'fc-msg ' + (m.role === 'user' ? 'user' : 'ai');
+        div.innerHTML = '<div class="fc-bubble">' + (m.role === 'user' ? m.content : m.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')) + '</div>';
+        msgsEl.appendChild(div);
+      });
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+  };
+
+  // Save history after each message
+  var _origSend = fcSendMsg;
+  fcSendMsg = async function() {
+    await _origSend();
+    // Save last 20 messages
+    var toSave = fcMsgsData.slice(-20);
+    localStorage.setItem('drfitness_fc_history', JSON.stringify(toSave));
+  };
+  window.fcSendMsg = fcSendMsg;
+
+  // Clear history
+  window.clearFcHistory = function() {
+    fcMsgsData = [];
+    localStorage.removeItem('drfitness_fc_history');
+    var msgsEl = document.getElementById('fcMsgs');
+    msgsEl.innerHTML = '<div class="fc-msg ai"><div class="fc-bubble">Chat cleared. Ask me anything — injury mods, workout ideas, nutrition guidance, GLP-1 protocols.</div></div>';
+  };
 })();
 </script>
 <!-- MOBILE BOTTOM NAV -->
