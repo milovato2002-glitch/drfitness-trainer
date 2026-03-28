@@ -5,7 +5,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Dr. Fitness — Trainer Reference</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dr. Fitness">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -289,15 +295,17 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </div>
 </header>
 
-<div class="nav-tabs">
+<div class="nav-tabs" id="mainNavTabs">
   <button class="nav-tab" data-tab="clients">👤 CLIENTS</button>
+  <button class="nav-tab" data-tab="messages">💬 MESSAGES</button>
   <button class="nav-tab active" data-tab="ask">⚡ BUILD SESSION</button>
+  <button class="nav-tab" data-tab="schedule">📅 SCHEDULE</button>
   <button class="nav-tab" data-tab="nutrition">🥗 NUTRITION</button>
   <button class="nav-tab" data-tab="calcs">🔢 CALCULATORS</button>
   <button class="nav-tab" data-tab="supplements">💊 SUPPLEMENTS</button>
-  <button class="nav-tab" data-tab="reflib">📚 REFERENCE LIBRARY</button>
+  <button class="nav-tab" data-tab="reflib">📚 REFERENCE</button>
   <button class="nav-tab" data-tab="quickref">⚡ QUICK REF</button>
-  <button class="nav-tab" style="color:var(--gold);border-bottom-color:transparent;" onclick="event.stopPropagation();openClientIntakeEntry()">📋 CLIENT INTAKE</button>
+  <button class="nav-tab" style="color:var(--gold);border-bottom-color:transparent;" onclick="event.stopPropagation();openClientIntakeEntry()">📋 INTAKE</button>
 </div>
 
 <!-- ACTIVE CLIENT BANNER -->
@@ -4992,6 +5000,52 @@ function filterPeptides() {
 </div>
 </div>
 
+<!-- ══ MESSAGES TAB ══ -->
+<div class="panel" data-panel="messages">
+  <div style="display:flex;height:calc(100vh - 125px);">
+    <!-- Conversation List -->
+    <div id="msgListPanel" style="width:280px;flex-shrink:0;border-right:1px solid var(--border2);overflow-y:auto;padding:0.75rem;display:flex;flex-direction:column;gap:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">Messages</h3><button onclick="newMsgConversation()" style="padding:5px 10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-size:0.72rem;font-weight:700;cursor:pointer;">+ NEW</button></div>
+      <input type="text" id="msgSearchConvo" placeholder="Search clients..." oninput="renderMsgList()" style="width:100%;padding:8px 10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.82rem;margin-bottom:0.5rem;outline:none;">
+      <div id="msgConvoList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:3px;"></div>
+    </div>
+    <!-- Conversation View -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div id="msgChatHeader" style="padding:12px 1.25rem;border-bottom:1px solid var(--border2);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);">Select a conversation</div>
+      <div id="msgChatMessages" style="flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="msgChatInput" style="display:none;padding:10px 1.25rem;border-top:1px solid var(--border2);background:var(--navy2);">
+        <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;" id="msgQuickReplies">
+          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">Great work today</button>
+          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">See you next session</button>
+          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">Your program is updated</button>
+          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">Great progress this week</button>
+        </div>
+        <div style="display:flex;gap:8px;"><textarea id="msgText" placeholder="Type a message..." rows="1" style="flex:1;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;resize:none;outline:none;"></textarea><button onclick="sendMsg()" style="padding:0 18px;background:var(--gold);border:none;border-radius:var(--radius-sm);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHEDULE TAB ══ -->
+<div class="panel" data-panel="schedule">
+  <div class="ref-panel" style="max-width:900px;margin:0 auto;padding:2rem 1.5rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px;">
+      <div><h2 style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);letter-spacing:0.05em;">Schedule</h2><p style="font-size:0.85rem;color:var(--text2);">Manage client sessions and appointments</p></div>
+      <div style="display:flex;gap:8px;"><button onclick="openNewSession()" style="padding:10px 20px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">+ ADD SESSION</button><button onclick="toggleScheduleView()" id="schedViewToggle" style="padding:8px 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.78rem;cursor:pointer;">List View</button></div>
+    </div>
+    <!-- Calendar Grid -->
+    <div id="schedCalendar" style="margin-bottom:1.5rem;"></div>
+    <!-- Session List -->
+    <div id="schedList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <!-- Calendly -->
+    <div style="margin-top:2rem;border-top:1px solid var(--border2);padding-top:1.5rem;">
+      <div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">EXTERNAL BOOKING</div>
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;">Allow clients to self-book by sharing your Calendly link</p>
+      <a href="https://calendly.com/milovato2002" target="_blank" style="display:inline-block;padding:10px 24px;background:var(--gold);color:var(--navy);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;text-decoration:none;">Open Calendly Booking Page</a>
+    </div>
+  </div>
+</div>
+
 <!-- ══ SUPPLEMENTS TAB ══ -->
 <div class="panel" data-panel="supplements">
   <div class="ref-panel" style="max-width:1000px;margin:0 auto;padding:2rem 1.5rem;">
@@ -8986,5 +9040,229 @@ window.wccEmailSession = function() {
   window.fcSendMsg = fcSendMsg;
 })();
 </script>
+<!-- MOBILE BOTTOM NAV -->
+<nav id="mobileBottomNav" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--navy2);border-top:1px solid var(--border);padding:6px 0 env(safe-area-inset-bottom,0);">
+  <div style="display:flex;justify-content:space-around;align-items:center;">
+    <button onclick="mobileNavTo('ask')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">⚡</span>Build</button>
+    <button onclick="mobileNavTo('clients')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">👤</span>Clients</button>
+    <button onclick="mobileNavTo('messages')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">💬</span>Messages</button>
+    <button onclick="mobileNavTo('schedule')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">📅</span>Schedule</button>
+    <button onclick="document.getElementById('mobileMoreMenu').style.display=document.getElementById('mobileMoreMenu').style.display==='flex'?'none':'flex'" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">☰</span>More</button>
+  </div>
+  <div id="mobileMoreMenu" style="display:none;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--border2);justify-content:center;">
+    <button onclick="mobileNavTo('nutrition')" class="mode-chip">Nutrition</button>
+    <button onclick="mobileNavTo('supplements')" class="mode-chip">Supplements</button>
+    <button onclick="mobileNavTo('calcs')" class="mode-chip">Calculators</button>
+    <button onclick="mobileNavTo('reflib')" class="mode-chip">Reference</button>
+    <button onclick="mobileNavTo('quickref')" class="mode-chip">Quick Ref</button>
+    <button onclick="openPricingModal()" class="mode-chip" style="color:var(--gold);border-color:var(--gold);">Pricing</button>
+  </div>
+</nav>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:600;background:rgba(240,165,0,0.1);border-top:2px solid var(--gold);padding:12px 1.5rem;display:flex;align-items:center;justify-content:space-between;">
+  <span style="font-size:0.82rem;color:var(--text2);">Install Dr. Fitness on your home screen for instant access</span>
+  <div style="display:flex;gap:8px;"><button id="pwaInstallBtn" onclick="installPWA()" style="padding:8px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;">Install App</button><button onclick="dismissPWA()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:0.78rem;">Dismiss</button></div>
+</div>
+
+<!-- ONBOARDING OVERLAY -->
+<div id="onboardOverlay" style="display:none;position:fixed;inset:0;z-index:1100;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;overflow-y:auto;">
+  <div id="onboardContent" style="max-width:560px;width:100%;"></div>
+  <button onclick="skipOnboarding()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Skip Tour</button>
+</div>
+
+<!-- PRICING MODAL -->
+<div id="pricingModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:900px;width:100%;margin:2rem auto;padding:2rem;">
+    <div style="text-align:center;margin-bottom:2rem;">
+      <h2 style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);letter-spacing:0.05em;">DR. FITNESS — PRICING</h2>
+      <p style="font-size:0.9rem;color:var(--text2);">The most complete AI trainer reference tool on the market.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+      <div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--text);">INDIVIDUAL</div><div style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);margin:0.5rem 0;">$29<span style="font-size:0.8rem;color:var(--text3);">/mo</span></div><p style="font-size:0.75rem;color:var(--text2);line-height:1.5;margin-bottom:1rem;">Unlimited clients, AI generation, full reference library, nutrition and supplement advisor</p><button onclick="showPricingInterest('Individual')" style="width:100%;padding:10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-weight:700;cursor:pointer;">GET STARTED</button></div>
+      <div style="background:var(--navy3);border:2px solid var(--gold);border-radius:var(--radius);padding:1.5rem;text-align:center;position:relative;"><div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--navy);font-size:0.62rem;font-weight:700;padding:2px 10px;border-radius:10px;">MOST POPULAR</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--text);">STUDIO</div><div style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);margin:0.5rem 0;">$99<span style="font-size:0.8rem;color:var(--text3);">/mo</span></div><p style="font-size:0.75rem;color:var(--text2);line-height:1.5;margin-bottom:1rem;">Up to 5 trainers, gym admin dashboard, usage analytics, shared client database</p><button onclick="showPricingInterest('Studio')" style="width:100%;padding:10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-weight:700;cursor:pointer;">GET STARTED</button></div>
+      <div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--text);">GYM</div><div style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);margin:0.5rem 0;">$199<span style="font-size:0.8rem;color:var(--text3);">/mo</span></div><p style="font-size:0.75rem;color:var(--text2);line-height:1.5;margin-bottom:1rem;">Up to 15 trainers, white label branding, advanced analytics, dedicated onboarding</p><button onclick="showPricingInterest('Gym')" style="width:100%;padding:10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-weight:700;cursor:pointer;">GET STARTED</button></div>
+      <div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--text);">ENTERPRISE</div><div style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);margin:0.5rem 0;">$399<span style="font-size:0.8rem;color:var(--text3);">/mo</span></div><p style="font-size:0.75rem;color:var(--text2);line-height:1.5;margin-bottom:1rem;">Unlimited trainers, multi-location, custom integrations, account manager</p><button onclick="showPricingInterest('Enterprise')" style="width:100%;padding:10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-weight:700;cursor:pointer;">GET STARTED</button></div>
+    </div>
+    <p style="font-size:0.72rem;color:var(--text3);text-align:center;margin-top:1.5rem;">Currently piloting at Best Fitness Springfield, Massachusetts. Interested in bringing Dr. Fitness to your gym? Contact us.</p>
+  </div>
+</div>
+
+<script>
+/* ══ MOBILE NAV ══ */
+function mobileNavTo(tab){
+  document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
+  var t=document.querySelector('[data-tab="'+tab+'"]');if(t)t.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  var p=document.querySelector('[data-panel="'+tab+'"]');if(p)p.classList.add('active');
+  document.getElementById('mobileMoreMenu').style.display='none';
+}
+window.mobileNavTo=mobileNavTo;
+// Show mobile nav on small screens
+(function(){
+  function checkMobile(){
+    var nav=document.getElementById('mobileBottomNav');
+    var topNav=document.getElementById('mainNavTabs');
+    if(window.innerWidth<=768){nav.style.display='block';if(topNav)topNav.style.display='none';}
+    else{nav.style.display='none';if(topNav)topNav.style.display='';}
+  }
+  window.addEventListener('resize',checkMobile);
+  checkMobile();
+})();
+
+/* ══ PWA ══ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').then(function(reg){console.log('Dr. Fitness SW registered');}).catch(function(err){console.log('SW reg failed:',err);});
+  });
+}
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault(); deferredPrompt=e;
+  if(!localStorage.getItem('drfitness_pwa_dismissed')&&/Mobi/.test(navigator.userAgent)){
+    document.getElementById('pwaInstallBanner').style.display='flex';
+  }
+});
+window.installPWA=function(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){deferredPrompt=null;document.getElementById('pwaInstallBanner').style.display='none';});}else{alert('Tap the Share button in your browser, then select Add to Home Screen.');}};
+window.dismissPWA=function(){document.getElementById('pwaInstallBanner').style.display='none';localStorage.setItem('drfitness_pwa_dismissed','1');};
+
+/* ══ MESSAGING SYSTEM ══ */
+var MSG_KEY='drfitness_messages';
+var msgActiveClient=null;
+function getMsgs(clientId){try{var all=JSON.parse(localStorage.getItem(MSG_KEY)||'{}');return all[clientId]||[];}catch(e){return[];}}
+function saveMsgs(clientId,msgs){try{var all=JSON.parse(localStorage.getItem(MSG_KEY)||'{}');all[clientId]=msgs;localStorage.setItem(MSG_KEY,JSON.stringify(all));}catch(e){}}
+function renderMsgList(){
+  var search=(document.getElementById('msgSearchConvo').value||'').toLowerCase();
+  if(typeof cpClients==='undefined')return;
+  cpLoadClients();
+  var list=document.getElementById('msgConvoList');
+  if(!list)return;
+  var filtered=cpClients.filter(function(c){return ((c.fname||'')+' '+(c.lname||'')).toLowerCase().indexOf(search)!==-1;});
+  list.innerHTML=filtered.map(function(c){
+    var msgs=getMsgs(c.id);
+    var last=msgs.length>0?msgs[msgs.length-1]:{};
+    var preview=(last.text||'No messages yet').substring(0,40);
+    var initials=(c.fname||'')[0]+(c.lname||'')[0];
+    return '<div onclick="openMsgConvo(\''+c.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:background 0.12s;'+(msgActiveClient===c.id?'background:var(--gold-dim);border:1px solid var(--gold);':'border:1px solid transparent;')+'" onmouseover="this.style.background=\'var(--gold-dim2)\'" onmouseout="this.style.background=\''+(msgActiveClient===c.id?'var(--gold-dim)':'transparent')+'\'">' +
+      '<div style="width:36px;height:36px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;color:var(--gold);flex-shrink:0;">'+initials+'</div>' +
+      '<div style="flex:1;min-width:0;"><div style="font-size:0.85rem;color:var(--text);font-weight:500;">'+c.fname+' '+(c.lname||'')+'</div><div style="font-size:0.72rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+preview+'</div></div>' +
+    '</div>';
+  }).join('');
+}
+function openMsgConvo(clientId){
+  msgActiveClient=clientId;
+  cpLoadClients();
+  var c=cpClients.find(function(x){return x.id===clientId;});
+  if(!c)return;
+  document.getElementById('msgChatHeader').textContent=c.fname+' '+(c.lname||'');
+  document.getElementById('msgChatInput').style.display='block';
+  renderMsgList();
+  renderMsgs(clientId);
+}
+window.openMsgConvo=openMsgConvo;
+function renderMsgs(clientId){
+  var msgs=getMsgs(clientId);
+  var el=document.getElementById('msgChatMessages');
+  el.innerHTML=msgs.map(function(m){
+    var isTrainer=m.from==='trainer';
+    return '<div style="display:flex;'+(isTrainer?'justify-content:flex-end;':'')+'"><div style="max-width:75%;padding:10px 14px;border-radius:var(--radius);font-size:0.85rem;line-height:1.5;'+(isTrainer?'background:var(--gold-dim);color:var(--text);border:1px solid var(--gold);':'background:var(--navy3);color:var(--text2);border:1px solid var(--border2);')+'">'+m.text+'<div style="font-size:0.62rem;color:var(--text3);margin-top:4px;">'+new Date(m.time).toLocaleString()+'</div></div></div>';
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function sendMsg(){
+  if(!msgActiveClient)return;
+  var text=document.getElementById('msgText').value.trim();
+  if(!text)return;
+  var msgs=getMsgs(msgActiveClient);
+  msgs.push({from:'trainer',text:text,time:Date.now()});
+  saveMsgs(msgActiveClient,msgs);
+  document.getElementById('msgText').value='';
+  renderMsgs(msgActiveClient);
+  // Offer email notification
+  cpLoadClients();
+  var c=cpClients.find(function(x){return x.id===msgActiveClient;});
+  if(c&&c.email&&confirm('Send email notification to '+c.email+'?')){
+    window.open('mailto:'+c.email+'?subject=Message from Dr. Fitness&body='+encodeURIComponent(text));
+  }
+}
+window.sendMsg=sendMsg;
+window.newMsgConversation=function(){
+  cpLoadClients();
+  if(cpClients.length===0){alert('Create a client profile first.');return;}
+  var names=cpClients.map(function(c,i){return (i+1)+'. '+c.fname+' '+(c.lname||'');}).join('\n');
+  var choice=prompt('Select client number:\n'+names);
+  if(choice){var idx=parseInt(choice)-1;if(cpClients[idx])openMsgConvo(cpClients[idx].id);}
+};
+setTimeout(renderMsgList,500);
+
+/* ══ SCHEDULE SYSTEM ══ */
+var SCHED_KEY='drfitness_schedule';
+function getSchedule(){try{return JSON.parse(localStorage.getItem(SCHED_KEY)||'[]');}catch(e){return[];}}
+function saveSchedule(s){localStorage.setItem(SCHED_KEY,JSON.stringify(s));}
+function renderSchedule(){
+  var sessions=getSchedule().sort(function(a,b){return new Date(a.date+' '+a.time)-new Date(b.date+' '+b.time);});
+  var list=document.getElementById('schedList');
+  if(!list)return;
+  if(sessions.length===0){list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);">No sessions scheduled. Add your first session.</div>';return;}
+  var statusColors={confirmed:'var(--gold)',pending:'#60a5fa',completed:'var(--green)',cancelled:'var(--red)'};
+  list.innerHTML=sessions.map(function(s,i){
+    return '<div style="background:var(--navy2);border:1px solid var(--border2);border-left:3px solid '+(statusColors[s.status]||'var(--gold)')+';border-radius:var(--radius);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
+      '<div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);">'+s.clientName+'</div><div style="font-size:0.78rem;color:var(--text2);">'+s.date+' at '+s.time+' · '+s.duration+' · '+s.type+'</div></div>' +
+      '<div style="display:flex;gap:6px;"><button onclick="completeSession('+i+')" style="padding:5px 10px;background:var(--green-dim);border:1px solid rgba(45,198,83,0.3);border-radius:var(--radius-sm);color:var(--green);font-size:0.7rem;cursor:pointer;">Complete</button><button onclick="cancelSession('+i+')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.7rem;cursor:pointer;">Cancel</button></div>' +
+    '</div>';
+  }).join('');
+}
+window.openNewSession=function(){
+  cpLoadClients();
+  var clientOpts=cpClients.map(function(c){return '<option value="'+c.id+'">'+c.fname+' '+(c.lname||'')+'</option>';}).join('');
+  var modal=document.createElement('div');modal.id='schedModal';modal.style.cssText='position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.onclick=function(e){if(e.target===modal)modal.remove();};
+  modal.innerHTML='<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:480px;width:100%;padding:1.5rem;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);margin-bottom:1rem;">Add Session</h3>'+
+    '<div class="calc-field" style="margin-bottom:10px;"><label>Client</label><select id="schedClient" style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.88rem;"><option value="">Select client</option>'+clientOpts+'</select></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><div class="calc-field"><label>Date</label><input type="date" id="schedDate" style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);"></div><div class="calc-field"><label>Time</label><input type="time" id="schedTime" style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);"></div></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><div class="calc-field"><label>Duration</label><select id="schedDur" style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);"><option>30 min</option><option>45 min</option><option selected>60 min</option><option>75 min</option><option>90 min</option></select></div><div class="calc-field"><label>Type</label><select id="schedType" style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);"><option>In-person</option><option>Virtual</option><option>Outdoor</option></select></div></div>'+
+    '<button onclick="saveNewSession()" style="width:100%;padding:12px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">SAVE SESSION</button></div>';
+  document.body.appendChild(modal);
+};
+window.saveNewSession=function(){
+  var clientId=document.getElementById('schedClient').value;
+  if(!clientId){alert('Select a client.');return;}
+  cpLoadClients();var c=cpClients.find(function(x){return x.id===clientId;});
+  var sessions=getSchedule();
+  sessions.push({clientId:clientId,clientName:c?(c.fname+' '+(c.lname||'')):'Client',date:document.getElementById('schedDate').value,time:document.getElementById('schedTime').value,duration:document.getElementById('schedDur').value,type:document.getElementById('schedType').value,status:'confirmed'});
+  saveSchedule(sessions);
+  document.getElementById('schedModal').remove();
+  renderSchedule();
+};
+window.completeSession=function(i){var s=getSchedule();s[i].status='completed';saveSchedule(s);renderSchedule();};
+window.cancelSession=function(i){var s=getSchedule();s[i].status='cancelled';saveSchedule(s);renderSchedule();};
+window.toggleScheduleView=function(){};
+setTimeout(renderSchedule,500);
+
+/* ══ PRICING ══ */
+window.openPricingModal=function(){document.getElementById('pricingModal').style.display='flex';};
+window.showPricingInterest=function(plan){
+  var email=prompt('Thank you for your interest in Dr. Fitness '+plan+'.\n\nWe are finalizing our payment system.\nEnter your email to be notified when subscriptions launch:');
+  if(email){var list=JSON.parse(localStorage.getItem('drfitness_pricing_interest')||'[]');list.push({plan:plan,email:email,date:new Date().toISOString()});localStorage.setItem('drfitness_pricing_interest',JSON.stringify(list));alert('Thank you! We will notify you at '+email+' when '+plan+' plan launches.');}
+};
+
+/* ══ ONBOARDING ══ */
+(function(){
+  if(localStorage.getItem('drfitness_onboarded'))return;
+  var ob=document.getElementById('onboardOverlay');
+  if(!ob)return;
+  ob.style.display='flex';
+  var step=0;
+  var screens=[
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:clamp(2rem,5vw,3.5rem);color:var(--gold);margin-bottom:0.5rem;">DR. FITNESS</div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.85rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Trainer Reference System</div><p style="font-size:1.1rem;color:var(--text);margin-bottom:2rem;line-height:1.6;">Any client. Any goal. Any level. Under 60 seconds.</p><button onclick="obNext()" style="padding:14px 40px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">GET STARTED</button>',
+    '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">HOW IT WORKS</h2><div style="display:flex;flex-direction:column;gap:1.25rem;text-align:left;max-width:400px;margin:0 auto 2rem;"><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">1️⃣</span><div><strong style="color:var(--text);">Select a Client</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">Build their profile once. Every feature personalizes automatically.</p></div></div><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">2️⃣</span><div><strong style="color:var(--text);">Build a Session</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">Choose a training style. Answer 3 questions. Get a complete program.</p></div></div><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">3️⃣</span><div><strong style="color:var(--text);">Ask Anything</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">The AI knows NASM, GLP-1, injuries, nutrition, and more.</p></div></div></div><button onclick="obNext()" style="padding:12px 36px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">NEXT</button>',
+    '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">YOU ARE READY</h2><p style="font-size:1rem;color:var(--text2);margin-bottom:2rem;">Your AI-powered trainer reference system is ready. Build sessions, manage clients, and have every answer at your fingertips.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><button onclick="skipOnboarding();openIntakeWizard()" style="padding:14px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">YOUR FIRST CLIENT</button><button onclick="skipOnboarding()" style="padding:14px 28px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">EXPLORE THE APP</button></div>'
+  ];
+  window.obNext=function(){step++;if(step>=screens.length)step=screens.length-1;document.getElementById('onboardContent').innerHTML=screens[step];};
+  document.getElementById('onboardContent').innerHTML=screens[0];
+})();
+window.skipOnboarding=function(){localStorage.setItem('drfitness_onboarded','1');var ob=document.getElementById('onboardOverlay');if(ob)ob.style.display='none';};
+</script>
+
 </body>
 </html>
