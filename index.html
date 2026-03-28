@@ -297,6 +297,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <button class="nav-tab" data-tab="supplements">💊 SUPPLEMENTS</button>
   <button class="nav-tab" data-tab="reflib">📚 REFERENCE LIBRARY</button>
   <button class="nav-tab" data-tab="quickref">⚡ QUICK REF</button>
+  <button class="nav-tab" style="color:var(--gold);border-bottom-color:transparent;" onclick="event.stopPropagation();openClientIntakeEntry()">📋 CLIENT INTAKE</button>
 </div>
 
 <!-- ACTIVE CLIENT BANNER -->
@@ -3819,7 +3820,11 @@ function filterPeptides() {
       <h2>Client Profiles</h2>
       <p>Full assessment intake for every client. Profiles auto-populate AI chat and workout builder with personalized context.</p>
     </div>
-    <button class="cp-add-btn" onclick="openClientForm()">+ New Client</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="cp-add-btn" onclick="openIntakeWizard()">+ FILL OUT WITH CLIENT NOW</button>
+      <button class="cp-add-btn" style="background:transparent;border:2px solid var(--gold);color:var(--gold);" onclick="sendIntakeToClient()">📱 SEND TO CLIENT</button>
+      <button style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;" onclick="openClientForm()">Advanced Form</button>
+    </div>
   </div>
 
   <div class="cp-search-row">
@@ -8106,15 +8111,27 @@ window.checkSuppInteractions = async function(){
 // Override cpBuildClientContext to include confidence and mindset data
 cpBuildClientContext = function(c) {
   if (!c) return '';
-  var special = (c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ')||'none';
-  var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).join(', ')||'none reported';
-  var conditions = (c.conditions||[]).filter(function(x){return x&&x!=='none_hx';}).join(', ')||'none reported';
+  var special = (c.special||[]).filter(function(s){return s&&s!=='none'&&s!=='None';}).join(', ')||'none';
+  var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries'&&x!=='None';}).join(', ')||'none reported';
+  var conditions = (c.conditions||[]).filter(function(x){return x&&x!=='none_hx'&&x!=='None';}).join(', ')||'none reported';
   var meds = c.currentMeds || c.medications || 'none listed';
-  var clearance = c.physClearanceObtained ? 'yes' : 'not confirmed';
+  var clearance = c.physClearanceObtained || c.iwPhysClearance === 'Yes' ? 'yes' : 'not confirmed';
   var confidence = c.confidence || '5';
-  var mentalHealth = (c.mentalHealth||[]).filter(function(x){return x&&x!=='none_mh';}).join(', ')||'none';
+  var mentalHealth = (c.mentalHealth||[]).filter(function(x){return x&&x!=='none_mh'&&x!=='None'&&x!=='Prefer not to say';}).join(', ')||'none';
   var barriers = (c.barriersChips||[]).join(', ')||'none noted';
   var motivation = (c.primaryMotivation||[]).join(', ')||'not specified';
+  // Enhanced intake fields
+  var moveExp = (c.iwMoveExp||[]).join(', ')||'';
+  var difficultMoves = (c.iwDifficultMoves||[]).join(', ')||'none';
+  var painInfo = c.iwPainDetail || '';
+  var gymComfort = c.iwGymComfort || '';
+  var bodyImage = c.iwBodyImage || '';
+  var successVision = c.success || '';
+  var biggestFear = c.iwBiggestFear || '';
+  var nonNeg = (c.iwNonNeg||[]).join(', ')||'';
+  var trainDays = c.iwTrainingDays || '';
+  var sessLen = c.iwSessionLength || '';
+  var trainLoc = (c.iwTrainLocation||[]).join(', ')||'';
 
   var toneRule = '';
   var confNum = parseInt(confidence);
@@ -8139,7 +8156,15 @@ cpBuildClientContext = function(c) {
   }
   toneRule += '\n\nMINDSET REQUIREMENT: Every generated program must end with a MINDSET AND HABIT section containing: 1) One specific habit to build this week aligned with their goal, 2) One mindset reframe relevant to their primary barrier, 3) One accountability suggestion, 4) One self-compassion reminder.';
 
-  return '\n\nACTIVE CLIENT: Name ' + (c.fname||'') + ' ' + (c.lname||'') + ', Age ' + (c.age||'N/A') + ', Weight ' + (c.weight||'N/A') + 'lbs, Level ' + (c.trainingAge||'not assessed') + ', OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + ', Goal ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Medications ' + meds + ', Physician Clearance ' + clearance + ', Confidence Level ' + confidence + '/10, Primary Motivation ' + motivation + ', Barriers ' + barriers + '. Tailor all responses to this client.' + toneRule;
+  var ctx = '\n\nCOMPLETE CLIENT PROFILE:\n' +
+    'PHYSICAL: Name ' + (c.fname||'') + ' ' + (c.lname||'') + ', Age ' + (c.age||'N/A') + ', Sex ' + (c.sex||'N/A') + ', Weight ' + (c.weight||'N/A') + 'lbs, Height ' + (c.height||'N/A') + ', Body Fat ' + (c.bf||'N/A') + '%, Occupation ' + (c.occupation||'N/A') + ', Sleep ' + (c.sleep||'N/A') + ', Stress ' + (c.stress||'N/A') + '\n' +
+    'MOVEMENT: Level ' + (c.iwFitnessLevel||c.trainingAge||'not assessed') + ', Experience ' + moveExp + ', Pain ' + (c.currentPain||painInfo||'none') + ', Injuries ' + injuries + (c.injuryNotes?' ('+c.injuryNotes+')':'') + ', Difficult Movements ' + difficultMoves + ', Limitations ' + (c.iwMoveLimitations||'none') + '\n' +
+    'LIFESTYLE: Training ' + (trainDays||'3') + ' days/week, ' + (sessLen||'60 min') + ' sessions, Location ' + trainLoc + ', Equipment ' + ((c.equipment||[]).join(', ')||'full gym') + ', Eating ' + (c.diet||'standard') + ', Hydration ' + (c.hydration||'moderate') + '\n' +
+    'MEDICAL: Clearance ' + clearance + ', Conditions ' + conditions + ', Medications ' + meds + ', GLP-1 ' + (c.glp1Med&&c.glp1Med!=='no'?c.glp1Med+(c.glp1Dose?' dose '+c.glp1Dose:''):'no') + ', Allergies ' + (c.iwAllergies||'none') + '\n' +
+    'GOALS: Primary ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Target ' + (c.iwTargetWeight?c.iwTargetWeight+'lbs':'not set') + ', Non-negotiables ' + nonNeg + '\n' +
+    'MINDSET: Confidence ' + confidence + '/10, Motivation ' + motivation + ', Gym Comfort ' + gymComfort + ', Body Image ' + bodyImage + ', Biggest Fear ' + biggestFear + ', Success Vision ' + successVision + ', Barriers ' + barriers + '\n' +
+    'OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + '. Tailor all responses to this specific client.' + toneRule;
+  return ctx;
 };
 
 /* ══ BUILD SESSION NOW — from client card ══ */
@@ -8312,6 +8337,312 @@ window.generateCompleteProgram = async function() {
     } else { throw new Error('No response'); }
   }catch(err){ document.getElementById('cpbContent').innerHTML = '<div style="color:var(--red);padding:2rem;text-align:center;">Failed to generate program. '+err.message+'</div>'; }
 };
+
+/* ══ GUIDED INTAKE WIZARD ══ */
+var INTAKE_STEPS = [
+  {title:'WHO YOU ARE',sub:'Let us start with the basics so we can build something that fits your life.'},
+  {title:'YOUR PHYSICAL REALITY',sub:'Honest answers here protect you and help us build something you can actually do.'},
+  {title:'YOUR LIFESTYLE',sub:'Your program only works if it fits how you actually live.'},
+  {title:'YOUR MEDICAL PICTURE',sub:'This section ensures your safety. All information is confidential.'},
+  {title:'YOUR MIND AND MOTIVATION',sub:'This is where most programs fail. Understanding what drives you makes all the difference.'},
+  {title:'YOUR GOALS',sub:'Let us make sure we are building toward the right target.'},
+  {title:'REVIEW AND CONFIRM',sub:'Review everything before we build your profile.'}
+];
+var iwStep = 0;
+var iwData = {};
+var iwCode = null;
+
+function openIntakeWizard(code) {
+  iwStep = 0;
+  iwData = JSON.parse(localStorage.getItem('drfitness_intake_draft') || '{}');
+  iwCode = code || null;
+  renderWizardStep();
+}
+window.openIntakeWizard = openIntakeWizard;
+
+function sendIntakeToClient() {
+  var code = '';
+  for(var i=0;i<6;i++) code += 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*31)];
+  localStorage.setItem('drfitness_intake_code_'+code, JSON.stringify({created:Date.now(),status:'pending'}));
+  var modal = document.createElement('div');
+  modal.id = 'intakeCodeModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:440px;width:100%;padding:2rem;text-align:center;">'+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);margin-bottom:0.5rem;">GIVE YOUR CLIENT THIS CODE</div>'+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:3rem;color:var(--text);letter-spacing:8px;margin:1rem 0;">'+code+'</div>'+
+    '<p style="font-size:0.85rem;color:var(--text2);line-height:1.6;margin-bottom:1rem;">Tell them: Go to <strong style="color:var(--gold);">drfitness-trainer.netlify.app</strong> and tap <strong>CLIENT INTAKE</strong> at the top of the page.</p>'+
+    '<button onclick="navigator.clipboard.writeText(\''+code+'\');this.textContent=\'COPIED\'" style="padding:10px 24px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">COPY CODE</button>'+
+    '<br><button onclick="document.getElementById(\'intakeCodeModal\').remove()" style="margin-top:1rem;background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Close</button>'+
+  '</div>';
+  document.body.appendChild(modal);
+}
+window.sendIntakeToClient = sendIntakeToClient;
+
+function openClientIntakeEntry() {
+  var code = prompt('Enter your 6-character intake code:');
+  if(!code || code.length !== 6) return;
+  code = code.toUpperCase();
+  var stored = localStorage.getItem('drfitness_intake_code_'+code);
+  if(!stored) { alert('Invalid code. Check with your trainer.'); return; }
+  openIntakeWizard(code);
+}
+window.openClientIntakeEntry = openClientIntakeEntry;
+
+function renderWizardStep() {
+  var existing = document.getElementById('intakeWizardOverlay');
+  if(existing) existing.remove();
+  var step = INTAKE_STEPS[iwStep];
+  var pct = Math.round(((iwStep+1)/7)*100);
+  var overlay = document.createElement('div');
+  overlay.id = 'intakeWizardOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:800;background:var(--navy);overflow-y:auto;display:flex;flex-direction:column;';
+  // Progress bar
+  var html = '<div style="background:var(--navy2);padding:12px 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;">'+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">Client Intake</div>'+
+    '<div style="display:flex;align-items:center;gap:12px;">'+
+      '<span style="font-size:0.75rem;color:var(--text3);">Step '+(iwStep+1)+' of 7</span>'+
+      '<button onclick="saveIntakeDraft();document.getElementById(\'intakeWizardOverlay\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.78rem;">Save and Exit</button>'+
+    '</div></div>';
+  html += '<div style="height:4px;background:var(--navy3);"><div style="height:100%;width:'+pct+'%;background:var(--gold);transition:width 0.3s;"></div></div>';
+  // Content
+  html += '<div style="flex:1;max-width:640px;margin:0 auto;padding:2rem 1.5rem;width:100%;">';
+  html += '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.3rem;">'+step.title+'</h2>';
+  html += '<p style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:2rem;">'+step.sub+'</p>';
+  html += buildStepContent(iwStep);
+  html += '</div>';
+  // Navigation
+  html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:0;background:var(--navy2);">';
+  html += iwStep > 0 ? '<button onclick="iwStep--;renderWizardStep()" style="padding:10px 24px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">← BACK</button>' : '<div></div>';
+  if(iwStep < 6) html += '<button onclick="saveStepData();iwStep++;renderWizardStep()" style="padding:10px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">NEXT →</button>';
+  else html += '<div style="display:flex;gap:8px;"><button onclick="saveIntakeAsClient(true)" style="padding:10px 24px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">SAVE AND BUILD FIRST PROGRAM</button><button onclick="saveIntakeAsClient(false)" style="padding:10px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">SAVE PROFILE</button></div>';
+  html += '</div>';
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+  // Restore values
+  restoreStepValues();
+}
+
+function iwField(id, label, type, placeholder, required, options) {
+  var v = iwData[id] || '';
+  if(type === 'text' || type === 'email' || type === 'number' || type === 'tel' || type === 'date')
+    return '<div class="cp-field" style="margin-bottom:1rem;"><label style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:5px;display:block;">'+label+(required?' *':'')+'</label><input type="'+type+'" data-iw="'+id+'" value="'+v+'" placeholder="'+(placeholder||'')+'" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.9rem;outline:none;" onfocus="this.style.borderColor=\'var(--gold)\'" onblur="this.style.borderColor=\'var(--border)\'"></div>';
+  if(type === 'textarea')
+    return '<div class="cp-field" style="margin-bottom:1rem;"><label style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:5px;display:block;">'+label+'</label><textarea data-iw="'+id+'" placeholder="'+(placeholder||'')+'" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.9rem;resize:vertical;min-height:60px;outline:none;">'+v+'</textarea></div>';
+  if(type === 'select')
+    return '<div class="cp-field" style="margin-bottom:1rem;"><label style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:5px;display:block;">'+label+'</label><select data-iw="'+id+'" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.9rem;"><option value="">Select</option>'+options.map(function(o){return '<option value="'+o+'"'+(v===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>';
+  if(type === 'chips')
+    return '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">'+label+'</div><div class="cp-checkgroup" data-iwg="'+id+'">'+options.map(function(o){var checked=(v&&v.indexOf(o)!==-1)?' checked':'';return '<span class="cp-check'+checked+'" data-val="'+o+'" onclick="this.classList.toggle(\'checked\')">'+o+'</span>';}).join('')+'</div></div>';
+  if(type === 'slider')
+    return '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">'+label+'</div><input type="range" data-iw="'+id+'" min="1" max="10" value="'+(v||'5')+'" style="width:100%;accent-color:var(--gold);" oninput="this.nextElementSibling.textContent=this.value"><div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);">'+(v||'5')+'</div></div>';
+  if(type === 'cards')
+    return '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">'+label+'</div><div data-iwg="'+id+'" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">'+options.map(function(o){var sel=(v===o);return '<div class="cp-check'+(sel?' checked':'')+'" data-val="'+o+'" onclick="this.parentElement.querySelectorAll(\'.cp-check\').forEach(function(c){c.classList.remove(\'checked\')});this.classList.add(\'checked\')" style="padding:12px;text-align:center;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;">'+o+'</div>';}).join('')+'</div></div>';
+  return '';
+}
+
+function buildStepContent(step) {
+  var h = '';
+  if(step === 0) {
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+iwField('fname','First Name','text','',true)+iwField('lname','Last Name','text','')+'</div>';
+    h += iwField('dob','Date of Birth','date');
+    h += iwField('sex','Biological Sex','cards','',false,['Male','Female','Prefer not to say']);
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+iwField('height','Height (inches)','number','e.g. 68')+iwField('weight','Current Weight (lbs)','number','e.g. 185')+'</div>';
+    h += iwField('bf','Body Fat Percentage (optional)','number','Improves program accuracy');
+    h += iwField('occupation','Occupation','text','e.g. Teacher, Nurse, Office Worker');
+    h += iwField('hoursOnFeet','Hours on feet at work','cards','',false,['0-2','2-4','4-6','6-8','8+']);
+    h += iwField('sleepHours','Hours of sleep per night','cards','',false,['Under 5','5-6','6-7','7-8','8+']);
+    h += iwField('stressLevel','Current stress level','slider');
+    h += iwField('language','Primary Language','select','',false,['English','Spanish','Portuguese','Other']);
+    h += iwField('email','Client Email','email','For sending programs');
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+iwField('emergName','Emergency Contact Name','text','')+iwField('emergPhone','Emergency Contact Phone','tel','')+'</div>';
+  } else if(step === 1) {
+    h += iwField('fitnessLevel','Current Fitness Level','cards','',false,['Complete Beginner','Some Experience','Intermediate','Advanced','Athlete']);
+    h += iwField('moveExp','Movement Experience','chips','',false,['Weight training','Cardio machines','Group fitness','Running','Swimming','Sports','Yoga or Pilates','Martial arts','CrossFit','Olympic lifting','Never exercised']);
+    h += iwField('currentPain','Current pain or discomfort','cards','',false,['No','Yes']);
+    h += iwField('painDetail','If yes — location and description','textarea','Where, pain level 1-10, when it occurs');
+    h += iwField('injuryRegions','Injury History — select affected regions','chips','',false,['Neck and Spine','Shoulders','Elbows and Wrists','Hips','Knees','Ankles and Feet','Core and Abdomen','None']);
+    h += iwField('injuryDetail','Injury details — what happened and when','textarea','e.g. Right knee meniscus 2022, Left shoulder impingement 2023');
+    h += iwField('difficultMoves','Difficult movements','chips','',false,['Squatting','Bending forward','Reaching overhead','Carrying weight','Stairs','Getting up from floor','Running','Pushing','Pulling','None']);
+    h += iwField('dominantSide','Dominant side','cards','',false,['Right','Left','Ambidextrous']);
+    h += iwField('moveLimitations','Known movement limitations','textarea','e.g. Cannot kneel, limited shoulder rotation on left');
+  } else if(step === 2) {
+    h += iwField('trainingDays','Training days available per week','cards','',false,['1','2','3','4','5','6']);
+    h += iwField('sessionLength','Preferred session length','cards','',false,['20 min','30 min','45 min','60 min','75 min','90 min']);
+    h += iwField('trainingTime','Preferred training time','cards','',false,['Early morning','Morning','Midday','Afternoon','Evening','Late night','No preference']);
+    h += iwField('trainLocation','Where do you train','chips','',false,['Full commercial gym','Basic equipment gym','Home gym','Bodyweight only at home','Outdoors','Multiple locations']);
+    h += iwField('equipmentAvail','Equipment available','chips','',false,['Barbell and rack','Dumbbells','Cables and machines','Kettlebells','Bands','Pull-up bar','Cardio machines','Specialty equipment','Bodyweight only']);
+    h += iwField('eatingHabits','Current eating habits','cards','',false,['Track and eat very healthy','Fairly healthy no tracking','Some healthy some not','Eat whatever is convenient','Struggle with food relationship','On a specific diet plan']);
+    h += iwField('mealsPerDay','Meals per day','cards','',false,['1-2','3','4-5','6+','Very irregular']);
+    h += iwField('alcohol','Alcohol use','cards','',false,['Never','Occasionally','Regularly','Daily','Prefer not to say']);
+    h += iwField('waterIntake','Daily water intake','cards','',false,['Less than 4 cups','4-6 cups','6-8 cups','8+ cups','I rarely drink water']);
+    h += iwField('supplements','Current supplements — list all','textarea','Protein powder, creatine, vitamin D, etc.');
+    h += iwField('medications','Prescription medications','textarea','Helps ensure your program is safe');
+    h += iwField('glp1','GLP-1 or weight loss medication','cards','',false,['No','Yes']);
+    h += iwField('glp1Med','If yes — which medication','select','',false,['Semaglutide Ozempic','Semaglutide Wegovy','Tirzepatide Mounjaro','Tirzepatide Zepbound','Liraglutide','Retatrutide','Other']);
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+iwField('glp1Dose','Current dose','text','e.g. 0.5mg weekly')+iwField('glp1Weeks','Weeks on medication','number','')+'</div>';
+    h += iwField('tobacco','Tobacco use','cards','',false,['No','Yes','Former user']);
+  } else if(step === 3) {
+    h += iwField('physClearance','Physician clearance to exercise','cards','',false,['Yes','No','Not required — no conditions','Currently seeing physician']);
+    h += iwField('conditions','Diagnosed conditions','chips','',false,['None','Type 2 Diabetes','Type 1 Diabetes','Pre-Diabetes','High Blood Pressure','Heart Disease','High Cholesterol','Osteoporosis','Arthritis','Thyroid Disorder','PCOS','Autoimmune','Asthma','Cancer History','Kidney Disease','Obesity','Other']);
+    h += iwField('surgeries','Surgeries in past 5 years','textarea','What and when');
+    h += iwField('familyHistory','Family history','chips','',false,['Heart disease before 55','Diabetes','Osteoporosis','Cancer','None known']);
+    h += iwField('underPhysCare','Currently under physician care','cards','',false,['No','Yes']);
+    h += iwField('physicianName','Physician name (optional)','text','');
+    h += iwField('allergies','Known allergies','textarea','Food, medication, or environmental');
+    h += iwField('pregnant','Pregnant','cards','',false,['No','Yes','Prefer not to say']);
+  } else if(step === 4) {
+    h += iwField('confidence','Confidence in reaching your goals','slider');
+    h += '<div style="font-size:0.75rem;color:var(--text3);margin:-0.5rem 0 1rem;text-align:center;">1 = I do not believe I can do this · 10 = I absolutely will do this</div>';
+    h += iwField('prevAttempts','Previous fitness attempts','cards','',false,['Never tried','Tried once and stopped','Tried multiple times and stopped','Maintained before but lost it','Currently consistent']);
+    h += iwField('gymComfort','How do you feel about going to the gym','cards','',false,['Love it','Comfortable','Neutral','Somewhat uncomfortable','Very uncomfortable']);
+    h += iwField('bodyImage','How do you feel about your body right now','cards','',false,['Very negative','Somewhat negative','Neutral','Mostly positive','Very positive']);
+    h += iwField('motivation','Primary motivation','cards','',false,['Look better and feel more attractive','Feel stronger and more capable','Improve health and live longer','Perform better in a sport','Doctor recommended exercise','Manage stress or mental health','Prove something to myself','Support a medical condition','Doing this for someone I love']);
+    h += iwField('successVision','What does success look like in 3 months','textarea','Describe in your own words what you want to be different');
+    h += iwField('biggestFear','Biggest fear or concern about starting','textarea','Getting injured? Not seeing results? Be honest.');
+    h += iwField('mentalHealth','Mental health flags','chips','',false,['None','Anxiety','Depression','PTSD Military','PTSD Other','Eating disorder history','Body image concerns','Chronic stress','Grief or loss','Addiction recovery','Prefer not to say']);
+    h += '<div style="font-size:0.75rem;color:var(--gold);font-style:italic;margin-top:0.5rem;">These help us write your program to support your whole self. All information is confidential.</div>';
+  } else if(step === 5) {
+    h += iwField('primaryGoal','Primary Goal','cards','',false,['Lose Body Fat','Build Muscle','Body Recomposition','Improve Strength','Athletic Performance','Improve Health and Longevity','Post-Rehab Recovery','GLP-1 Support','General Fitness','Competition Prep']);
+    h += iwField('secondaryGoal','Secondary Goal (optional)','cards','',false,['Lose Body Fat','Build Muscle','Improve Strength','Athletic Performance','General Fitness','None']);
+    h += iwField('eventDeadline','Specific event or deadline','textarea','What and when — leave blank if none');
+    h += iwField('targetWeight','Target weight (optional)','number','lbs');
+    h += iwField('nonNeg1','Non-negotiable 1','text','Things you will NOT give up');
+    h += iwField('nonNeg2','Non-negotiable 2','text','e.g. Sunday family dinner');
+    h += iwField('nonNeg3','Non-negotiable 3','text','e.g. Morning coffee routine');
+    h += iwField('specialPop','Special population flags','chips','',false,['GLP-1 or AOM Client','GIP Next-Gen AOM','Older Adult 55+','Post-Rehab','Prenatal','Postpartum','Youth Athlete','Bariatric Post-Op','Cardiac Rehab','Diabetic','Osteoporosis','Neurological','Veteran','Wheelchair','Chronic Pain','Obesity','Beginner','Competition Athlete','None']);
+  } else if(step === 6) {
+    h += '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;">';
+    h += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem;">PROFILE SUMMARY</div>';
+    var fields = [['Name',iwData.fname+' '+(iwData.lname||'')],['Age',iwData.dob?Math.floor((Date.now()-new Date(iwData.dob).getTime())/(365.25*24*60*60*1000))+'yrs':''],['Weight',(iwData.weight||'')+'lbs'],['Level',iwData.fitnessLevel||''],['Goal',iwData.primaryGoal||''],['Confidence',(iwData.confidence||'5')+'/10'],['Days/Week',iwData.trainingDays||''],['Duration',iwData.sessionLength||''],['GLP-1',iwData.glp1==='Yes'?(iwData.glp1Med||'Yes'):'No'],['Pain',iwData.currentPain||'No'],['Special Pop',(iwData.specialPop||[]).join(', ')||'None']];
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;">';
+    fields.forEach(function(f){ h += '<div style="font-size:0.78rem;color:var(--text2);"><strong style="color:var(--text3);">'+f[0]+':</strong> '+(f[1]||'—')+'</div>'; });
+    h += '</div></div>';
+    // Readiness score
+    var filled = 0; var total = 15;
+    ['fname','weight','fitnessLevel','trainingDays','sessionLength','primaryGoal','confidence','conditions','physClearance','equipmentAvail','eatingHabits','sleepHours','stressLevel','motivation','moveExp'].forEach(function(k){ if(iwData[k] && (typeof iwData[k]==='string'?iwData[k].length>0:iwData[k].length>0)) filled++; });
+    var readiness = Math.round((filled/total)*100);
+    h += '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;">';
+    h += '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">PROGRAM READINESS</div>';
+    h += '<div style="height:6px;background:var(--navy);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+readiness+'%;background:'+(readiness>=80?'var(--green)':readiness>=50?'var(--gold)':'var(--red)')+';transition:width 0.3s;"></div></div>';
+    h += '<div style="font-size:0.78rem;color:var(--text2);margin-top:4px;">'+readiness+'% complete — '+(readiness>=80?'Ready to generate program':'Fill more fields for better results')+'</div></div>';
+  }
+  return h;
+}
+
+function saveStepData() {
+  document.querySelectorAll('[data-iw]').forEach(function(el){
+    iwData[el.dataset.iw] = el.value;
+  });
+  document.querySelectorAll('[data-iwg]').forEach(function(grp){
+    var vals = [];
+    grp.querySelectorAll('.cp-check.checked').forEach(function(c){ vals.push(c.dataset.val); });
+    iwData[grp.dataset.iwg] = vals;
+  });
+  saveIntakeDraft();
+}
+
+function restoreStepValues() {
+  setTimeout(function(){
+    document.querySelectorAll('[data-iw]').forEach(function(el){
+      if(iwData[el.dataset.iw]) el.value = iwData[el.dataset.iw];
+    });
+    document.querySelectorAll('[data-iwg]').forEach(function(grp){
+      var vals = iwData[grp.dataset.iwg] || [];
+      grp.querySelectorAll('.cp-check').forEach(function(c){
+        if(vals.indexOf(c.dataset.val)!==-1) c.classList.add('checked');
+      });
+    });
+  }, 50);
+}
+
+function saveIntakeDraft() {
+  localStorage.setItem('drfitness_intake_draft', JSON.stringify(iwData));
+}
+
+function saveIntakeAsClient(buildProgram) {
+  saveStepData();
+  // Map wizard data to existing client data structure
+  var age = iwData.dob ? Math.floor((Date.now()-new Date(iwData.dob).getTime())/(365.25*24*60*60*1000)) : '';
+  var levelMap = {'Complete Beginner':'none','Some Experience':'0to6mo','Intermediate':'1to2yr','Advanced':'5to10yr','Athlete':'10yr+'};
+  var goalMap = {'Lose Body Fat':'fat_loss','Build Muscle':'muscle_gain','Body Recomposition':'fat_loss','Improve Strength':'strength','Athletic Performance':'athletic','Improve Health and Longevity':'general','Post-Rehab Recovery':'general','GLP-1 Support':'general','General Fitness':'general','Competition Prep':'competition'};
+  var client = {
+    id: 'cl_'+Date.now(),
+    fname: iwData.fname||'', lname: iwData.lname||'',
+    age: String(age), sex: (iwData.sex||'').toLowerCase().replace('prefer not to say',''),
+    height: iwData.height||'', weight: iwData.weight||'', bf: iwData.bf||'',
+    occupation: iwData.occupation||'',
+    activity: iwData.hoursOnFeet==='8+'?'extra_active':iwData.hoursOnFeet==='6-8'?'very_active':'moderately_active',
+    sleep: iwData.sleepHours==='Under 5'?'less5':iwData.sleepHours==='7-8'?'7to8':iwData.sleepHours==='8+'?'more8':'6to7',
+    stress: parseInt(iwData.stressLevel||5)>7?'high':parseInt(iwData.stressLevel||5)>4?'moderate':'low',
+    smoking: iwData.tobacco==='Yes'?'yes':iwData.tobacco==='Former user'?'former':'no',
+    goals: [goalMap[iwData.primaryGoal]||'general'],
+    special: iwData.specialPop||[],
+    trainingAge: levelMap[iwData.fitnessLevel]||'none',
+    optPhase: iwData.fitnessLevel==='Complete Beginner'?'1':iwData.fitnessLevel==='Some Experience'?'1':iwData.fitnessLevel==='Intermediate'?'2':iwData.fitnessLevel==='Advanced'?'3':'4',
+    equipment: iwData.equipmentAvail||[],
+    diet: iwData.eatingHabits||'',
+    hydration: iwData.waterIntake||'',
+    alcohol: iwData.alcohol||'',
+    supplements: iwData.supplements||'',
+    currentMeds: iwData.medications||'',
+    conditions: iwData.conditions||[],
+    injuries: iwData.injuryRegions||[],
+    injuryNotes: iwData.injuryDetail||'',
+    glp1Med: iwData.glp1==='Yes'?(iwData.glp1Med||'other_glp1'):'no',
+    glp1Dose: iwData.glp1Dose||'', glp1Start: '',
+    email: iwData.email||'',
+    emergName: iwData.emergName||'', emergPhone: iwData.emergPhone||'',
+    language: iwData.language||'',
+    confidence: iwData.confidence||'5',
+    mentalHealth: iwData.mentalHealth||[],
+    barriersChips: [],
+    primaryMotivation: iwData.motivation?[iwData.motivation]:[],
+    success: iwData.successVision||'',
+    timeline: iwData.eventDeadline||'',
+    // Intake-specific fields stored raw
+    iwFitnessLevel: iwData.fitnessLevel||'',
+    iwMoveExp: iwData.moveExp||[],
+    iwPainDetail: iwData.painDetail||'',
+    iwDifficultMoves: iwData.difficultMoves||[],
+    iwDominantSide: iwData.dominantSide||'',
+    iwMoveLimitations: iwData.moveLimitations||'',
+    iwTrainingDays: iwData.trainingDays||'',
+    iwSessionLength: iwData.sessionLength||'',
+    iwTrainingTime: iwData.trainingTime||'',
+    iwTrainLocation: iwData.trainLocation||[],
+    iwBodyImage: iwData.bodyImage||'',
+    iwGymComfort: iwData.gymComfort||'',
+    iwPrevAttempts: iwData.prevAttempts||'',
+    iwBiggestFear: iwData.biggestFear||'',
+    iwNonNeg: [iwData.nonNeg1||'',iwData.nonNeg2||'',iwData.nonNeg3||''].filter(Boolean),
+    iwTargetWeight: iwData.targetWeight||'',
+    iwSurgeries: iwData.surgeries||'',
+    iwFamilyHistory: iwData.familyHistory||[],
+    iwPhysClearance: iwData.physClearance||'',
+    iwAllergies: iwData.allergies||'',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  // Save to client list
+  cpLoadClients();
+  cpClients.push(client);
+  cpSaveClients();
+  // Save intake code mapping if applicable
+  if(iwCode) {
+    localStorage.setItem('drfitness_intake_code_'+iwCode, JSON.stringify({status:'completed',clientId:client.id}));
+  }
+  // Clear draft
+  localStorage.removeItem('drfitness_intake_draft');
+  iwData = {};
+  // Close wizard
+  var overlay = document.getElementById('intakeWizardOverlay');
+  if(overlay) overlay.remove();
+  renderClients();
+  if(buildProgram) {
+    setActiveClient(client.id);
+    setTimeout(function(){ openCompleteProgramBuilder(); }, 300);
+  }
+}
 
 /* ══ SESSION HISTORY SYSTEM ══ */
 var SESSION_HISTORY_KEY = 'drfitness_session_history';
