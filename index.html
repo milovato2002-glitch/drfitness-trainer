@@ -836,7 +836,8 @@ window.wccGenerate = async function(){
       var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
       var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>';
       var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(text, styleName) + '</div>';
-      document.getElementById('wccOutputContent').innerHTML = banner + toggleHtml + quickContent + detailContent + coachHtml;
+      var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(text) : '';
+      document.getElementById('wccOutputContent').innerHTML = banner + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
       // Auto-save to client history
       if (typeof autoSaveSession === 'function') {
         autoSaveSession(
@@ -8223,33 +8224,286 @@ cpBuildClientContext = function(c) {
 };
 
 /* ══ BUILD SESSION NOW — from client card ══ */
+/* ══ EXPERIENCE-BASED ROUTING ══ */
 function buildSessionNow(clientId) {
-  // 1. Set as active
   setActiveClient(clientId);
-  // 2. Close any open modals
   if (typeof closeCpModal === 'function') closeCpModal();
-  // 3. Switch to Build Session tab
-  document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
-  var buildTab = document.querySelector('[data-tab="ask"]');
-  if (buildTab) buildTab.classList.add('active');
-  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
-  var buildPanel = document.querySelector('[data-panel="ask"]');
-  if (buildPanel) buildPanel.classList.add('active');
-  // 4. Auto-open the style questionnaire by selecting the first relevant style
-  setTimeout(function() {
-    var c = window.cpActiveClient;
-    if (!c) return;
-    // Auto-select a style based on client goals/special populations
-    var styleMap = {glp1:'glp1',older_adult:'senior',post_rehab:'corrective',prenatal:'prenatal',postpartum:'prenatal',competition:'sport'};
-    var goalStyleMap = {fat_loss:'hiit',muscle_gain:'bodybuilding',strength:'powerlifting',athletic:'sandc',general:'sandc',endurance:'endurance'};
-    var sp = (c.special||[]).filter(function(s){return s&&s!=='none';})[0];
-    var goal = (c.goals||[])[0];
-    var autoStyle = (sp && styleMap[sp]) || (goal && goalStyleMap[goal]) || 'sandc';
-    var card = document.querySelector('#styleGrid .style-card[data-style="'+autoStyle+'"]');
-    if (card) card.click();
-  }, 400);
+  var c = window.cpActiveClient;
+  if (!c) return;
+
+  // Check intake completion — enforce 70% minimum
+  var filled = 0;
+  ['iwFitnessLevel','goals','iwTrainingDays','equipment','injuries'].forEach(function(k){
+    var v = c[k]; if(v && (typeof v==='string'?v.length>0:v.length>0)) filled++;
+  });
+  if (filled < 3) {
+    showIntakeBlocker(c);
+    return;
+  }
+
+  // Route based on fitness level
+  var level = c.iwFitnessLevel || c.trainingAge || '';
+  var isBeginnerLevel = ['Complete Beginner','Some Experience','none','0to6mo'].indexOf(level) !== -1;
+  var sp = (c.special||[]).filter(function(s){return s&&s!=='none'&&s!=='None';});
+
+  // Special population overrides
+  if (sp.indexOf('GLP-1 or AOM Client')!==-1 || sp.indexOf('glp1')!==-1 || sp.indexOf('GIP Next-Gen AOM')!==-1 || sp.indexOf('gip_aom')!==-1) {
+    openSpecialBuilder(c, 'glp1', 'GLP-1 ADAPTIVE SESSION');
+  } else if (sp.indexOf('Post-Rehab')!==-1 || sp.indexOf('post_rehab')!==-1 || (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries'&&x!=='None';}).length > 0) {
+    openSpecialBuilder(c, 'corrective', 'CORRECTIVE SESSION');
+  } else if (sp.indexOf('Prenatal')!==-1 || sp.indexOf('prenatal')!==-1) {
+    openSpecialBuilder(c, 'prenatal', 'PRENATAL SAFE SESSION');
+  } else if (sp.indexOf('Older Adult 55+')!==-1 || sp.indexOf('older_adult')!==-1) {
+    openSpecialBuilder(c, 'senior', 'FUNCTIONAL 55+ SESSION');
+  } else if (isBeginnerLevel) {
+    openBeginnerBuilder(c);
+  } else {
+    openAdvancedBuilder(c);
+  }
 }
 window.buildSessionNow = buildSessionNow;
+
+function showIntakeBlocker(c) {
+  var modal = document.createElement('div');
+  modal.id = 'intakeBlocker';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  modal.innerHTML = '<div style="background:var(--navy2);border:2px solid var(--gold);border-radius:var(--radius);max-width:440px;width:100%;padding:2rem;text-align:center;">'+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);margin-bottom:0.5rem;">Build a Better Program for '+c.fname+'</div>'+
+    '<p style="font-size:0.88rem;color:var(--text2);margin-bottom:1rem;line-height:1.6;">Complete their profile to unlock personalized AI programming.</p>'+
+    '<div style="height:6px;background:var(--navy3);border-radius:3px;margin-bottom:1rem;overflow:hidden;"><div style="height:100%;width:40%;background:var(--gold);"></div></div>'+
+    '<button onclick="document.getElementById(\'intakeBlocker\').remove();openIntakeWizard()" style="padding:12px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:8px;width:100%;">COMPLETE INTAKE</button>'+
+    '<button onclick="document.getElementById(\'intakeBlocker\').remove();forceOpenStyleGrid(\''+c.id+'\')" style="background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Skip for now</button>'+
+  '</div>';
+  document.body.appendChild(modal);
+}
+
+function forceOpenStyleGrid(clientId) {
+  document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
+  var bt = document.querySelector('[data-tab="ask"]');if(bt)bt.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  var bp = document.querySelector('[data-panel="ask"]');if(bp)bp.classList.add('active');
+  showBuildToast((window.cpActiveClient||{}).fname||'Client');
+}
+window.forceOpenStyleGrid = forceOpenStyleGrid;
+
+/* ══ BEGINNER CONVERSATIONAL BUILDER ══ */
+function openBeginnerBuilder(c) {
+  var modal = document.createElement('div');
+  modal.id = 'beginnerBuilder';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:var(--navy);overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:2rem;';
+  var name = c.fname||'Client';
+  modal.innerHTML = '<div style="max-width:560px;width:100%;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;"><h2 style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);">Session for '+name+'</h2><button onclick="document.getElementById(\'beginnerBuilder\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button></div>'+
+    '<div id="bbChat" style="display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem;">'+
+      '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;max-width:85%;font-size:0.88rem;color:var(--text2);line-height:1.6;">What does '+name+' want to work on today?</div>'+
+    '</div>'+
+    '<div id="bbPills" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;"></div>'+
+    '<div id="bbInput" style="display:none;"></div>'+
+  '</div>';
+  document.body.appendChild(modal);
+  var step = 0;
+  var answers = {};
+  showBBPills(['Full Body','Upper Body','Lower Body','Core and Abs','Cardio','Flexibility'], function(val){
+    answers.focus = val;
+    addBBMsg('user', val);
+    addBBMsg('ai', 'How much time does '+name+' have for this session?');
+    showBBPills(['20 min','30 min','45 min','60 min'], function(val2){
+      answers.duration = val2;
+      addBBMsg('user', val2);
+      addBBMsg('ai', 'Any equipment limitations or specific notes for today?');
+      showBBPills(['Dumbbells only','Full gym','Bodyweight','Low intensity today','Feeling strong'], function(val3){
+        answers.notes = val3;
+        addBBMsg('user', val3);
+        generateBeginnerSession(c, answers);
+      });
+    });
+  });
+}
+
+function addBBMsg(role, text) {
+  var chat = document.getElementById('bbChat');
+  var div = document.createElement('div');
+  div.style.cssText = role==='user' ? 'background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius);padding:10px 14px;max-width:75%;align-self:flex-end;font-size:0.85rem;color:var(--text);' : 'background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;max-width:85%;font-size:0.88rem;color:var(--text2);line-height:1.6;';
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollIntoView({behavior:'smooth',block:'end'});
+}
+
+function showBBPills(options, callback) {
+  var el = document.getElementById('bbPills');
+  el.innerHTML = options.map(function(o){return '<button class="wcc-chip" style="font-size:0.82rem;padding:10px 18px;" data-val="'+o+'">'+o+'</button>';}).join('');
+  el.querySelectorAll('.wcc-chip').forEach(function(btn){
+    btn.addEventListener('click', function(){ el.innerHTML=''; callback(btn.dataset.val); });
+  });
+}
+
+async function generateBeginnerSession(c, answers) {
+  addBBMsg('ai', 'Building a beginner-friendly session...');
+  var clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(c) : '';
+  var prompt = 'Generate a beginner-friendly '+answers.focus+' session for '+answers.duration+'.\n'+
+    'Equipment: '+answers.notes+'\n'+clientCtx+
+    '\n\nBEGINNER RULES: Simple movement patterns. Technique over load. Encouraging coaching cues throughout. Clear simple instructions. NASM Phase 1 parameters. Every exercise must have a modification for total beginners.';
+  try {
+    var sysP = (typeof SYS!=='undefined')?SYS:'You are Dr. Fitness.';
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sysP,messages:[{role:'user',content:prompt}]})});
+    var d = await res.json();
+    if(d.content&&d.content[0]){
+      document.getElementById('beginnerBuilder').remove();
+      // Show in the standard output modal
+      showModal('wccOutputModal');
+      var text = d.content[0].text;
+      var formatted = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.25rem 0 0.4rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
+      var diagramHtml = buildMuscleDiagramFromText(text);
+      document.getElementById('wccOutputContent').innerHTML = diagramHtml + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>';
+      if(typeof autoSaveSession==='function') autoSaveSession('<p>'+formatted+'</p>',answers.focus,answers,'Session');
+    }
+  } catch(err) { addBBMsg('ai','Could not generate session. Check connection.'); }
+}
+
+/* ══ ADVANCED TILE BUILDER ══ */
+function openAdvancedBuilder(c) {
+  document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
+  var bt = document.querySelector('[data-tab="ask"]');if(bt)bt.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  var bp = document.querySelector('[data-panel="ask"]');if(bp)bp.classList.add('active');
+  showBuildToast(c.fname||'Client');
+  setTimeout(function(){
+    var sg = document.getElementById('styleGrid');
+    if(sg) sg.scrollIntoView({behavior:'smooth',block:'center'});
+  }, 300);
+}
+
+/* ══ SPECIAL POPULATION BUILDER ══ */
+function openSpecialBuilder(c, styleId, label) {
+  var modal = document.createElement('div');
+  modal.id = 'specialBuilder';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  var name = c.fname||'Client';
+  modal.innerHTML = '<div style="background:var(--navy2);border:2px solid var(--gold);border-radius:var(--radius);max-width:480px;width:100%;padding:2rem;text-align:center;">'+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);margin-bottom:0.5rem;">'+label+'</div>'+
+    '<p style="font-size:0.88rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.6;">Based on '+name+'\'s profile, I recommend a specialized '+label.toLowerCase()+'. All modifications are applied automatically.</p>'+
+    '<button onclick="document.getElementById(\'specialBuilder\').remove();var card=document.querySelector(\'#styleGrid .style-card[data-style=\\\''+styleId+'\\\']\');if(card){document.querySelectorAll(\'.nav-tab\').forEach(function(x){x.classList.remove(\'active\')});var bt=document.querySelector(\'[data-tab=ask]\');if(bt)bt.classList.add(\'active\');document.querySelectorAll(\'.panel\').forEach(function(x){x.classList.remove(\'active\')});var bp=document.querySelector(\'[data-panel=ask]\');if(bp)bp.classList.add(\'active\');setTimeout(function(){card.click();},300);}" style="padding:14px 32px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px;">BUILD '+label+'</button>'+
+    '<button onclick="document.getElementById(\'specialBuilder\').remove();openAdvancedBuilder(window.cpActiveClient||{})" style="background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Choose a different style instead</button>'+
+  '</div>';
+  document.body.appendChild(modal);
+}
+
+/* ══ ANATOMICAL MUSCLE DIAGRAM ══ */
+var muscleMap = {
+  'squat':{primary:['quadriceps','glutes'],secondary:['hamstrings','erector_spinae','core']},
+  'deadlift':{primary:['hamstrings','glutes','erector_spinae'],secondary:['trapezius','latissimus','quadriceps']},
+  'bench press':{primary:['pectorals','anterior_deltoids','triceps'],secondary:['forearms']},
+  'overhead press':{primary:['anterior_deltoids','triceps'],secondary:['upper_trapezius','pectorals']},
+  'pull-up':{primary:['latissimus','biceps'],secondary:['posterior_deltoids','rhomboids','forearms']},
+  'barbell row':{primary:['latissimus','rhomboids','posterior_deltoids'],secondary:['biceps','trapezius','erector_spinae']},
+  'romanian deadlift':{primary:['hamstrings','glutes'],secondary:['erector_spinae','forearms']},
+  'hip thrust':{primary:['glutes'],secondary:['hamstrings','quadriceps','core']},
+  'lunge':{primary:['quadriceps','glutes'],secondary:['hamstrings','calves','core']},
+  'lateral raise':{primary:['anterior_deltoids','posterior_deltoids'],secondary:['upper_trapezius']},
+  'bicep curl':{primary:['biceps'],secondary:['forearms']},
+  'tricep pushdown':{primary:['triceps'],secondary:['forearms']},
+  'plank':{primary:['core','rectus_abdominis'],secondary:['anterior_deltoids','glutes']},
+  'leg press':{primary:['quadriceps','glutes'],secondary:['hamstrings','calves']},
+  'face pull':{primary:['posterior_deltoids','rhomboids'],secondary:['upper_trapezius','biceps']},
+  'calf raise':{primary:['calves'],secondary:[]},
+  'lat pulldown':{primary:['latissimus','biceps'],secondary:['posterior_deltoids','rhomboids']},
+  'seated cable row':{primary:['rhomboids','latissimus'],secondary:['posterior_deltoids','biceps']},
+  'kettlebell swing':{primary:['glutes','hamstrings'],secondary:['erector_spinae','core']},
+  'clean':{primary:['hamstrings','glutes','quadriceps'],secondary:['trapezius','erector_spinae','anterior_deltoids']},
+  'press':{primary:['pectorals','anterior_deltoids'],secondary:['triceps']},
+  'row':{primary:['latissimus','rhomboids'],secondary:['biceps']},
+  'curl':{primary:['biceps'],secondary:['forearms']},
+  'extension':{primary:['triceps'],secondary:[]},
+  'fly':{primary:['pectorals'],secondary:['anterior_deltoids']},
+  'shrug':{primary:['upper_trapezius'],secondary:[]},
+  'crunch':{primary:['rectus_abdominis'],secondary:['core']},
+  'snatch':{primary:['hamstrings','glutes','quadriceps','trapezius'],secondary:['anterior_deltoids','erector_spinae']}
+};
+
+function getMuscleSets(exerciseName) {
+  var n = exerciseName.toLowerCase();
+  for (var key in muscleMap) {
+    if (n.indexOf(key) !== -1) return muscleMap[key];
+  }
+  // Keyword fallback
+  if(n.indexOf('press')!==-1) return {primary:['pectorals','anterior_deltoids'],secondary:['triceps']};
+  if(n.indexOf('row')!==-1) return {primary:['latissimus','rhomboids'],secondary:['biceps']};
+  if(n.indexOf('squat')!==-1) return {primary:['quadriceps','glutes'],secondary:['hamstrings']};
+  if(n.indexOf('curl')!==-1) return {primary:['biceps'],secondary:['forearms']};
+  return {primary:[],secondary:[]};
+}
+
+function buildMuscleDiagramSVG(primarySet, secondarySet) {
+  // Simplified front+back body outline with muscle regions as paths
+  var muscles = {
+    // Front
+    pectorals:{d:'M135,95 Q150,85 165,95 L165,115 Q150,125 135,115Z',view:'front'},
+    anterior_deltoids:{d:'M125,80 Q130,70 140,80 L140,95 Q130,100 125,95Z',view:'front'},
+    biceps:{d:'M118,100 L122,100 L124,130 L116,130Z',view:'front'},
+    rectus_abdominis:{d:'M140,118 L160,118 L160,165 L140,165Z',view:'front'},
+    core:{d:'M137,118 L163,118 L165,168 L135,168Z',view:'front'},
+    quadriceps:{d:'M133,172 L148,172 L150,220 L130,220Z',view:'front'},
+    // Back
+    upper_trapezius:{d:'M335,70 Q350,60 365,70 L365,85 Q350,80 335,85Z',view:'back'},
+    trapezius:{d:'M335,70 Q350,60 365,70 L365,85 Q350,80 335,85Z',view:'back'},
+    latissimus:{d:'M325,95 L340,95 L338,140 L323,140Z',view:'back'},
+    posterior_deltoids:{d:'M318,80 Q323,72 330,82 L330,95 Q323,98 318,95Z',view:'back'},
+    rhomboids:{d:'M340,85 L360,85 L360,110 L340,110Z',view:'back'},
+    erector_spinae:{d:'M345,110 L355,110 L355,165 L345,165Z',view:'back'},
+    triceps:{d:'M310,100 L316,100 L318,130 L308,130Z',view:'back'},
+    glutes:{d:'M330,165 L370,165 L372,195 L328,195Z',view:'back'},
+    hamstrings:{d:'M333,198 L348,198 L350,245 L330,245Z',view:'back'},
+    calves:{d:'M335,248 L348,248 L347,280 L336,280Z',view:'back'},
+    gastrocnemius:{d:'M335,248 L348,248 L347,280 L336,280Z',view:'back'},
+    soleus:{d:'M337,275 L346,275 L345,295 L338,295Z',view:'back'},
+    forearms:{d:'M114,132 L120,132 L121,158 L113,158Z',view:'front'}
+  };
+
+  var primaryArr = Array.isArray(primarySet) ? primarySet : [];
+  var secondaryArr = Array.isArray(secondarySet) ? secondarySet : [];
+
+  var frontPaths = '';
+  var backPaths = '';
+  for (var id in muscles) {
+    var m = muscles[id];
+    var fill = '#1f2937';
+    var stroke = '#374151';
+    var filter = '';
+    if (primaryArr.indexOf(id) !== -1) { fill = '#c9a227'; stroke = '#f59e0b'; filter = 'filter:drop-shadow(0 0 4px rgba(201,162,39,0.5));'; }
+    else if (secondaryArr.indexOf(id) !== -1) { fill = '#92400e'; stroke = '#b45309'; }
+    var path = '<path d="'+m.d+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1" style="transition:fill 0.3s;'+filter+'"><title>'+id.replace(/_/g,' ')+'</title></path>';
+    if (m.view === 'front') frontPaths += path;
+    else backPaths += path;
+  }
+
+  // Body outlines
+  var frontOutline = '<path d="M150,20 Q140,20 135,30 L130,55 Q125,65 120,75 L110,95 L108,130 L112,160 L115,170 Q120,172 130,172 L130,220 L128,260 L130,295 L145,295 L148,260 L150,220 L152,260 L155,295 L170,295 L172,260 L170,220 L170,172 Q180,172 185,170 L188,160 L192,130 L190,95 L180,75 Q175,65 170,55 L165,30 Q160,20 150,20Z" fill="none" stroke="#374151" stroke-width="1.5"/>';
+  var backOutline = '<path d="M350,20 Q340,20 335,30 L330,55 Q325,65 320,75 L310,95 L308,130 L312,160 L315,170 Q320,172 330,172 L330,220 L328,260 L330,295 L345,295 L348,260 L350,220 L352,260 L355,295 L370,295 L372,260 L370,220 L370,172 Q380,172 385,170 L388,160 L392,130 L390,95 L380,75 Q375,65 370,55 L365,30 Q360,20 350,20Z" fill="none" stroke="#374151" stroke-width="1.5"/>';
+
+  return '<div style="display:flex;gap:8px;justify-content:center;margin:1rem 0;"><svg viewBox="100 10 100 300" width="120" height="280" style="flex-shrink:0;">'+frontOutline+frontPaths+'<text x="150" y="308" text-anchor="middle" fill="#4a6080" font-size="8" font-family="Barlow Condensed">FRONT</text></svg><svg viewBox="300 10 100 300" width="120" height="280" style="flex-shrink:0;">'+backOutline+backPaths+'<text x="350" y="308" text-anchor="middle" fill="#4a6080" font-size="8" font-family="Barlow Condensed">BACK</text></svg></div>';
+}
+
+function buildMuscleDiagramFromText(workoutText) {
+  var allPrimary = [];
+  var allSecondary = [];
+  var lines = workoutText.split('\n');
+  lines.forEach(function(line) {
+    var cleaned = line.replace(/\*\*/g,'').replace(/^[\d\-\.\)]+\s*/,'').trim();
+    if (cleaned.length < 3 || cleaned.length > 80) return;
+    var ms = getMuscleSets(cleaned);
+    ms.primary.forEach(function(m){ if(allPrimary.indexOf(m)===-1) allPrimary.push(m); });
+    ms.secondary.forEach(function(m){ if(allSecondary.indexOf(m)===-1 && allPrimary.indexOf(m)===-1) allSecondary.push(m); });
+  });
+  if (allPrimary.length === 0) return '';
+  return '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;text-align:center;">'+
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">MUSCLES TARGETED THIS SESSION</div>'+
+    '<div style="font-size:0.7rem;color:var(--text3);margin-bottom:8px;"><span style="color:#c9a227;">● Primary</span> &nbsp; <span style="color:#92400e;">● Secondary</span></div>'+
+    buildMuscleDiagramSVG(allPrimary, allSecondary)+
+    '<div style="font-size:0.68rem;color:var(--text3);">'+allPrimary.length+' primary · '+allSecondary.length+' secondary muscle groups</div>'+
+  '</div>';
+}
 
 /* ══ PROGRAM BUILDER — timeframe selector ══ */
 function openProgramBuilder(clientId) {
@@ -8407,13 +8661,103 @@ var iwStep = 0;
 var iwData = {};
 var iwCode = null;
 
-function openIntakeWizard(code) {
+function openIntakeWizard(code, skipConversation) {
   iwStep = 0;
   iwData = JSON.parse(localStorage.getItem('drfitness_intake_draft') || '{}');
   iwCode = code || null;
-  renderWizardStep();
+  if (skipConversation || iwData.conversationDone) {
+    renderWizardStep();
+  } else {
+    openConversationalIntake();
+  }
 }
 window.openIntakeWizard = openIntakeWizard;
+
+/* ══ PHASE 1 — AI CONVERSATIONAL INTAKE ══ */
+function openConversationalIntake() {
+  var overlay = document.createElement('div');
+  overlay.id = 'convoIntakeOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--navy);display:flex;flex-direction:column;align-items:center;padding:0;';
+  var name = iwData.fname || 'your new client';
+  overlay.innerHTML = '<div style="width:100%;max-width:560px;margin:0 auto;flex:1;display:flex;flex-direction:column;overflow:hidden;">'+
+    '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">'+
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">DR. FITNESS AI — Client Intake</div>'+
+      '<button onclick="iwData.conversationDone=true;saveIntakeDraft();document.getElementById(\'convoIntakeOverlay\').remove();renderWizardStep()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.78rem;">Skip to Form</button>'+
+    '</div>'+
+    '<div id="convoChat" style="flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:12px;">'+
+      '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;max-width:88%;font-size:0.9rem;color:var(--text2);line-height:1.65;">Before I build '+name+'\'s program, I want to understand what actually brought them here. What is going on with this client — what is their real situation?</div>'+
+    '</div>'+
+    '<div style="padding:12px 1.5rem;border-top:1px solid var(--border);">'+
+      '<div id="convoPills" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">'+
+        '<button class="wcc-chip" style="font-size:0.78rem;padding:8px 14px;" onclick="convoRespond(this.textContent)">New to fitness</button>'+
+        '<button class="wcc-chip" style="font-size:0.78rem;padding:8px 14px;" onclick="convoRespond(this.textContent)">Returning after injury</button>'+
+        '<button class="wcc-chip" style="font-size:0.78rem;padding:8px 14px;" onclick="convoRespond(this.textContent)">On GLP-1 medication</button>'+
+        '<button class="wcc-chip" style="font-size:0.78rem;padding:8px 14px;" onclick="convoRespond(this.textContent)">Training for a goal</button>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;"><textarea id="convoInput" placeholder="Or type freely..." rows="1" style="flex:1;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;resize:none;outline:none;" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();convoRespond(this.value);this.value=\'\';}"></textarea><button onclick="convoRespond(document.getElementById(\'convoInput\').value);document.getElementById(\'convoInput\').value=\'\';" style="padding:0 16px;background:var(--gold);border:none;border-radius:var(--radius-sm);cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(overlay);
+  window._convoStep = 0;
+  window._convoHistory = [];
+}
+
+window.convoRespond = async function(text) {
+  if (!text || !text.trim()) return;
+  text = text.trim();
+  var chat = document.getElementById('convoChat');
+  var pills = document.getElementById('convoPills');
+  // Add user message
+  var userDiv = document.createElement('div');
+  userDiv.style.cssText = 'background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--radius);padding:10px 14px;max-width:75%;align-self:flex-end;font-size:0.85rem;color:var(--text);';
+  userDiv.textContent = text;
+  chat.appendChild(userDiv);
+  chat.scrollTop = chat.scrollHeight;
+  pills.innerHTML = '';
+  window._convoHistory.push({role:'user',content:text});
+
+  var step = window._convoStep;
+  window._convoStep++;
+  var name = iwData.fname || 'the client';
+
+  if (step < 2) {
+    // Ask AI follow-up
+    var aiDiv = document.createElement('div');
+    aiDiv.style.cssText = 'background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;max-width:88%;font-size:0.9rem;color:var(--text2);line-height:1.65;';
+    aiDiv.textContent = 'Thinking...';
+    chat.appendChild(aiDiv);
+    chat.scrollTop = chat.scrollHeight;
+    try {
+      var followUpPrompt = step === 0
+        ? 'The trainer said about their client: "'+text+'". Ask ONE specific follow-up question referencing something they said. Be conversational and warm. Do not use apostrophes in contractions.'
+        : 'The trainer previously said: "'+window._convoHistory[0].content+'". Then added: "'+text+'". Ask ONE final question: "What is the biggest challenge or barrier you expect with this client — what has stopped them before or what might get in the way?" Frame it naturally referencing their previous answers.';
+      var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
+      var d = await res.json();
+      if (d.content && d.content[0]) aiDiv.textContent = d.content[0].text;
+      else aiDiv.textContent = step===0 ? 'Tell me more — what specifically are they hoping to achieve?' : 'What is the biggest challenge or barrier you expect with this client?';
+    } catch(e) { aiDiv.textContent = step===0 ? 'What specifically are they hoping to achieve?' : 'What is the biggest barrier you expect with this client?'; }
+    chat.scrollTop = chat.scrollHeight;
+  } else {
+    // Step 3 — show summary and transition
+    var summary = window._convoHistory.map(function(m){return m.content;}).join('. ');
+    iwData.conversationIntake = summary;
+    iwData.conversationDone = true;
+    saveIntakeDraft();
+    var summaryDiv = document.createElement('div');
+    summaryDiv.style.cssText = 'background:rgba(240,165,0,0.06);border:2px solid var(--gold);border-radius:var(--radius);padding:16px 20px;max-width:88%;font-size:0.88rem;color:var(--text2);line-height:1.65;';
+    summaryDiv.innerHTML = '<strong style="color:var(--gold);">Here is what I understand about '+name+':</strong><br>'+
+      window._convoHistory.map(function(m){return '• '+m.content;}).join('<br>')+
+      '<br><br><em style="color:var(--text3);">Let me grab the clinical details to complete the picture.</em>';
+    chat.appendChild(summaryDiv);
+    chat.scrollTop = chat.scrollHeight;
+    // Continue button
+    var btnDiv = document.createElement('div');
+    btnDiv.style.cssText = 'text-align:center;margin-top:1rem;';
+    btnDiv.innerHTML = '<button onclick="document.getElementById(\'convoIntakeOverlay\').remove();renderWizardStep()" style="padding:14px 40px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">CONTINUE TO DETAILS</button>';
+    chat.appendChild(btnDiv);
+    chat.scrollTop = chat.scrollHeight;
+  }
+};
 
 function sendIntakeToClient() {
   var code = '';
