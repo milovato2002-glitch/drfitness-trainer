@@ -296,7 +296,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </header>
 
 <div class="nav-tabs" id="mainNavTabs">
-  <button class="nav-tab" data-tab="clients">👤 CLIENTS</button>
+  <button class="nav-tab" data-tab="clients">👤 CLIENTS<span id="navAlertBadge" class="alert-count-badge" style="display:none;">0</span></button>
   <button class="nav-tab" data-tab="messages">💬 MESSAGES</button>
   <button class="nav-tab active" data-tab="ask">⚡ BUILD SESSION</button>
   <button class="nav-tab" data-tab="schedule">📅 SCHEDULE</button>
@@ -3822,6 +3822,52 @@ function filterPeptides() {
 .cp-action-primary:hover{background:var(--gold2);}
 .cp-action-secondary{background:transparent;border:1px solid var(--border);color:var(--text2);}
 .cp-action-secondary:hover{border-color:var(--gold);color:var(--gold);}
+
+/* WAIVER & ASSESSMENT */
+.waiver-badge{font-size:0.58rem;font-weight:700;letter-spacing:0.06em;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;}
+.waiver-badge.signed{background:rgba(45,198,83,0.12);border:1px solid rgba(45,198,83,0.35);color:var(--green);}
+.waiver-badge.required{background:var(--red-dim);border:1px solid rgba(230,57,70,0.35);color:var(--red);cursor:pointer;}
+.waiver-badge.reassess{background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.35);color:var(--gold);cursor:pointer;}
+.assess-badge{font-size:0.58rem;font-weight:700;letter-spacing:0.06em;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;}
+
+/* ONBOARDING PROGRESS */
+.ob-progress-wrap{margin-top:8px;}
+.ob-progress-bar{width:100%;height:6px;background:var(--navy3);border-radius:3px;overflow:hidden;}
+.ob-progress-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+.ob-progress-label{font-size:0.62rem;color:var(--text3);margin-top:3px;display:flex;justify-content:space-between;}
+
+/* ALERTS PANEL */
+.alerts-panel{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;}
+.alerts-panel h3{font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem;display:flex;align-items:center;gap:8px;}
+.alert-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);margin-bottom:6px;font-size:0.8rem;flex-wrap:wrap;}
+.alert-item:last-child{margin-bottom:0;}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.alert-dot.red{background:var(--red);}
+.alert-dot.yellow{background:var(--amber);}
+.alert-dot.green{background:var(--green);}
+.alert-client{color:var(--text);font-weight:600;font-size:0.82rem;}
+.alert-text{color:var(--text2);flex:1;min-width:120px;}
+.alert-days{font-size:0.68rem;color:var(--text3);white-space:nowrap;}
+.alert-action{padding:5px 12px;border-radius:var(--radius-sm);font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;background:var(--gold);color:var(--navy);border:none;white-space:nowrap;}
+.alert-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:0.58rem;font-weight:700;margin-left:4px;padding:0 4px;}
+
+/* PHOTO GRID */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;}
+.photo-thumb{position:relative;border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;border:1px solid var(--border2);aspect-ratio:3/4;background:var(--navy3);}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-thumb-info{position:absolute;bottom:0;left:0;right:0;background:rgba(10,22,40,0.85);padding:4px 6px;font-size:0.62rem;color:var(--text2);}
+.photo-thumb .milestone-star{position:absolute;top:4px;right:4px;color:var(--gold);font-size:0.9rem;}
+.photo-upload-zone{border:2px dashed var(--gold);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;transition:all 0.15s;background:rgba(240,165,0,0.03);}
+.photo-upload-zone:hover{background:rgba(240,165,0,0.08);border-color:var(--gold2);}
+.photo-type-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.photo-type-chip{padding:3px 8px;border-radius:12px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:0.68rem;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;}
+.photo-type-chip.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+
+/* CHECKIN LOG */
+.checkin-log-item{background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:4px;font-size:0.78rem;}
+.checkin-log-item .cli-date{font-size:0.65rem;color:var(--gold);font-weight:700;letter-spacing:0.06em;}
+.checkin-log-item .cli-type{font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;}
+.checkin-log-item .cli-msg{color:var(--text2);margin-top:2px;line-height:1.4;}
 </style>
 
 <div class="cp-wrap">
@@ -3834,6 +3880,7 @@ function filterPeptides() {
       <button class="cp-add-btn" onclick="openIntakeWizard()">+ FILL OUT WITH CLIENT NOW</button>
       <button class="cp-add-btn" style="background:transparent;border:2px solid var(--gold);color:var(--gold);" onclick="sendIntakeToClient()">📱 SEND TO CLIENT</button>
       <button style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;" onclick="openClientForm()">Advanced Form</button>
+      <button style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;" onclick="openMessageTemplates()">Message Templates</button>
     </div>
   </div>
 
@@ -3851,6 +3898,12 @@ function filterPeptides() {
       <option value="post_rehab">Post-Rehab</option>
     </select>
   </div>
+  <!-- ALERTS PANEL -->
+  <div class="alerts-panel" id="alertsPanel" style="display:none;">
+    <h3>ALERTS <span id="alertsCount" class="alert-count-badge">0</span></h3>
+    <div id="alertsList"></div>
+  </div>
+
   <div class="cp-count" id="cpCount"></div>
   <div class="cp-grid" id="cpGrid"></div>
 </div>
@@ -7385,16 +7438,24 @@ function renderClients() {
     const lastSes = sessions.length > 0 ? new Date(sessions[0].date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : null;
     const levelMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Advanced'};
     const lvl = levelMap[c.trainingAge]||'';
+    const obPct = calcOnboardingPct(c);
+    const obColor = obPct <= 40 ? 'var(--red)' : obPct <= 70 ? 'var(--amber)' : obPct <= 90 ? 'var(--gold)' : 'var(--green)';
+    const waiverHtml = c.waiverSigned
+      ? '<span class="waiver-badge signed">WAIVER SIGNED</span>'
+      : '<span class="waiver-badge required" onclick="event.stopPropagation();openWaiverModal(\''+c.id+'\')">WAIVER REQUIRED</span>';
+    const assessDue = c.assessmentDate && (Date.now() - new Date(c.assessmentDate).getTime() > 28*24*60*60*1000);
+    const assessHtml = assessDue ? '<span class="waiver-badge reassess" onclick="event.stopPropagation();openAssessmentModal(\''+c.id+'\')">REASSESSMENT DUE</span>' : '';
     return `<div class="cp-card${isActive?' active-client':''}" id="cpc_${c.id}">
       ${isActive?'<div class="cp-active-badge">ACTIVE</div>':''}
-      <div class="cp-card-top">
+      <div class="ob-progress-wrap"><div class="ob-progress-bar"><div class="ob-progress-fill" style="width:${obPct}%;background:${obColor};"></div></div><div class="ob-progress-label"><span>${obPct}% onboarded</span></div></div>
+      <div class="cp-card-top" style="margin-top:6px;">
         <div class="cp-avatar">${initials}</div>
         <div>
           <div class="cp-card-name">${c.fname} ${c.lname||''}</div>
           <div class="cp-card-sub">${[lvl, phase, lastSes ? 'Last: '+lastSes : ''].filter(Boolean).join(' · ')||'Profile incomplete'}</div>
         </div>
       </div>
-      ${specialTags ? '<div class="cp-card-tags">'+specialTags+'</div>' : ''}
+      <div class="cp-card-tags">${waiverHtml}${assessHtml}${specialTags?(' '+specialTags):''}</div>
       <div class="cp-card-goal">${c.success ? '"'+c.success.substring(0,80)+(c.success.length>80?'...':'')+'"' : goalLabel}</div>
       <div style="display:flex;gap:6px;margin-top:8px;">
         <button onclick="event.stopPropagation();setActiveClient('${c.id}')" style="flex:1;padding:7px 8px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;${isActive?'opacity:0.5;':''}">SET ACTIVE</button>
@@ -7530,6 +7591,47 @@ function viewClient(id) {
       </div>
     </div>
   `).join('');
+
+  // Onboarding checklist section
+  const obChecklist = buildOnboardingChecklist(c);
+  html_sections += obChecklist;
+
+  // Legal / Waiver section
+  if (c.waiverSigned) {
+    html_sections += `<div class="cp-detail-section"><div class="cp-detail-label">Legal — Waiver</div><div class="cp-detail-grid"><div class="cp-detail-item"><div class="di-label">Status</div><div class="di-val" style="color:var(--green);">Signed</div></div><div class="cp-detail-item"><div class="di-label">Date Signed</div><div class="di-val">${c.waiverDate||'N/A'}</div></div><div class="cp-detail-item"><div class="di-label">Signed By</div><div class="di-val">${c.waiverSignedBy||'N/A'}</div></div></div><div style="margin-top:8px;"><button onclick="printWaiver('${c.id}')" style="padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;">PRINT WAIVER</button></div></div>`;
+  } else {
+    html_sections += `<div class="cp-detail-section"><div class="cp-detail-label">Legal — Waiver</div><div style="background:var(--red-dim);border:1px solid rgba(230,57,70,0.25);border-radius:var(--radius-sm);padding:0.75rem 1rem;"><div style="font-size:0.82rem;color:var(--red);margin-bottom:8px;">Waiver not yet signed. Must be completed before first session.</div><button onclick="closeCpModal();openWaiverModal('${c.id}')" style="padding:8px 18px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">COMPLETE WAIVER</button></div></div>`;
+  }
+
+  // Fitness Assessment section
+  if (c.assessmentDate) {
+    const phaseInfo = calcNasmPhase(c);
+    html_sections += `<div class="cp-detail-section"><div class="cp-detail-label">Baseline Fitness Assessment</div>`;
+    html_sections += `<div style="background:rgba(240,165,0,0.08);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.75rem 1rem;margin-bottom:8px;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:var(--gold);">NASM Phase ${phaseInfo.phase} Recommended — Based on Assessment</div><div style="font-size:0.78rem;color:var(--text2);margin-top:4px;">Why Phase ${phaseInfo.phase}? ${phaseInfo.reason}</div>${c.phaseOverride?'<div style="font-size:0.72rem;color:var(--amber);margin-top:4px;">Trainer Override: Phase '+c.phaseOverride+' — '+(c.phaseOverrideNote||'')+'</div>':''}</div>`;
+    const aItems = [];
+    if(c.assessRhr) aItems.push({l:'Resting HR',v:c.assessRhr+' bpm'});
+    if(c.assessBpSys) aItems.push({l:'Blood Pressure',v:c.assessBpSys+'/'+c.assessBpDia});
+    if(c.assessPushups) aItems.push({l:'Push-ups',v:c.assessPushups+' reps'});
+    if(c.assessPullups) aItems.push({l:'Pull-ups/Inv Row',v:c.assessPullups+' reps'});
+    if(c.assessSquats) aItems.push({l:'BW Squats (60s)',v:c.assessSquats+' reps'});
+    if(c.assessPlank) aItems.push({l:'Plank Hold',v:c.assessPlank+'s'});
+    if(c.assessOhsa) aItems.push({l:'OH Squat Assessment',v:c.assessOhsa.replace(/_/g,' ')});
+    if(c.assessBalance) aItems.push({l:'SL Balance',v:c.assessBalance+'s'});
+    if(c.assessWeight) aItems.push({l:'Weight',v:c.assessWeight+' lbs'});
+    if(c.assessBf) aItems.push({l:'Body Fat',v:c.assessBf+'%'});
+    if(c.assessWaist) aItems.push({l:'Waist',v:c.assessWaist+' in'});
+    if(c.assessHip) aItems.push({l:'Hip',v:c.assessHip+' in'});
+    if(aItems.length) html_sections += `<div class="cp-detail-grid">${aItems.map(i=>'<div class="cp-detail-item"><div class="di-label">'+i.l+'</div><div class="di-val">'+i.v+'</div></div>').join('')}</div>`;
+    html_sections += `<div style="margin-top:8px;display:flex;gap:6px;"><button onclick="closeCpModal();openAssessmentModal('${c.id}')" style="padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;">UPDATE ASSESSMENT</button><span style="font-size:0.68rem;color:var(--text3);align-self:center;">Assessed: ${c.assessmentDate}</span></div></div>`;
+  } else {
+    html_sections += `<div class="cp-detail-section"><div class="cp-detail-label">Baseline Fitness Assessment</div><div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.25);border-radius:var(--radius-sm);padding:0.75rem 1rem;"><div style="font-size:0.82rem;color:#60a5fa;margin-bottom:8px;">Complete baseline assessment to accurately assign NASM OPT phase.</div><button onclick="closeCpModal();openAssessmentModal('${c.id}')" style="padding:8px 18px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;">START ASSESSMENT</button></div></div>`;
+  }
+
+  // Progress Photos section
+  html_sections += buildPhotoSection(c);
+
+  // Communication Log section
+  html_sections += buildCommunicationLog(c.id);
 
   document.getElementById('cpModalContent').innerHTML = html_sections;
   document.getElementById('cpAiText').textContent = 'Analyzing client profile...';
@@ -9704,6 +9806,877 @@ window.showPricingInterest=function(plan){
   document.getElementById('onboardContent').innerHTML=screens[0];
 })();
 window.skipOnboarding=function(){localStorage.setItem('drfitness_onboarded','1');var ob=document.getElementById('onboardOverlay');if(ob)ob.style.display='none';};
+
+/* ══════════════════════════════════════════════════════ */
+/* ══ BUILD 1: DIGITAL WAIVER & FITNESS ASSESSMENT   ══ */
+/* ══════════════════════════════════════════════════════ */
+
+function openWaiverModal(clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  if (!c) return;
+  var hasGlp1 = c.glp1Med && c.glp1Med !== 'no';
+  var glp1Section = hasGlp1 ? '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">5. GLP-1 AND MEDICATION ACKNOWLEDGMENT</h4><p>I understand that exercise programming for clients using GLP-1 or other weight management medications is adapted for muscle preservation and metabolic health. I confirm I am working with a physician supervising my medication use.</p>' : '';
+  var modal = document.createElement('div');
+  modal.id = 'waiverModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:700px;width:100%;margin:2rem auto;padding:0;">' +
+    '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">' +
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Digital Waiver — ' + c.fname + ' ' + (c.lname||'') + '</h3>' +
+      '<button onclick="document.getElementById(\'waiverModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
+    '</div>' +
+    '<div style="padding:1.5rem;max-height:50vh;overflow-y:auto;border-bottom:1px solid var(--border2);">' +
+      '<div style="text-align:center;margin-bottom:1.5rem;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);">DR. FITNESS</div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase;">Participant Waiver, Release of Liability, and Informed Consent</div></div>' +
+      '<div style="font-size:0.82rem;color:var(--text2);line-height:1.75;">' +
+        '<h4 style="font-weight:700;color:var(--gold);margin:0 0 0.4rem;">1. ASSUMPTION OF RISK</h4>' +
+        '<p>I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided through Dr. Fitness.</p>' +
+        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">2. RELEASE OF LIABILITY</h4>' +
+        '<p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, Dr. Michael P. Lovato EdD, and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
+        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">3. SCOPE OF PRACTICE ACKNOWLEDGMENT</h4>' +
+        '<p>I understand that Dr. Fitness trainers are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.</p>' +
+        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">4. MEDICAL CLEARANCE ACKNOWLEDGMENT</h4>' +
+        '<p>I confirm that I have consulted with or do not require consultation with a licensed physician prior to beginning this exercise program. I agree to inform my trainer of any changes to my health status.</p>' +
+        glp1Section +
+        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">' + (hasGlp1?'6':'5') + '. PHOTO AND PROGRESS CONSENT</h4>' +
+        '<p>I consent to the storage of my fitness assessment data, progress measurements, and optional progress photos within Dr. Fitness for the purpose of tracking my fitness progress. This data is stored securely and will not be shared without my permission.</p>' +
+        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">' + (hasGlp1?'7':'6') + '. EMERGENCY CONTACT CONFIRMATION</h4>' +
+        '<p>I confirm that accurate emergency contact information has been provided in my client profile.</p>' +
+      '</div>' +
+    '</div>' +
+    '<div style="padding:1.5rem;">' +
+      '<div class="calc-field" style="margin-bottom:12px;"><label style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);">Client Full Name</label><input type="text" id="waiverName" value="' + (c.fname||'') + ' ' + (c.lname||'') + '" style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.88rem;"></div>' +
+      '<div class="calc-field" style="margin-bottom:12px;"><label style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);">Date</label><input type="text" id="waiverDate" value="' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) + '" readonly style="width:100%;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.88rem;"></div>' +
+      '<label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-size:0.82rem;color:var(--text2);"><input type="checkbox" id="waiverAgree" style="width:18px;height:18px;accent-color:var(--gold);"> I have read, understand, and agree to the terms above</label>' +
+      '<label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;font-size:0.82rem;color:var(--text2);"><input type="checkbox" id="waiverWitness" style="width:18px;height:18px;accent-color:var(--gold);"> Trainer present and confirms identity</label>' +
+      '<button onclick="signWaiver(\'' + clientId + '\')" style="width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">SIGN AND AGREE</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+}
+window.openWaiverModal = openWaiverModal;
+
+function signWaiver(clientId) {
+  var name = document.getElementById('waiverName').value.trim();
+  var agree = document.getElementById('waiverAgree').checked;
+  var witness = document.getElementById('waiverWitness').checked;
+  if (!name) { alert('Please enter the client full name.'); return; }
+  if (!agree) { alert('Client must agree to the waiver terms.'); return; }
+  if (!witness) { alert('Trainer must confirm witness.'); return; }
+  cpLoadClients();
+  var idx = cpClients.findIndex(function(x){return x.id===clientId;});
+  if (idx < 0) return;
+  cpClients[idx].waiverSigned = true;
+  cpClients[idx].waiverDate = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  cpClients[idx].waiverSignedBy = name;
+  cpSaveClients();
+  document.getElementById('waiverModal').remove();
+  renderClients();
+  alert('Waiver signed successfully for ' + name + '.');
+}
+window.signWaiver = signWaiver;
+
+function printWaiver(clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  if (!c) return;
+  var hasGlp1 = c.glp1Med && c.glp1Med !== 'no';
+  var w = window.open('','_blank');
+  w.document.write('<html><head><title>Waiver — ' + c.fname + ' ' + (c.lname||'') + '</title><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;color:#222;}h1{text-align:center;font-size:1.3rem;margin-bottom:0.2rem;}h2{text-align:center;font-size:0.8rem;color:#666;margin-bottom:2rem;}h3{font-size:0.95rem;margin:1.2rem 0 0.3rem;}p{font-size:0.88rem;margin-bottom:0.5rem;}.sig{margin-top:2rem;border-top:1px solid #ccc;padding-top:1rem;}.sig-line{display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.88rem;}.sig-line strong{font-weight:700;}</style></head><body>' +
+    '<h1>DR. FITNESS</h1><h2>PARTICIPANT WAIVER, RELEASE OF LIABILITY, AND INFORMED CONSENT</h2>' +
+    '<h3>1. ASSUMPTION OF RISK</h3><p>I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided through Dr. Fitness.</p>' +
+    '<h3>2. RELEASE OF LIABILITY</h3><p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, Dr. Michael P. Lovato EdD, and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
+    '<h3>3. SCOPE OF PRACTICE ACKNOWLEDGMENT</h3><p>I understand that Dr. Fitness trainers are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.</p>' +
+    '<h3>4. MEDICAL CLEARANCE ACKNOWLEDGMENT</h3><p>I confirm that I have consulted with or do not require consultation with a licensed physician prior to beginning this exercise program. I agree to inform my trainer of any changes to my health status.</p>' +
+    (hasGlp1 ? '<h3>5. GLP-1 AND MEDICATION ACKNOWLEDGMENT</h3><p>I understand that exercise programming for clients using GLP-1 or other weight management medications is adapted for muscle preservation and metabolic health. I confirm I am working with a physician supervising my medication use.</p>' : '') +
+    '<h3>' + (hasGlp1?'6':'5') + '. PHOTO AND PROGRESS CONSENT</h3><p>I consent to the storage of my fitness assessment data, progress measurements, and optional progress photos within Dr. Fitness for the purpose of tracking my fitness progress.</p>' +
+    '<h3>' + (hasGlp1?'7':'6') + '. EMERGENCY CONTACT CONFIRMATION</h3><p>I confirm that accurate emergency contact information has been provided in my client profile.</p>' +
+    '<div class="sig"><div class="sig-line"><span>Client Name: <strong>' + (c.waiverSignedBy||'') + '</strong></span><span>Date: <strong>' + (c.waiverDate||'') + '</strong></span></div><div class="sig-line"><span>Trainer Witness: <strong>Confirmed</strong></span></div></div></body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},500);
+}
+window.printWaiver = printWaiver;
+
+/* ══ FITNESS ASSESSMENT ══ */
+function openAssessmentModal(clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  if (!c) return;
+  var modal = document.createElement('div');
+  modal.id = 'assessModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+
+  var pushupGuide = '<div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Under 10: Phase 1 | 10-20: Phase 1-2 | 21-35: Phase 2-3 | 35+: Phase 3-4</div>';
+
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:700px;width:100%;margin:2rem auto;padding:0;">' +
+    '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">' +
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">Baseline Fitness Assessment — ' + c.fname + '</h3>' +
+      '<button onclick="document.getElementById(\'assessModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
+    '</div>' +
+    '<div style="padding:1.5rem;max-height:75vh;overflow-y:auto;">' +
+      '<div class="cp-section-label">Cardiovascular Baseline</div>' +
+      '<div class="cp-fg">' +
+        '<div class="cp-field"><label>Resting Heart Rate (bpm)</label><input type="number" id="as-rhr" value="' + (c.assessRhr||'') + '" placeholder="Measure before rising in morning"></div>' +
+        '<div class="cp-field"><label>Resting BP — Systolic</label><input type="number" id="as-bpSys" value="' + (c.assessBpSys||'') + '" placeholder="Optional"></div>' +
+        '<div class="cp-field"><label>Resting BP — Diastolic</label><input type="number" id="as-bpDia" value="' + (c.assessBpDia||'') + '" placeholder="Optional"></div>' +
+        '<div class="cp-field"><label>3-Min Step Test HR</label><input type="number" id="as-step" value="' + (c.assessStep||'') + '" placeholder="HR after 3 min stepping (optional)"></div>' +
+      '</div>' +
+      '<div class="cp-section-label">Strength Baselines</div>' +
+      '<div class="cp-fg">' +
+        '<div class="cp-field"><label>Push-up Test (max reps, no time limit)</label><input type="number" id="as-pushups" value="' + (c.assessPushups||'') + '">' + pushupGuide + '</div>' +
+        '<div class="cp-field"><label>Pull-up or Inverted Row (max reps)</label><input type="number" id="as-pullups" value="' + (c.assessPullups||'') + '" placeholder="0 is valid"></div>' +
+        '<div class="cp-field"><label>Bodyweight Squat (max reps in 60s)</label><input type="number" id="as-squats" value="' + (c.assessSquats||'') + '"></div>' +
+        '<div class="cp-field"><label>Plank Hold (seconds)</label><input type="number" id="as-plank" value="' + (c.assessPlank||'') + '"></div>' +
+        '<div class="cp-field"><label>Bench Press (max / bodyweight)</label><input type="number" step="0.01" id="as-benchRel" value="' + (c.assessBenchRel||'') + '" placeholder="Optional — e.g. 1.2"></div>' +
+        '<div class="cp-field"><label>Squat (max / bodyweight)</label><input type="number" step="0.01" id="as-squatRel" value="' + (c.assessSquatRel||'') + '" placeholder="Optional — e.g. 1.5"></div>' +
+        '<div class="cp-field"><label>Deadlift (max / bodyweight)</label><input type="number" step="0.01" id="as-deadRel" value="' + (c.assessDeadRel||'') + '" placeholder="Optional — e.g. 1.8"></div>' +
+      '</div>' +
+      '<div class="cp-section-label">Movement Quality</div>' +
+      '<div class="cp-fg">' +
+        '<div class="cp-field"><label>Overhead Squat Assessment (NASM OHSA)</label><select id="as-ohsa"><option value="">Select...</option><option' + (c.assessOhsa==='excellent'?' selected':'') + ' value="excellent">Excellent</option><option' + (c.assessOhsa==='good'?' selected':'') + ' value="good">Good</option><option' + (c.assessOhsa==='minor_compensations'?' selected':'') + ' value="minor_compensations">Minor Compensations</option><option' + (c.assessOhsa==='significant_compensations'?' selected':'') + ' value="significant_compensations">Significant Compensations</option><option' + (c.assessOhsa==='unable'?' selected':'') + ' value="unable">Unable to Perform</option></select></div>' +
+        '<div class="cp-field"><label>Single Leg Balance (seconds each leg)</label><input type="number" id="as-balance" value="' + (c.assessBalance||'') + '"></div>' +
+        '<div class="cp-field"><label>Shoulder Mobility (reach behind back)</label><select id="as-shoulder"><option value="">Select...</option><option' + (c.assessShoulder==='yes'?' selected':'') + ' value="yes">Yes — can clasp hands</option><option' + (c.assessShoulder==='limited'?' selected':'') + ' value="limited">Limited</option><option' + (c.assessShoulder==='no'?' selected':'') + ' value="no">No</option></select></div>' +
+      '</div>' +
+      '<div class="cp-section-label">Body Composition</div>' +
+      '<div class="cp-fg">' +
+        '<div class="cp-field"><label>Weight (lbs)</label><input type="number" id="as-weight" value="' + (c.assessWeight||c.weight||'') + '"></div>' +
+        '<div class="cp-field"><label>Body Fat % (if measured)</label><input type="number" step="0.1" id="as-bf" value="' + (c.assessBf||'') + '" placeholder="Optional"></div>' +
+        '<div class="cp-field"><label>Waist Circumference (inches)</label><input type="number" step="0.1" id="as-waist" value="' + (c.assessWaist||'') + '"></div>' +
+        '<div class="cp-field"><label>Hip Circumference (inches)</label><input type="number" step="0.1" id="as-hip" value="' + (c.assessHip||'') + '"></div>' +
+        '<div class="cp-field"><label>Arm Circumference R (inches)</label><input type="number" step="0.1" id="as-arm" value="' + (c.assessArm||'') + '" placeholder="Optional"></div>' +
+        '<div class="cp-field"><label>Thigh Circumference R (inches)</label><input type="number" step="0.1" id="as-thigh" value="' + (c.assessThigh||'') + '" placeholder="Optional"></div>' +
+      '</div>' +
+      '<div class="cp-section-label">Trainer Phase Override (Optional)</div>' +
+      '<div class="cp-fg">' +
+        '<div class="cp-field"><label>Override NASM Phase</label><select id="as-override"><option value="">Use calculated phase</option><option' + (c.phaseOverride==='1'?' selected':'') + ' value="1">Phase 1 — Stabilization</option><option' + (c.phaseOverride==='2'?' selected':'') + ' value="2">Phase 2 — Strength Endurance</option><option' + (c.phaseOverride==='3'?' selected':'') + ' value="3">Phase 3 — Hypertrophy</option><option' + (c.phaseOverride==='4'?' selected':'') + ' value="4">Phase 4 — Maximal Strength</option><option' + (c.phaseOverride==='5'?' selected':'') + ' value="5">Phase 5 — Power</option></select></div>' +
+        '<div class="cp-field"><label>Override Reason</label><input type="text" id="as-overrideNote" value="' + (c.phaseOverrideNote||'') + '" placeholder="Why override?"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border2);">' +
+      '<button onclick="saveAssessment(\'' + clientId + '\')" style="width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">SAVE ASSESSMENT</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+}
+window.openAssessmentModal = openAssessmentModal;
+
+function saveAssessment(clientId) {
+  cpLoadClients();
+  var idx = cpClients.findIndex(function(x){return x.id===clientId;});
+  if (idx < 0) return;
+  var c = cpClients[idx];
+  c.assessRhr = document.getElementById('as-rhr').value;
+  c.assessBpSys = document.getElementById('as-bpSys').value;
+  c.assessBpDia = document.getElementById('as-bpDia').value;
+  c.assessStep = document.getElementById('as-step').value;
+  c.assessPushups = document.getElementById('as-pushups').value;
+  c.assessPullups = document.getElementById('as-pullups').value;
+  c.assessSquats = document.getElementById('as-squats').value;
+  c.assessPlank = document.getElementById('as-plank').value;
+  c.assessBenchRel = document.getElementById('as-benchRel').value;
+  c.assessSquatRel = document.getElementById('as-squatRel').value;
+  c.assessDeadRel = document.getElementById('as-deadRel').value;
+  c.assessOhsa = document.getElementById('as-ohsa').value;
+  c.assessBalance = document.getElementById('as-balance').value;
+  c.assessShoulder = document.getElementById('as-shoulder').value;
+  c.assessWeight = document.getElementById('as-weight').value;
+  c.assessBf = document.getElementById('as-bf').value;
+  c.assessWaist = document.getElementById('as-waist').value;
+  c.assessHip = document.getElementById('as-hip').value;
+  c.assessArm = document.getElementById('as-arm').value;
+  c.assessThigh = document.getElementById('as-thigh').value;
+  c.phaseOverride = document.getElementById('as-override').value;
+  c.phaseOverrideNote = document.getElementById('as-overrideNote').value;
+  c.assessmentDate = new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  // Update main weight/bf if entered
+  if (c.assessWeight) c.weight = c.assessWeight;
+  if (c.assessBf) c.bf = c.assessBf;
+  // Set NASM phase from assessment
+  var phase = calcNasmPhase(c);
+  if (!c.phaseOverride) c.optPhase = phase.phase;
+  else c.optPhase = c.phaseOverride;
+  cpClients[idx] = c;
+  cpSaveClients();
+  document.getElementById('assessModal').remove();
+  renderClients();
+  alert('Assessment saved. NASM Phase ' + c.optPhase + ' assigned.');
+}
+window.saveAssessment = saveAssessment;
+
+function calcNasmPhase(c) {
+  var pushups = parseInt(c.assessPushups) || parseInt(c.pushups) || 0;
+  var ohsa = c.assessOhsa || '';
+  var hasGlp1 = c.glp1Med && c.glp1Med !== 'no';
+  var isOlder = (c.special||[]).includes('older_adult');
+  var isPostRehab = (c.special||[]).includes('post_rehab');
+  var hasInjury = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).length > 0;
+  var levelMap = {none:'beginner','0to6mo':'beginner','6to12mo':'beginner','1to2yr':'intermediate','2to5yr':'intermediate','5to10yr':'advanced','10yr+':'advanced'};
+  var level = levelMap[c.trainingAge] || 'beginner';
+  var goodMovement = ohsa === 'excellent' || ohsa === 'good';
+  var sigComp = ohsa === 'significant_compensations' || ohsa === 'unable';
+  var maxRel = Math.max(parseFloat(c.assessBenchRel)||0, parseFloat(c.assessSquatRel)||0, parseFloat(c.assessDeadRel)||0);
+  var hasPerformanceGoals = (c.goals||[]).includes('athletic') || (c.goals||[]).includes('competition');
+
+  if (pushups < 15 || sigComp || isPostRehab || hasGlp1 || isOlder || level === 'beginner') {
+    return {phase:'1', reason:'Stabilization focus based on ' + (pushups<15?'push-up count ('+pushups+')':'') + (sigComp?' and significant movement compensations':'') + (isPostRehab?' and post-rehab status':'') + (hasGlp1?' and GLP-1 medication':'') + (isOlder?' and 55+ population':'') + (level==='beginner'?' and beginner training age':'') + '.'};
+  }
+  if (maxRel >= 1.5 && level === 'advanced' && !hasInjury && hasPerformanceGoals) {
+    return {phase:'5', reason:'Power training appropriate — advanced athlete with relative strength above 1.5x bodyweight and specific performance goals.'};
+  }
+  if (maxRel >= 1.5 && level === 'advanced' && !hasInjury) {
+    return {phase:'4', reason:'Maximal strength appropriate — advanced trainee with relative strength above 1.5x bodyweight and no injury flags.'};
+  }
+  if (pushups >= 25 && goodMovement && level === 'advanced' && !hasInjury) {
+    return {phase:'3', reason:'Hypertrophy appropriate — ' + pushups + ' push-ups, good movement quality, advanced training age, and no injury flags.'};
+  }
+  if (pushups >= 15 && goodMovement && (level === 'intermediate' || level === 'advanced')) {
+    return {phase:'2', reason:'Strength endurance appropriate — ' + pushups + ' push-ups with good movement quality and ' + level + ' training age.'};
+  }
+  return {phase:'1', reason:'Stabilization recommended as baseline starting point for safe progression.'};
+}
+
+/* ══════════════════════════════════════════════════════ */
+/* ══ BUILD 2: AUTOMATED CHECK-IN SEQUENCE           ══ */
+/* ══════════════════════════════════════════════════════ */
+
+var CHECKIN_LOG_KEY = 'drfitness_checkin_log';
+var MSG_TEMPLATES_KEY = 'drfitness_msg_templates';
+
+function getCheckinLog(clientId) {
+  try { var all = JSON.parse(localStorage.getItem(CHECKIN_LOG_KEY)||'{}'); return all[clientId]||[]; } catch(e){return [];}
+}
+function saveCheckinLog(clientId, log) {
+  try { var all = JSON.parse(localStorage.getItem(CHECKIN_LOG_KEY)||'{}'); all[clientId] = log; localStorage.setItem(CHECKIN_LOG_KEY, JSON.stringify(all)); } catch(e){}
+}
+function logCheckin(clientId, type, message) {
+  var log = getCheckinLog(clientId);
+  log.unshift({date: new Date().toISOString(), type: type, message: message, responseReceived: false});
+  saveCheckinLog(clientId, log);
+}
+
+function getMsgTemplates() {
+  var defaults = {
+    welcome: 'Welcome to Dr. Fitness! I am excited to start working with you. Let us build something great together.',
+    postSession: 'Hey {name} — just checking in after your session yesterday. How are you feeling? Any soreness, questions, or anything we should adjust? Your next session is {nextSession}.',
+    inactivity7: 'Hey {name} — I noticed it has been a week since your last session. How are you doing? Life gets busy and that is okay. I am here when you are ready. Even a 20-minute session this week keeps the momentum going. Let me know — I have some time available.',
+    inactive14: 'Hey {name} — I want to make sure you are okay. It has been two weeks since we last connected. Your goals matter and I do not want to see you lose the progress you have made. Can we find 30 minutes this week to get back on track? No judgment — just forward movement.',
+    reassessment: 'Hey {name} — it is time for your monthly reassessment. Let us measure your progress and update your program. When works best for you this week?',
+    goalDeadline: 'Hey {name} — your goal deadline for {goal} is coming up in 14 days. Let us review your progress and see where you stand.'
+  };
+  try {
+    var saved = JSON.parse(localStorage.getItem(MSG_TEMPLATES_KEY)||'{}');
+    return Object.assign(defaults, saved);
+  } catch(e) { return defaults; }
+}
+function saveMsgTemplates(templates) {
+  localStorage.setItem(MSG_TEMPLATES_KEY, JSON.stringify(templates));
+}
+
+function fillTemplate(template, c, extras) {
+  var name = c.fname || 'there';
+  var result = template.replace(/\{name\}/g, name);
+  if (extras) {
+    if (extras.nextSession) result = result.replace(/\{nextSession\}/g, extras.nextSession);
+    if (extras.goal) result = result.replace(/\{goal\}/g, extras.goal);
+  }
+  return result;
+}
+
+function buildAlerts() {
+  cpLoadClients();
+  var alerts = [];
+  var now = Date.now();
+  var day = 24*60*60*1000;
+  var templates = getMsgTemplates();
+
+  cpClients.forEach(function(c) {
+    var sessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
+    var lastSession = sessions.length > 0 ? new Date(sessions[0].date).getTime() : null;
+    var createdAt = c.createdAt ? new Date(c.createdAt).getTime() : null;
+    var daysSinceSession = lastSession ? Math.floor((now - lastSession) / day) : null;
+    var daysSinceCreated = createdAt ? Math.floor((now - createdAt) / day) : null;
+    var clientName = c.fname + ' ' + (c.lname||'');
+
+    // TRIGGER 1 — Welcome Sequence (Day 1+ after created, waiver signed)
+    if (createdAt && daysSinceCreated >= 0 && daysSinceCreated <= 7 && c.waiverSigned && !c.welcomeComplete) {
+      var welcomeTasks = c.welcomeTasks || {message:false, schedule:false, code:false, review:false};
+      var remaining = Object.values(welcomeTasks).filter(function(v){return !v;}).length;
+      if (remaining > 0) {
+        alerts.push({priority:3, color:'green', client:clientName, clientId:c.id, type:'Welcome Tasks', text:remaining + ' welcome tasks pending', days:'Day ' + daysSinceCreated, action:'welcomeTasks', actionLabel:'VIEW TASKS'});
+      }
+    }
+
+    // TRIGGER 2 — Post-Session Check-In (24h after session)
+    if (lastSession && daysSinceSession >= 1 && daysSinceSession <= 2) {
+      var recentLog = getCheckinLog(c.id);
+      var alreadySent = recentLog.some(function(l){return l.type==='postSession' && (now - new Date(l.date).getTime()) < 3*day;});
+      if (!alreadySent) {
+        alerts.push({priority:3, color:'green', client:clientName, clientId:c.id, type:'Post-Session Check-In', text:'Post-session check-in due', days:daysSinceSession + 'd ago', action:'postSession', actionLabel:'SEND CHECK-IN'});
+      }
+    }
+
+    // TRIGGER 3 — Inactivity 7 days
+    if (daysSinceSession !== null && daysSinceSession >= 7 && daysSinceSession < 14) {
+      alerts.push({priority:2, color:'yellow', client:clientName, clientId:c.id, type:'No Session 7 Days', text:'No session logged in ' + daysSinceSession + ' days', days:daysSinceSession + 'd', action:'inactivity7', actionLabel:'SEND RE-ENGAGEMENT'});
+    }
+
+    // TRIGGER 4 — Inactive 14+ days
+    if (daysSinceSession !== null && daysSinceSession >= 14) {
+      alerts.push({priority:1, color:'red', client:clientName, clientId:c.id, type:'INACTIVE ' + daysSinceSession + ' Days', text:daysSinceSession + ' days no session', days:daysSinceSession + 'd', action:'inactive14', actionLabel:'REACH OUT'});
+    }
+
+    // TRIGGER 5 — Monthly Reassessment
+    if (c.assessmentDate) {
+      var assessTime = new Date(c.assessmentDate).getTime();
+      var daysSinceAssess = Math.floor((now - assessTime) / day);
+      if (daysSinceAssess >= 28) {
+        alerts.push({priority:2, color:'yellow', client:clientName, clientId:c.id, type:'Reassessment Due', text:'Last assessed ' + daysSinceAssess + ' days ago', days:daysSinceAssess + 'd', action:'reassessment', actionLabel:'REASSESS'});
+      }
+    }
+
+    // TRIGGER 6 — Goal Deadline Approaching
+    if (c.timeline) {
+      var match = c.timeline.match(/(\d+)\s*(week|month|day)/i);
+      if (match && c.createdAt) {
+        var unit = match[2].toLowerCase();
+        var num = parseInt(match[1]);
+        var daysTotal = unit === 'week' ? num * 7 : unit === 'month' ? num * 30 : num;
+        var goalDate = new Date(c.createdAt).getTime() + daysTotal * day;
+        var daysToGoal = Math.floor((goalDate - now) / day);
+        if (daysToGoal > 0 && daysToGoal <= 14) {
+          var goalDesc = (c.goals||[]).map(function(g){return g.replace(/_/g,' ');}).join(', ') || 'fitness goal';
+          alerts.push({priority:2, color:'yellow', client:clientName, clientId:c.id, type:'Goal Deadline', text:'Goal deadline in ' + daysToGoal + ' days — ' + goalDesc, days:daysToGoal + 'd left', action:'goalDeadline', actionLabel:'REVIEW'});
+        }
+      }
+    }
+
+    // No sessions at all and created > 1 day and no waiver
+    if (sessions.length === 0 && daysSinceCreated > 1 && !c.waiverSigned) {
+      alerts.push({priority:2, color:'yellow', client:clientName, clientId:c.id, type:'Waiver Needed', text:'Waiver not signed — cannot log sessions', days:'', action:'waiver', actionLabel:'COMPLETE WAIVER'});
+    }
+  });
+
+  // Sort by priority (1=urgent first)
+  alerts.sort(function(a,b){return a.priority - b.priority;});
+  return alerts;
+}
+
+function renderAlerts() {
+  var alerts = buildAlerts();
+  var panel = document.getElementById('alertsPanel');
+  var list = document.getElementById('alertsList');
+  var countEl = document.getElementById('alertsCount');
+  var navBadge = document.getElementById('navAlertBadge');
+  if (!panel || !list) return;
+
+  if (alerts.length === 0) {
+    panel.style.display = 'none';
+    if (navBadge) navBadge.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  countEl.textContent = alerts.length;
+  if (navBadge) { navBadge.textContent = alerts.length; navBadge.style.display = 'inline-flex'; }
+
+  list.innerHTML = alerts.map(function(a) {
+    return '<div class="alert-item">' +
+      '<div class="alert-dot ' + a.color + '"></div>' +
+      '<span class="alert-client">' + a.client + '</span>' +
+      '<span class="alert-text">' + a.type + ' — ' + a.text + '</span>' +
+      '<span class="alert-days">' + a.days + '</span>' +
+      '<button class="alert-action" onclick="handleAlert(\'' + a.action + '\',\'' + a.clientId + '\')">' + a.actionLabel + '</button>' +
+    '</div>';
+  }).join('');
+}
+window.renderAlerts = renderAlerts;
+
+function handleAlert(action, clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  if (!c) return;
+  var templates = getMsgTemplates();
+  var name = c.fname + ' ' + (c.lname||'');
+  var email = c.email || '';
+
+  if (action === 'waiver') {
+    openWaiverModal(clientId);
+    return;
+  }
+  if (action === 'reassessment') {
+    openAssessmentModal(clientId);
+    return;
+  }
+  if (action === 'welcomeTasks') {
+    openWelcomeTasks(clientId);
+    return;
+  }
+  if (action === 'goalDeadline') {
+    viewClient(clientId);
+    return;
+  }
+
+  // Mail-based check-ins
+  var subject = '', body = '';
+  if (action === 'postSession') {
+    var sched = (typeof getSchedule === 'function') ? getSchedule() : [];
+    var nextSes = sched.filter(function(s){return s.clientId===clientId && s.status==='confirmed';});
+    var nextDate = nextSes.length > 0 ? nextSes[0].date : 'TBD';
+    subject = 'How did that session feel?';
+    body = fillTemplate(templates.postSession, c, {nextSession: nextDate});
+  } else if (action === 'inactivity7') {
+    subject = 'Checking in on you';
+    body = fillTemplate(templates.inactivity7, c);
+  } else if (action === 'inactive14') {
+    subject = 'I want to make sure you are okay';
+    body = fillTemplate(templates.inactive14, c);
+  }
+
+  // Log the check-in
+  logCheckin(clientId, action, body);
+
+  // Open mailto
+  var mailto = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.open(mailto);
+
+  // Refresh alerts
+  setTimeout(renderAlerts, 500);
+}
+window.handleAlert = handleAlert;
+
+function openWelcomeTasks(clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  if (!c) return;
+  var tasks = c.welcomeTasks || {message:false, schedule:false, code:false, review:false};
+  var modal = document.createElement('div');
+  modal.id = 'welcomeTasksModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+
+  function taskRow(key, label, actionLabel) {
+    var checked = tasks[key] ? 'checked' : '';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);margin-bottom:6px;">' +
+      '<input type="checkbox" ' + checked + ' onchange="toggleWelcomeTask(\'' + clientId + '\',\'' + key + '\',this.checked)" style="width:18px;height:18px;accent-color:var(--gold);">' +
+      '<span style="flex:1;font-size:0.85rem;color:var(--text);' + (tasks[key]?'text-decoration:line-through;opacity:0.5;':'') + '">' + label + '</span>' +
+    '</div>';
+  }
+
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:480px;width:100%;padding:1.5rem;">' +
+    '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);margin-bottom:1rem;">Welcome Tasks — ' + c.fname + '</h3>' +
+    taskRow('message', 'Send welcome message to ' + c.fname, 'SEND') +
+    taskRow('schedule', 'Schedule first session', 'SCHEDULE') +
+    taskRow('code', 'Share app access code with client', 'SHARE') +
+    taskRow('review', 'Review their intake summary', 'REVIEW') +
+    '<button onclick="document.getElementById(\'welcomeTasksModal\').remove()" style="width:100%;margin-top:12px;padding:10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;">DONE</button>' +
+  '</div>';
+  document.body.appendChild(modal);
+}
+window.openWelcomeTasks = openWelcomeTasks;
+
+window.toggleWelcomeTask = function(clientId, key, checked) {
+  cpLoadClients();
+  var idx = cpClients.findIndex(function(x){return x.id===clientId;});
+  if (idx < 0) return;
+  if (!cpClients[idx].welcomeTasks) cpClients[idx].welcomeTasks = {message:false, schedule:false, code:false, review:false};
+  cpClients[idx].welcomeTasks[key] = checked;
+  var all = cpClients[idx].welcomeTasks;
+  if (all.message && all.schedule && all.code && all.review) cpClients[idx].welcomeComplete = true;
+  cpSaveClients();
+  renderAlerts();
+};
+
+function buildCommunicationLog(clientId) {
+  var log = getCheckinLog(clientId);
+  if (log.length === 0) return '<div class="cp-detail-section"><div class="cp-detail-label">Communication Log</div><div style="font-size:0.78rem;color:var(--text3);font-style:italic;">No check-ins logged yet.</div></div>';
+  var html = '<div class="cp-detail-section"><div class="cp-detail-label">Communication Log</div><div style="max-height:200px;overflow-y:auto;">';
+  html += log.slice(0,20).map(function(l, i) {
+    return '<div class="checkin-log-item">' +
+      '<div style="display:flex;justify-content:space-between;"><span class="cli-date">' + new Date(l.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + '</span><span class="cli-type">' + l.type + '</span></div>' +
+      '<div class="cli-msg">' + (l.message||'').substring(0,120) + (l.message && l.message.length>120?'...':'') + '</div>' +
+      '<div style="margin-top:4px;"><label style="font-size:0.68rem;color:var(--text3);cursor:pointer;"><input type="checkbox" ' + (l.responseReceived?'checked':'') + ' onchange="markCheckinResponse(\'' + clientId + '\',' + i + ',this.checked)" style="accent-color:var(--gold);"> Response received</label></div>' +
+    '</div>';
+  }).join('');
+  html += '</div></div>';
+  return html;
+}
+
+window.markCheckinResponse = function(clientId, idx, received) {
+  var log = getCheckinLog(clientId);
+  if (log[idx]) { log[idx].responseReceived = received; saveCheckinLog(clientId, log); }
+};
+
+/* ══ MESSAGE TEMPLATES EDITOR ══ */
+window.openMessageTemplates = function() {
+  var templates = getMsgTemplates();
+  var modal = document.createElement('div');
+  modal.id = 'msgTemplatesModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+
+  function tField(key, label) {
+    return '<div style="margin-bottom:12px;"><label style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);display:block;margin-bottom:4px;">' + label + '</label><textarea id="tpl-' + key + '" style="width:100%;min-height:60px;padding:10px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.82rem;resize:vertical;">' + templates[key] + '</textarea></div>';
+  }
+
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:600px;width:100%;margin:2rem auto;padding:1.5rem;">' +
+    '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);margin-bottom:0.5rem;">Message Templates</h3>' +
+    '<p style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem;">Use {name} for client first name, {nextSession} for next session date, {goal} for goal description.</p>' +
+    tField('postSession', 'Post-Session Check-In') +
+    tField('inactivity7', '7-Day Inactivity') +
+    tField('inactive14', '14-Day Inactive') +
+    tField('reassessment', 'Reassessment Reminder') +
+    tField('goalDeadline', 'Goal Deadline Approaching') +
+    '<button onclick="saveMessageTemplates()" style="width:100%;padding:12px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">SAVE TEMPLATES</button>' +
+  '</div>';
+  document.body.appendChild(modal);
+};
+
+window.saveMessageTemplates = function() {
+  var keys = ['postSession','inactivity7','inactive14','reassessment','goalDeadline'];
+  var templates = {};
+  keys.forEach(function(k) { templates[k] = document.getElementById('tpl-' + k).value; });
+  saveMsgTemplates(templates);
+  document.getElementById('msgTemplatesModal').remove();
+  alert('Message templates saved.');
+};
+
+/* ══════════════════════════════════════════════════════ */
+/* ══ BUILD 3: PHOTO PROGRESS TRACKING               ══ */
+/* ══════════════════════════════════════════════════════ */
+
+var PHOTOS_KEY = 'drfitness_photos';
+
+function getClientPhotos(clientId) {
+  try { var all = JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}'); return all[clientId]||[]; } catch(e){return [];}
+}
+function saveClientPhotos(clientId, photos) {
+  try { var all = JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}'); all[clientId] = photos; localStorage.setItem(PHOTOS_KEY, JSON.stringify(all)); } catch(e){ console.warn('Storage full — photos may exceed localStorage limits.'); }
+}
+
+function buildPhotoSection(c) {
+  var photos = getClientPhotos(c.id);
+  var hasConsent = c.photoConsent;
+  var isGlp1 = c.glp1Med && c.glp1Med !== 'no';
+  var html = '<div class="cp-detail-section"><div class="cp-detail-label">Progress Photos</div>';
+
+  html += '<div style="font-size:0.72rem;color:var(--text3);margin-bottom:8px;">Photos are stored locally on this device only. They are not uploaded to any server.</div>';
+
+  if (isGlp1) {
+    html += '<div style="background:rgba(240,165,0,0.06);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:10px;font-size:0.78rem;color:var(--text2);line-height:1.5;">For GLP-1 clients photo tracking is especially valuable. The scale may not reflect the true body composition changes happening. Side view photos at weeks 4, 8, and 12 often show significant recomposition that weight alone would miss. Consider measuring and photographing monthly.</div>';
+  }
+
+  if (!hasConsent) {
+    html += '<label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-size:0.82rem;color:var(--text2);"><input type="checkbox" onchange="grantPhotoConsent(\'' + c.id + '\',this.checked)" style="width:18px;height:18px;accent-color:var(--gold);"> Client has consented to progress photo storage for fitness tracking purposes</label>';
+    html += '<div class="photo-upload-zone" style="opacity:0.4;pointer-events:none;"><div style="font-size:0.9rem;color:var(--gold);margin-bottom:4px;">Add Progress Photo</div><div style="font-size:0.72rem;color:var(--text3);">Consent required before adding photos</div></div>';
+  } else {
+    html += '<div class="photo-upload-zone" onclick="triggerPhotoUpload(\'' + c.id + '\')"><div style="font-size:0.9rem;color:var(--gold);margin-bottom:4px;">+ Add Progress Photo</div><div style="font-size:0.72rem;color:var(--text3);">JPG, PNG, GIF, WEBP</div></div>';
+    html += '<input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="handlePhotoUpload(\'' + c.id + '\',this)">';
+  }
+
+  if (photos.length > 0) {
+    html += '<div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:0.75rem;color:var(--text3);">' + photos.length + ' photo' + (photos.length!==1?'s':'') + '</span><button onclick="openPhotoComparison(\'' + c.id + '\')" style="padding:5px 12px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;">COMPARE</button></div>';
+    html += '<div class="photo-grid" style="margin-top:8px;">';
+    photos.forEach(function(p, i) {
+      html += '<div class="photo-thumb" onclick="viewPhoto(\'' + c.id + '\',' + i + ')">' +
+        (p.milestone ? '<div class="milestone-star">&#9733;</div>' : '') +
+        '<img src="' + p.data + '" alt="Progress photo">' +
+        '<div class="photo-thumb-info">' + (p.date||'') + (p.weight ? ' · ' + p.weight + ' lbs' : '') + '<br>Wk ' + (p.week||'?') + (p.type ? ' · ' + p.type : '') + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+window.grantPhotoConsent = function(clientId, granted) {
+  cpLoadClients();
+  var idx = cpClients.findIndex(function(x){return x.id===clientId;});
+  if (idx < 0) return;
+  cpClients[idx].photoConsent = granted;
+  cpSaveClients();
+  if (cpViewingClient && cpViewingClient.id === clientId) viewClient(clientId);
+};
+
+window.triggerPhotoUpload = function(clientId) {
+  var inp = document.getElementById('photoFileInput');
+  if (inp) inp.click();
+};
+
+window.handlePhotoUpload = function(clientId, input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  if (file.size > 5 * 1024 * 1024) { alert('Photo must be under 5MB for localStorage.'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    openPhotoMetadataModal(clientId, e.target.result);
+  };
+  reader.readAsDataURL(file);
+};
+
+function openPhotoMetadataModal(clientId, imageData) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  if (!c) return;
+  var startDate = c.createdAt ? new Date(c.createdAt) : new Date();
+  var weekNum = Math.ceil((Date.now() - startDate.getTime()) / (7*24*60*60*1000));
+  if (weekNum < 1) weekNum = 1;
+
+  var modal = document.createElement('div');
+  modal.id = 'photoMetaModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:500px;width:100%;padding:1.5rem;">' +
+    '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);margin-bottom:1rem;">Photo Details</h3>' +
+    '<div style="text-align:center;margin-bottom:1rem;"><img src="' + imageData + '" style="max-height:200px;border-radius:var(--radius-sm);border:1px solid var(--border);"></div>' +
+    '<div class="cp-fg">' +
+      '<div class="cp-field"><label>Date Taken</label><input type="date" id="pm-date" value="' + new Date().toISOString().split('T')[0] + '"></div>' +
+      '<div class="cp-field"><label>Week Number</label><input type="number" id="pm-week" value="' + weekNum + '"></div>' +
+      '<div class="cp-field"><label>Weight (lbs)</label><input type="number" id="pm-weight" value="' + (c.assessWeight||c.weight||'') + '"></div>' +
+    '</div>' +
+    '<div class="cp-field" style="margin-bottom:10px;"><label>Photo Type</label><div class="photo-type-chips" id="pm-types">' +
+      '<span class="photo-type-chip" onclick="this.classList.toggle(\'selected\')" data-val="Front">Front</span>' +
+      '<span class="photo-type-chip" onclick="this.classList.toggle(\'selected\')" data-val="Back">Back</span>' +
+      '<span class="photo-type-chip" onclick="this.classList.toggle(\'selected\')" data-val="Side Left">Side Left</span>' +
+      '<span class="photo-type-chip" onclick="this.classList.toggle(\'selected\')" data-val="Side Right">Side Right</span>' +
+      '<span class="photo-type-chip" onclick="this.classList.toggle(\'selected\')" data-val="Face">Face</span>' +
+      '<span class="photo-type-chip" onclick="this.classList.toggle(\'selected\')" data-val="Other">Other</span>' +
+    '</div></div>' +
+    '<div class="cp-field" style="margin-bottom:12px;"><label>Notes (optional)</label><input type="text" id="pm-notes" placeholder="Trainer observation"></div>' +
+    '<label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:0.82rem;color:var(--text2);cursor:pointer;"><input type="checkbox" id="pm-milestone" style="accent-color:var(--gold);"> Milestone photo</label>' +
+    '<button onclick="savePhoto(\'' + clientId + '\')" style="width:100%;padding:12px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">SAVE PHOTO</button>' +
+  '</div>';
+
+  // Store imageData on the modal for retrieval
+  modal._imageData = imageData;
+  document.body.appendChild(modal);
+}
+
+window.savePhoto = function(clientId) {
+  var modal = document.getElementById('photoMetaModal');
+  var imageData = modal._imageData;
+  var types = Array.from(document.querySelectorAll('#pm-types .photo-type-chip.selected')).map(function(el){return el.dataset.val;});
+
+  var photo = {
+    id: 'ph_' + Date.now(),
+    data: imageData,
+    date: document.getElementById('pm-date').value,
+    week: document.getElementById('pm-week').value,
+    weight: document.getElementById('pm-weight').value,
+    type: types.join(', ') || 'Untagged',
+    notes: document.getElementById('pm-notes').value,
+    milestone: document.getElementById('pm-milestone').checked
+  };
+
+  var photos = getClientPhotos(clientId);
+  photos.unshift(photo);
+  saveClientPhotos(clientId, photos);
+  modal.remove();
+  viewClient(clientId);
+};
+
+window.viewPhoto = function(clientId, idx) {
+  var photos = getClientPhotos(clientId);
+  var p = photos[idx];
+  if (!p) return;
+  var modal = document.createElement('div');
+  modal.id = 'photoViewModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;padding:1rem;cursor:pointer;';
+  modal.onclick = function(){modal.remove();};
+  modal.innerHTML = '<div style="text-align:center;max-width:90vw;" onclick="event.stopPropagation();">' +
+    '<img src="' + p.data + '" style="max-height:80vh;max-width:90vw;border-radius:var(--radius);border:2px solid var(--gold);">' +
+    '<div style="margin-top:8px;color:var(--text2);font-size:0.82rem;">' + (p.date||'') + ' · Week ' + (p.week||'?') + (p.weight ? ' · ' + p.weight + ' lbs' : '') + ' · ' + (p.type||'') + '</div>' +
+    (p.notes ? '<div style="margin-top:4px;color:var(--text3);font-size:0.78rem;">' + p.notes + '</div>' : '') +
+    '<div style="margin-top:8px;"><button onclick="deletePhoto(\'' + clientId + '\',' + idx + ')" style="padding:6px 14px;background:transparent;border:1px solid var(--red);border-radius:var(--radius-sm);color:var(--red);font-size:0.72rem;cursor:pointer;">DELETE PHOTO</button></div>' +
+  '</div>';
+  document.body.appendChild(modal);
+};
+
+window.deletePhoto = function(clientId, idx) {
+  if (!confirm('Delete this progress photo?')) return;
+  var photos = getClientPhotos(clientId);
+  photos.splice(idx, 1);
+  saveClientPhotos(clientId, photos);
+  var vm = document.getElementById('photoViewModal');
+  if (vm) vm.remove();
+  viewClient(clientId);
+};
+
+function openPhotoComparison(clientId) {
+  var photos = getClientPhotos(clientId);
+  if (photos.length < 2) { alert('Need at least 2 photos to compare.'); return; }
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+
+  var modal = document.createElement('div');
+  modal.id = 'photoCompareModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.9);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){if(e.target===modal)modal.remove();};
+
+  var opts = photos.map(function(p,i){return '<option value="' + i + '">' + (p.date||'Photo '+(i+1)) + ' · Wk ' + (p.week||'?') + (p.weight ? ' · ' + p.weight + 'lbs' : '') + '</option>';}).join('');
+
+  var firstIdx = photos.length - 1;
+  var lastIdx = 0;
+
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:900px;width:100%;margin:2rem auto;padding:1.5rem;" onclick="event.stopPropagation();">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">Photo Comparison — ' + (c?c.fname:'') + '</h3>' +
+      '<button onclick="document.getElementById(\'photoCompareModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+      '<div><select id="cmp-left" onchange="updateCompare()" style="width:100%;padding:8px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.82rem;margin-bottom:8px;">' + opts.replace('value="' + firstIdx + '"', 'value="' + firstIdx + '" selected') + '</select><div id="cmp-left-img" style="text-align:center;"><img src="' + photos[firstIdx].data + '" style="max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--border);"></div><div id="cmp-left-info" style="text-align:center;font-size:0.78rem;color:var(--text2);margin-top:6px;">' + (photos[firstIdx].date||'') + (photos[firstIdx].weight?' · '+photos[firstIdx].weight+' lbs':'') + '</div></div>' +
+      '<div><select id="cmp-right" onchange="updateCompare()" style="width:100%;padding:8px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:0.82rem;margin-bottom:8px;">' + opts.replace('value="' + lastIdx + '"', 'value="' + lastIdx + '" selected') + '</select><div id="cmp-right-img" style="text-align:center;"><img src="' + photos[lastIdx].data + '" style="max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--border);"></div><div id="cmp-right-info" style="text-align:center;font-size:0.78rem;color:var(--text2);margin-top:6px;">' + (photos[lastIdx].date||'') + (photos[lastIdx].weight?' · '+photos[lastIdx].weight+' lbs':'') + '</div></div>' +
+    '</div>' +
+    '<div style="margin-top:12px;text-align:center;"><button onclick="printComparison(\'' + clientId + '\')" style="padding:8px 20px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">PRINT COMPARISON</button></div>' +
+  '</div>';
+
+  // Store photos ref
+  modal._photos = photos;
+  document.body.appendChild(modal);
+}
+window.openPhotoComparison = openPhotoComparison;
+
+window.updateCompare = function() {
+  var modal = document.getElementById('photoCompareModal');
+  if (!modal) return;
+  var photos = modal._photos;
+  var li = parseInt(document.getElementById('cmp-left').value);
+  var ri = parseInt(document.getElementById('cmp-right').value);
+  document.getElementById('cmp-left-img').innerHTML = '<img src="' + photos[li].data + '" style="max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--border);">';
+  document.getElementById('cmp-left-info').textContent = (photos[li].date||'') + (photos[li].weight?' · '+photos[li].weight+' lbs':'');
+  document.getElementById('cmp-right-img').innerHTML = '<img src="' + photos[ri].data + '" style="max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--border);">';
+  document.getElementById('cmp-right-info').textContent = (photos[ri].date||'') + (photos[ri].weight?' · '+photos[ri].weight+' lbs':'');
+};
+
+window.printComparison = function(clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){return x.id===clientId;});
+  var photos = getClientPhotos(clientId);
+  var li = parseInt(document.getElementById('cmp-left').value);
+  var ri = parseInt(document.getElementById('cmp-right').value);
+  var w = window.open('','_blank');
+  w.document.write('<html><head><title>Progress Comparison — ' + (c?c.fname:'') + '</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:2rem;}h1{font-size:1.3rem;margin-bottom:0.3rem;}h2{font-size:0.9rem;color:#666;margin-bottom:2rem;}.row{display:flex;gap:20px;justify-content:center;}.col{flex:1;max-width:400px;}.col img{max-width:100%;border:1px solid #ccc;border-radius:8px;}.label{margin-top:8px;font-size:0.88rem;}</style></head><body>' +
+    '<h1>Progress Comparison</h1><h2>' + (c?c.fname+' '+(c.lname||''):'') + '</h2>' +
+    '<div class="row"><div class="col"><img src="' + photos[li].data + '"><div class="label">' + (photos[li].date||'') + (photos[li].weight?' — '+photos[li].weight+' lbs':'') + '</div></div>' +
+    '<div class="col"><img src="' + photos[ri].data + '"><div class="label">' + (photos[ri].date||'') + (photos[ri].weight?' — '+photos[ri].weight+' lbs':'') + '</div></div></div>' +
+    '</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},500);
+};
+
+/* ══════════════════════════════════════════════════════ */
+/* ══ ONBOARDING CHECKLIST                            ══ */
+/* ══════════════════════════════════════════════════════ */
+
+function calcOnboardingPct(c) {
+  var items = 0;
+  var total = 9;
+  if (c.waiverSigned) items++;
+  if (c.emergencyName || c.emergencyPhone) items++;
+  if (c.conversationDone) items++;
+  // Intake checklist (phase 2) — has goals and basic info
+  if ((c.goals||[]).length > 0 && c.fname) items++;
+  if (c.assessmentDate) items++;
+  // Starting photos
+  var photos = getClientPhotos(c.id);
+  if (photos.length > 0) items++;
+  // First program built
+  var sessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
+  if (sessions.length > 0) items++;
+  // First session scheduled
+  var sched = (typeof getSchedule === 'function') ? getSchedule() : [];
+  var hasScheduled = sched.some(function(s){return s.clientId===c.id;});
+  if (hasScheduled) items++;
+  // Welcome message sent
+  if (c.welcomeTasks && c.welcomeTasks.message) items++;
+  return Math.round((items / total) * 100);
+}
+
+function buildOnboardingChecklist(c) {
+  var photos = getClientPhotos(c.id);
+  var sessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
+  var sched = (typeof getSchedule === 'function') ? getSchedule() : [];
+  var hasScheduled = sched.some(function(s){return s.clientId===c.id;});
+  var pct = calcOnboardingPct(c);
+  var obColor = pct <= 40 ? 'var(--red)' : pct <= 70 ? 'var(--amber)' : pct <= 90 ? 'var(--gold)' : 'var(--green)';
+
+  function item(done, label) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:0.82rem;color:' + (done?'var(--text)':'var(--text3)') + ';' + (done?'':'opacity:0.7;') + '">' +
+      '<span style="color:' + (done?'var(--green)':'var(--text3)') + ';">' + (done?'&#9745;':'&#9744;') + '</span> ' + label + '</div>';
+  }
+
+  var html = '<div class="cp-detail-section"><div class="cp-detail-label">Onboarding Checklist</div>';
+  html += '<div style="margin-bottom:10px;"><div class="ob-progress-bar" style="height:8px;"><div class="ob-progress-fill" style="width:' + pct + '%;background:' + obColor + ';"></div></div><div style="font-size:0.72rem;color:var(--text2);margin-top:4px;">' + pct + '% complete</div></div>';
+  html += item(c.waiverSigned, 'Waiver signed');
+  html += item(c.emergencyName || c.emergencyPhone, 'Emergency contact added');
+  html += item(c.conversationDone, 'Intake conversation completed (Phase 1)');
+  html += item((c.goals||[]).length > 0 && c.fname, 'Intake checklist completed (Phase 2)');
+  html += item(!!c.assessmentDate, 'Baseline fitness assessment done');
+  html += item(photos.length > 0, 'Starting photos taken (optional)');
+  html += item(sessions.length > 0, 'First program built');
+  html += item(hasScheduled, 'First session scheduled');
+  html += item(c.welcomeTasks && c.welcomeTasks.message, 'Welcome message sent');
+  html += '</div>';
+  return html;
+}
+
+/* ══ WAIVER CHECK ON SESSION LOG ══ */
+var _origAutoSaveSession = autoSaveSession;
+window.autoSaveSession = function(content, style, questionnaire, type) {
+  var c = window.cpActiveClient;
+  if (c && c.id) {
+    cpLoadClients();
+    var client = cpClients.find(function(x){return x.id===c.id;});
+    // Check waiver
+    if (client && !client.waiverSigned) {
+      if (!confirm('This client has not signed a waiver yet. Do you want to complete the waiver now?\n\nClick OK to open the waiver, or Cancel to log the session anyway.')) {
+        _origAutoSaveSession(content, style, questionnaire, type);
+        return;
+      }
+      openWaiverModal(c.id);
+      return;
+    }
+    // Check onboarding %
+    if (client) {
+      var pct = calcOnboardingPct(client);
+      if (pct < 50) {
+        if (!confirm('This client is only ' + pct + '% onboarded. Complete their profile for the best programming results.\n\nCONTINUE ANYWAY?')) {
+          viewClient(c.id);
+          return;
+        }
+      }
+    }
+  }
+  _origAutoSaveSession(content, style, questionnaire, type);
+};
+
+/* ══ MILESTONE PHOTO PROMPT ══ */
+var _origCompleteSession = window.completeSession;
+if (typeof _origCompleteSession === 'function') {
+  window.completeSession = function(i) {
+    _origCompleteSession(i);
+    // Check if any client just achieved a milestone
+    var sched = getSchedule();
+    if (sched[i] && sched[i].clientId) {
+      var cSessions = getClientSessions(sched[i].clientId);
+      // Milestone at every 10 sessions
+      if (cSessions.length > 0 && cSessions.length % 10 === 0) {
+        cpLoadClients();
+        var mc = cpClients.find(function(x){return x.id===sched[i].clientId;});
+        if (mc && mc.photoConsent && confirm('Milestone reached! ' + (mc.fname||'Client') + ' has completed ' + cSessions.length + ' sessions. Would you like to take a milestone photo?')) {
+          triggerPhotoUpload(mc.id);
+        }
+      }
+    }
+  };
+}
+
+/* ══ RUN CHECK-IN ENGINE ON LOAD ══ */
+setTimeout(function() {
+  renderAlerts();
+}, 800);
+
 </script>
 
 </body>
