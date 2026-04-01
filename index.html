@@ -7583,7 +7583,7 @@ function viewClient(id) {
     sections.push({title:'OHSA Assessment', items});
   }
 
-  const html_sections = sections.map(s=>`
+  let html_sections = sections.map(s=>`
     <div class="cp-detail-section">
       <div class="cp-detail-label">${s.title}</div>
       <div class="cp-detail-grid">
@@ -9610,7 +9610,7 @@ window.wccEmailSession = function() {
 </div>
 
 <!-- ONBOARDING OVERLAY -->
-<div id="onboardOverlay" style="display:none;position:fixed;inset:0;z-index:1100;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;overflow-y:auto;">
+<div id="onboardOverlay" style="display:none;position:fixed;inset:0;z-index:1100;background:var(--navy);flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;overflow-y:auto;">
   <div id="onboardContent" style="max-width:560px;width:100%;"></div>
   <button onclick="skipOnboarding()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Skip Tour</button>
 </div>
@@ -9792,7 +9792,12 @@ window.showPricingInterest=function(plan){
 
 /* ══ ONBOARDING ══ */
 (function(){
+  // Skip onboarding if already completed or if any existing data present
   if(localStorage.getItem('drfitness_onboarded'))return;
+  if(localStorage.getItem('drfitness_clients_v1') || localStorage.getItem('drfitness_active_client') || localStorage.getItem('drfitness_gym_code')){
+    localStorage.setItem('drfitness_onboarded','1');
+    return;
+  }
   var ob=document.getElementById('onboardOverlay');
   if(!ob)return;
   ob.style.display='flex';
