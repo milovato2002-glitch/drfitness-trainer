@@ -3877,7 +3877,7 @@ function filterPeptides() {
       <p>Full assessment intake for every client. Profiles auto-populate AI chat and workout builder with personalized context.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="cp-add-btn" onclick="openIntakeWizard()">+ FILL OUT WITH CLIENT NOW</button>
+      <button class="cp-add-btn" onclick="openFastTrackIntake()">+ NEW CLIENT</button>
       <button class="cp-add-btn" style="background:transparent;border:2px solid var(--gold);color:var(--gold);" onclick="sendIntakeToClient()">📱 SEND TO CLIENT</button>
       <button style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;" onclick="openClientForm()">Advanced Form</button>
       <button style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;" onclick="openMessageTemplates()">Message Templates</button>
@@ -8374,7 +8374,7 @@ function showIntakeBlocker(c) {
     '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);margin-bottom:0.5rem;">Build a Better Program for '+c.fname+'</div>'+
     '<p style="font-size:0.88rem;color:var(--text2);margin-bottom:1rem;line-height:1.6;">Complete their profile to unlock personalized AI programming.</p>'+
     '<div style="height:6px;background:var(--navy3);border-radius:3px;margin-bottom:1rem;overflow:hidden;"><div style="height:100%;width:40%;background:var(--gold);"></div></div>'+
-    '<button onclick="document.getElementById(\'intakeBlocker\').remove();openIntakeWizard()" style="padding:12px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:8px;width:100%;">COMPLETE INTAKE</button>'+
+    '<button onclick="document.getElementById(\'intakeBlocker\').remove();openFastTrackIntake()" style="padding:12px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:8px;width:100%;">COMPLETE INTAKE</button>'+
     '<button onclick="document.getElementById(\'intakeBlocker\').remove();forceOpenStyleGrid(\''+c.id+'\')" style="background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Skip for now</button>'+
   '</div>';
   document.body.appendChild(modal);
@@ -8774,6 +8774,258 @@ function openIntakeWizard(code, skipConversation) {
   }
 }
 window.openIntakeWizard = openIntakeWizard;
+
+/* ══ FAST TRACK INTAKE — 90 SECONDS TO FIRST SESSION ══ */
+function openFastTrackIntake() {
+  var overlay = document.createElement('div');
+  overlay.id = 'fastTrackOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--navy);overflow-y:auto;display:flex;flex-direction:column;';
+  var html = '<div style="background:var(--navy2);padding:12px 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;">'+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">New Client — Fast Track</div>'+
+    '<div style="display:flex;align-items:center;gap:12px;">'+
+      '<span style="font-size:0.75rem;color:var(--text3);">90 seconds to first session</span>'+
+      '<button onclick="document.getElementById(\'fastTrackOverlay\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.78rem;">Cancel</button>'+
+    '</div></div>';
+  html += '<div style="flex:1;max-width:640px;margin:0 auto;padding:2rem 1.5rem;width:100%;">';
+  html += '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.3rem;">LET US GET STARTED</h2>';
+  html += '<p style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:2rem;">Just the essentials — we will build their full profile over the first 3 sessions automatically.</p>';
+  // Fields
+  html += iwField('ftName','Client First Name','text','',true);
+  html += iwField('ftGoals','What are their goals?','multiCards','',true,['Lose Body Fat','Build Muscle','Improve Strength','General Fitness','Post-Rehab Recovery','GLP-1 Support']);
+  html += iwField('ftLevel','Fitness Level','cards','',true,['Complete Beginner','Some Experience','Intermediate','Advanced']);
+  html += iwField('ftInjuries','Any injuries or pain?','chips','',false,['None','Shoulder','Lower Back','Knee','Hip','Ankle','Wrist','Neck','Other']);
+  html += iwField('ftDays','Training days per week','cards','',false,['2','3','4','5','6']);
+  html += iwField('ftLength','Session length','cards','',false,['30 min','45 min','60 min']);
+  html += '</div>';
+  // Footer
+  html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:0;background:var(--navy2);">';
+  html += '<button onclick="document.getElementById(\'fastTrackOverlay\').remove();openIntakeWizard(null,true)" style="padding:10px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">FULL INTAKE FORM</button>';
+  html += '<button onclick="saveFastTrackAsClient()" style="padding:12px 32px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">SAVE AND BUILD SESSION</button>';
+  html += '</div>';
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+}
+window.openFastTrackIntake = openFastTrackIntake;
+
+function saveFastTrackAsClient() {
+  // Read form values
+  var ftData = {};
+  document.querySelectorAll('#fastTrackOverlay [data-iw]').forEach(function(el){ ftData[el.dataset.iw] = el.value; });
+  document.querySelectorAll('#fastTrackOverlay [data-iwg]').forEach(function(grp){
+    var vals = [];
+    grp.querySelectorAll('.cp-check.checked').forEach(function(c){ vals.push(c.dataset.val); });
+    ftData[grp.dataset.iwg] = vals;
+  });
+  // Validate
+  if (!ftData.ftName || !ftData.ftName.trim()) { alert('Please enter the client name.'); return; }
+  if (!ftData.ftGoals || ftData.ftGoals.length === 0) { alert('Please select at least one goal.'); return; }
+  if (!ftData.ftLevel) { alert('Please select a fitness level.'); return; }
+
+  // Apply same mappings as saveIntakeAsClient
+  var levelMap = {'Complete Beginner':'none','Some Experience':'0to6mo','Intermediate':'1to2yr','Advanced':'5to10yr'};
+  var goalMap = {'Lose Body Fat':'fat_loss','Build Muscle':'muscle_gain','Improve Strength':'strength','General Fitness':'general','Post-Rehab Recovery':'general','GLP-1 Support':'general'};
+  var goals = (ftData.ftGoals||[]).map(function(g){ return goalMap[g]||'general'; });
+  var injuries = (ftData.ftInjuries||[]).length > 0 ? ftData.ftInjuries : ['None'];
+
+  // Build special population flags from goals
+  var special = [];
+  if ((ftData.ftGoals||[]).indexOf('GLP-1 Support') !== -1) special.push('GLP-1 or AOM Client');
+  if ((ftData.ftGoals||[]).indexOf('Post-Rehab Recovery') !== -1) special.push('Post-Rehab');
+
+  var client = {
+    id: 'cl_' + Date.now(),
+    fname: ftData.ftName.trim(),
+    lname: '',
+    goals: goals,
+    special: special,
+    iwFitnessLevel: ftData.ftLevel,
+    trainingAge: levelMap[ftData.ftLevel] || 'none',
+    optPhase: ftData.ftLevel === 'Complete Beginner' ? '1' : ftData.ftLevel === 'Some Experience' ? '1' : ftData.ftLevel === 'Intermediate' ? '2' : '3',
+    injuries: injuries,
+    iwTrainingDays: ftData.ftDays || '3',
+    iwSessionLength: ftData.ftLength || '45 min',
+    equipment: [],
+    glp1Med: (ftData.ftGoals||[]).indexOf('GLP-1 Support') !== -1 ? 'other_glp1' : 'no',
+    conditions: [],
+    mentalHealth: [],
+    barriersChips: [],
+    primaryMotivation: [],
+    intakeMode: 'fast_track',
+    depthPhase: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  cpLoadClients();
+  cpClients.push(client);
+  cpSaveClients();
+
+  // Close overlay
+  var overlay = document.getElementById('fastTrackOverlay');
+  if (overlay) overlay.remove();
+
+  // Activate and build
+  setActiveClient(client.id);
+  showBuildToast(client.fname);
+  setTimeout(function(){ buildSessionNow(client.id); }, 300);
+}
+window.saveFastTrackAsClient = saveFastTrackAsClient;
+
+/* ══ PROGRESSIVE DEPTH COLLECTION ══ */
+function checkDepthCollection(clientId) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){ return x.id === clientId; });
+  if (!c || c.intakeMode !== 'fast_track') return;
+  var sessions = getClientSessions(clientId);
+  var sessionCount = sessions.length;
+  var dp = c.depthPhase || 0;
+  if (sessionCount >= 1 && dp < 1) { openDepthModal(clientId, 1); }
+  else if (sessionCount >= 2 && dp < 2) { openDepthModal(clientId, 2); }
+  else if (sessionCount >= 3 && dp < 3) { openDepthModal(clientId, 3); }
+}
+window.checkDepthCollection = checkDepthCollection;
+
+function openDepthModal(clientId, phase) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){ return x.id === clientId; });
+  if (!c) return;
+  var phaseLabels = {1:'Lifestyle', 2:'Medical and Safety', 3:'Mindset'};
+  var phaseSubs = {
+    1:'This helps us personalize nutrition guidance and recovery programming.',
+    2:'This keeps your client safe and unlocks medical-aware programming.',
+    3:'Understanding motivation helps us write programs that actually stick.'
+  };
+  var modal = document.createElement('div');
+  modal.id = 'depthModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.onclick = function(e){ if(e.target===modal){ /* no dismiss on backdrop click */ } };
+
+  var html = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;margin:auto;">';
+  html += '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+  html += '<div><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">Profile Update — ' + c.fname + '</div>';
+  html += '<div style="font-size:0.75rem;color:var(--text3);">Step ' + phase + ' of 3 — ' + phaseLabels[phase] + '</div></div>';
+  html += '<div style="display:flex;gap:3px;">';
+  for (var i = 1; i <= 3; i++) {
+    html += '<div style="width:24px;height:4px;border-radius:2px;background:' + (i <= phase ? 'var(--gold)' : 'var(--navy3)') + ';"></div>';
+  }
+  html += '</div></div></div>';
+  html += '<div style="padding:1.5rem;">';
+  html += '<p style="font-size:0.88rem;color:var(--text2);line-height:1.6;margin-bottom:1.5rem;">' + phaseSubs[phase] + '</p>';
+
+  // Phase-specific fields using iwField
+  if (phase === 1) {
+    html += iwField('dpEquipment','Equipment available','chips','',false,['Dumbbells','Barbell and Rack','Cables and Machines','Kettlebells','Bands','Pull-up Bar','Cardio Machines','Bodyweight Only','Full Gym']);
+    html += iwField('dpSleep','Hours of sleep per night','cards','',false,['Under 5','5-6','6-7','7-8','8+']);
+    html += iwField('dpEating','Current eating habits','cards','',false,['Track and eat healthy','Fairly healthy','Some healthy some not','Eat whatever is convenient','Struggle with food']);
+    html += iwField('dpWater','Daily water intake','cards','',false,['Less than 4 cups','4-6 cups','6-8 cups','8+ cups']);
+    html += iwField('dpLocation','Where do you train','chips','',false,['Full commercial gym','Home gym','Bodyweight at home','Outdoors','Multiple locations']);
+  } else if (phase === 2) {
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+    html += iwField('dpWeight','Current Weight (lbs)','number','e.g. 185');
+    html += iwField('dpHeight','Height (inches)','number','e.g. 68');
+    html += '</div>';
+    html += iwField('dpConditions','Diagnosed conditions','chips','',false,['None','Type 2 Diabetes','High Blood Pressure','Heart Disease','Arthritis','Asthma','Thyroid Disorder','Osteoporosis','PCOS','Other']);
+    html += iwField('dpMeds','Current medications','textarea','List any prescription medications');
+    html += iwField('dpGlp1','GLP-1 or weight loss medication','cards','',false,['No','Yes']);
+    html += iwField('dpGlp1Med','If yes — which medication','select','',false,['Semaglutide Ozempic','Semaglutide Wegovy','Tirzepatide Mounjaro','Tirzepatide Zepbound','Liraglutide','Other']);
+    html += iwField('dpClearance','Physician clearance to exercise','cards','',false,['Yes','No','Not required','Currently seeing physician']);
+  } else if (phase === 3) {
+    html += iwField('dpConfidence','Confidence in reaching goals','slider');
+    html += '<div style="font-size:0.75rem;color:var(--text3);margin:-0.5rem 0 1rem;text-align:center;">1 = I do not believe I can · 10 = I absolutely will</div>';
+    html += iwField('dpMotivation','Primary motivation','cards','',false,['Look better','Feel stronger','Improve health','Sport performance','Doctor recommended','Manage stress','Prove something to myself']);
+    html += iwField('dpGymComfort','How do you feel about the gym','cards','',false,['Love it','Comfortable','Neutral','Somewhat uncomfortable','Very uncomfortable']);
+    html += iwField('dpFear','Biggest fear or concern','textarea','Getting injured? Not seeing results?');
+    html += iwField('dpSuccess','What does success look like in 3 months','textarea','Describe what you want to be different');
+  }
+
+  html += '</div>';
+  // Footer
+  html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">';
+  html += '<button onclick="skipDepthPhase(\'' + clientId + '\',' + phase + ')" style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">REMIND ME NEXT SESSION</button>';
+  html += '<button onclick="saveDepthData(\'' + clientId + '\',' + phase + ')" style="padding:10px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">SAVE</button>';
+  html += '</div></div>';
+  modal.innerHTML = html;
+  document.body.appendChild(modal);
+}
+window.openDepthModal = openDepthModal;
+
+function skipDepthPhase(clientId, phase) {
+  var modal = document.getElementById('depthModal');
+  if (modal) modal.remove();
+}
+window.skipDepthPhase = skipDepthPhase;
+
+function saveDepthData(clientId, phase) {
+  cpLoadClients();
+  var c = cpClients.find(function(x){ return x.id === clientId; });
+  if (!c) return;
+  var modal = document.getElementById('depthModal');
+  if (!modal) return;
+
+  // Read form values
+  modal.querySelectorAll('[data-iw]').forEach(function(el){ c['_dp_' + el.dataset.iw] = el.value; });
+  modal.querySelectorAll('[data-iwg]').forEach(function(grp){
+    var vals = [];
+    grp.querySelectorAll('.cp-check.checked').forEach(function(ch){ vals.push(ch.dataset.val); });
+    c['_dp_' + grp.dataset.iwg] = vals;
+  });
+
+  // Apply transforms per phase
+  if (phase === 1) {
+    c.equipment = c._dp_dpEquipment || [];
+    c.sleep = (c._dp_dpSleep === 'Under 5') ? 'less5' : (c._dp_dpSleep === '7-8') ? '7to8' : (c._dp_dpSleep === '8+') ? 'more8' : '6to7';
+    c.diet = c._dp_dpEating || '';
+    c.hydration = c._dp_dpWater || '';
+    c.iwTrainLocation = c._dp_dpLocation || [];
+  } else if (phase === 2) {
+    c.weight = c._dp_dpWeight || '';
+    c.height = c._dp_dpHeight || '';
+    c.conditions = c._dp_dpConditions || [];
+    c.currentMeds = c._dp_dpMeds || '';
+    c.iwPhysClearance = c._dp_dpClearance || '';
+    if (c._dp_dpGlp1 === 'Yes') {
+      c.glp1Med = c._dp_dpGlp1Med || 'other_glp1';
+      c.special = c.special || [];
+      if (c.special.indexOf('GLP-1 or AOM Client') === -1) c.special.push('GLP-1 or AOM Client');
+    }
+  } else if (phase === 3) {
+    c.confidence = c._dp_dpConfidence || '5';
+    c.primaryMotivation = c._dp_dpMotivation ? [c._dp_dpMotivation] : [];
+    c.iwGymComfort = c._dp_dpGymComfort || '';
+    c.iwBiggestFear = c._dp_dpFear || '';
+    c.success = c._dp_dpSuccess || '';
+  }
+
+  c.depthPhase = phase;
+  c.updatedAt = new Date().toISOString();
+
+  // Clean up temp keys
+  Object.keys(c).forEach(function(k){ if(k.indexOf('_dp_') === 0) delete c[k]; });
+
+  cpSaveClients();
+
+  // Refresh active client if this is them
+  if (window.cpActiveClient && window.cpActiveClient.id === clientId) {
+    setActiveClient(clientId);
+  }
+
+  modal.remove();
+
+  // Log it
+  if (typeof logCheckin === 'function') {
+    logCheckin(clientId, 'depthCollection', 'Phase ' + phase + ' profile data collected');
+  }
+
+  // Show confirmation
+  var phaseLabels = {1:'Lifestyle', 2:'Medical and Safety', 3:'Mindset'};
+  var remaining = 3 - phase;
+  var msg = remaining > 0 ? remaining + ' update' + (remaining > 1 ? 's' : '') + ' remaining — collected after next session.' : 'Profile complete!';
+  showBuildToast(c.fname + ' — ' + phaseLabels[phase] + ' saved. ' + msg);
+
+  setTimeout(renderAlerts, 500);
+}
+window.saveDepthData = saveDepthData;
 
 /* ══ PHASE 1 — AI CONVERSATIONAL INTAKE ══ */
 function openConversationalIntake() {
@@ -9239,6 +9491,9 @@ function autoSaveSession(content, style, questionnaire, type) {
     sentDate: null
   };
   saveClientSession(c.id, session);
+  // Trigger progressive depth collection for fast-track clients
+  var _cid = c.id;
+  setTimeout(function(){ if(typeof checkDepthCollection==='function') checkDepthCollection(_cid); }, 2000);
 }
 
 // Session History Modal
@@ -9809,7 +10064,7 @@ window.showPricingInterest=function(plan){
   var screens=[
     '<div style="font-family:Bebas Neue,sans-serif;font-size:clamp(2rem,5vw,3.5rem);color:var(--gold);margin-bottom:0.5rem;">DR. FITNESS</div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.85rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Trainer Reference System</div><p style="font-size:1.1rem;color:var(--text);margin-bottom:2rem;line-height:1.6;">Any client. Any goal. Any level. Under 60 seconds.</p><button onclick="obNext()" style="padding:14px 40px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">GET STARTED</button>',
     '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">HOW IT WORKS</h2><div style="display:flex;flex-direction:column;gap:1.25rem;text-align:left;max-width:400px;margin:0 auto 2rem;"><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">1️⃣</span><div><strong style="color:var(--text);">Select a Client</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">Build their profile once. Every feature personalizes automatically.</p></div></div><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">2️⃣</span><div><strong style="color:var(--text);">Build a Session</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">Choose a training style. Answer 3 questions. Get a complete program.</p></div></div><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">3️⃣</span><div><strong style="color:var(--text);">Ask Anything</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">The AI knows NASM, GLP-1, injuries, nutrition, and more.</p></div></div></div><button onclick="obNext()" style="padding:12px 36px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">NEXT</button>',
-    '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">YOU ARE READY</h2><p style="font-size:1rem;color:var(--text2);margin-bottom:2rem;">Your AI-powered trainer reference system is ready. Build sessions, manage clients, and have every answer at your fingertips.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><button onclick="skipOnboarding();openIntakeWizard()" style="padding:14px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">YOUR FIRST CLIENT</button><button onclick="skipOnboarding()" style="padding:14px 28px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">EXPLORE THE APP</button></div>'
+    '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">YOU ARE READY</h2><p style="font-size:1rem;color:var(--text2);margin-bottom:2rem;">Your AI-powered trainer reference system is ready. Build sessions, manage clients, and have every answer at your fingertips.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><button onclick="skipOnboarding();openFastTrackIntake()" style="padding:14px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">YOUR FIRST CLIENT</button><button onclick="skipOnboarding()" style="padding:14px 28px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">EXPLORE THE APP</button></div>'
   ];
   window.obNext=function(){step++;if(step>=screens.length)step=screens.length-1;document.getElementById('onboardContent').innerHTML=screens[step];};
   // Render first screen content, then show overlay
@@ -10188,6 +10443,19 @@ function buildAlerts() {
     if (sessions.length === 0 && daysSinceCreated > 1 && !c.waiverSigned) {
       alerts.push({priority:2, color:'yellow', client:clientName, clientId:c.id, type:'Waiver Needed', text:'Waiver not signed — cannot log sessions', days:'', action:'waiver', actionLabel:'COMPLETE WAIVER'});
     }
+
+    // TRIGGER 7 — Depth Collection Pending (fast-track clients)
+    if (c.intakeMode === 'fast_track') {
+      var dp = c.depthPhase || 0;
+      var depthLabels = {1:'Lifestyle data needed', 2:'Medical data needed', 3:'Mindset data needed'};
+      if (sessions.length >= 1 && dp < 1) {
+        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:depthLabels[1] + ' (session 1 complete)', days:'', action:'depth1', actionLabel:'COLLECT NOW'});
+      } else if (sessions.length >= 2 && dp < 2) {
+        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:depthLabels[2] + ' (session 2 complete)', days:'', action:'depth2', actionLabel:'COLLECT NOW'});
+      } else if (sessions.length >= 3 && dp < 3) {
+        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:depthLabels[3] + ' (session 3 complete)', days:'', action:'depth3', actionLabel:'COLLECT NOW'});
+      }
+    }
   });
 
   // Sort by priority (1=urgent first)
@@ -10249,6 +10517,9 @@ function handleAlert(action, clientId) {
     viewClient(clientId);
     return;
   }
+  if (action === 'depth1') { openDepthModal(clientId, 1); return; }
+  if (action === 'depth2') { openDepthModal(clientId, 2); return; }
+  if (action === 'depth3') { openDepthModal(clientId, 3); return; }
 
   // Mail-based check-ins
   var subject = '', body = '';
