@@ -399,15 +399,57 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
           </div>
           <div id="heroRotatingExample" style="height:1.4rem;margin-top:0.6rem;font-size:0.95rem;color:var(--gold);font-style:italic;opacity:0.7;transition:opacity 0.3s;"></div>
         </div>
-        <!-- CAPABILITY STRIP -->
-        <div style="width:100vw;margin-left:calc(-50vw + 50%);background:rgba(10,22,40,0.8);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 2rem;margin-top:2rem;margin-bottom:2.5rem;">
-          <div class="capability-strip-text" style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-align:center;line-height:1.8;">400+ Exercises &nbsp;·&nbsp; 14 Workout Styles &nbsp;·&nbsp; GLP-1 and Next-Gen AOM Protocols &nbsp;·&nbsp; Olympic Lifting &nbsp;·&nbsp; Special Populations &nbsp;·&nbsp; Injury Modifications &nbsp;·&nbsp; Nutrition Science &nbsp;·&nbsp; Recovery Methods</div>
+        <!-- THREE ACTION BUTTONS -->
+        <div style="width:100%;max-width:900px;margin:1.5rem auto 0;padding:0 1.5rem;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+          <button onclick="if(window.cpActiveClient){buildSessionNow(window.cpActiveClient.id)}else{scrollToStyleGrid()}" style="padding:18px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.3;">BUILD SESSION</button>
+          <button onclick="document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=clients]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=clients]').classList.add('active');" style="padding:18px 12px;background:var(--navy2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.3;">SELECT CLIENT</button>
+          <button onclick="document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=reflib]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=reflib]').classList.add('active');" style="padding:18px 12px;background:var(--navy2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.3;">REFERENCE LIBRARY</button>
         </div>
-        <!-- COMPLETE PROGRAM CTA -->
-        <div style="padding:0 1.5rem 1.5rem;max-width:1100px;margin:0 auto;width:100%;">
-          <div style="background:rgba(240,165,0,0.06);border:2px solid var(--gold);border-radius:var(--radius);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-            <div><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">COMPLETE PROGRAM BUILDER</div><div style="font-size:0.82rem;color:var(--text2);">Generate training + nutrition + supplements + mindset in one integrated program</div></div>
-            <button onclick="openCompleteProgramBuilder()" style="padding:12px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">BUILD COMPLETE PROGRAM</button>
+        <!-- QUICK PICKS -->
+        <div id="quickPicksSection" style="width:100%;max-width:900px;margin:2rem auto 0;padding:0 1.5rem;">
+          <div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">QUICK PICKS — TAP FOR INSTANT EXPERT ANSWER</div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Situation</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button class="mode-chip" onclick="qpSend('Client has a knee injury. What exercises should I modify or avoid, and what safe alternatives can I use?')">Knee Injury</button>
+              <button class="mode-chip" onclick="qpSend('Client has shoulder pain or impingement. What modifications, substitutions, and corrective exercises should I program?')">Shoulder Mod</button>
+              <button class="mode-chip" onclick="qpSend('Client is on GLP-1 medication. Build a muscle-preserving, protein-first training and nutrition session protocol.')">GLP-1 Session</button>
+              <button class="mode-chip" onclick="qpSend('Client is returning from surgery. What are the post-surgical training guidelines, contraindications, and progression protocols?')">Post-Surgical</button>
+              <button class="mode-chip" onclick="qpSend('Client is pregnant. What are the prenatal exercise guidelines, contraindicated movements, and safe training modifications by trimester?')">Prenatal</button>
+              <button class="mode-chip" onclick="qpSend('Client is 55 plus. What are the senior training priorities for strength, balance, bone density, and fall prevention?')">55 Plus</button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Goal</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button class="mode-chip" onclick="qpSend('Build a fat loss training session. Include HIIT structure, metabolic conditioning, calorie targets, and cardio recommendations.')">Burn Fat</button>
+              <button class="mode-chip" onclick="qpSend('Build a hypertrophy session focused on muscle growth. Include volume, tempo, rest periods, and progressive overload plan.')">Build Muscle</button>
+              <button class="mode-chip" onclick="qpSend('Build an athletic power and explosiveness session. Include plyometrics, power cleans, and sport-specific conditioning.')">Athletic Power</button>
+              <button class="mode-chip" onclick="qpSend('Build a corrective exercise session for a client with movement dysfunction. Include assessment cues and activation exercises.')">Corrective</button>
+              <button class="mode-chip" onclick="qpSend('Build a competition prep session for bodybuilding or physique competition. Include posing practice, peak week considerations.')">Competition Prep</button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Body Part</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button class="mode-chip" onclick="qpSend('Build a complete chest training session with exercises, sets, reps, tempo, and coaching cues.')">Chest</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete back training session with exercises, sets, reps, tempo, and coaching cues.')">Back</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete shoulder training session with exercises, sets, reps, tempo, and coaching cues.')">Shoulders</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete arms session covering biceps and triceps with exercises, sets, reps, tempo, and coaching cues.')">Arms</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete leg training session including quads, hamstrings, and calves with exercises, sets, reps, and cues.')">Legs</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete core training session with anti-extension, anti-rotation, and anti-lateral flexion exercises.')">Core</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete glute-focused training session with activation, strength, and hypertrophy exercises.')">Glutes</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete full body training session balancing push, pull, squat, hinge, and carry movements.')">Full Body</button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Time</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 20 minutes including warm-up. Focus on compound supersets.')">20 Min</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 30 minutes including warm-up. Maximize efficiency.')">30 Min</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 45 minutes including warm-up and cool-down.')">45 Min</button>
+              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 60 minutes including warm-up, main work, and cool-down.')">60 Min</button>
+            </div>
           </div>
         </div>
         <!-- STEP 2: TRAINING STYLE -->
@@ -5463,6 +5505,28 @@ function heroSend(){
 }
 window.heroSend=heroSend;
 
+function qpSend(prompt){
+  if(typeof fcOpenPanel==='function') fcOpenPanel();
+  var fcInput=document.getElementById('fcQi');
+  if(fcInput){
+    // Add active client context
+    var clientNote='';
+    if(window.cpActiveClient){
+      var ac=window.cpActiveClient;
+      clientNote='\n\n[Active client: '+ac.fname+(ac.lname?' '+ac.lname:'')+']';
+    }
+    fcInput.value=prompt+clientNote;
+    setTimeout(function(){ if(typeof fcSendMsg==='function') fcSendMsg(); },350);
+  }
+}
+window.qpSend=qpSend;
+
+function scrollToStyleGrid(){
+  var grid=document.getElementById('styleGrid');
+  if(grid) grid.scrollIntoView({behavior:'smooth',block:'start'});
+}
+window.scrollToStyleGrid=scrollToStyleGrid;
+
 /* ROTATING EXAMPLES */
 (function(){
   var examples=[
@@ -7440,6 +7504,9 @@ function renderClients() {
     const lvl = levelMap[c.trainingAge]||'';
     const obPct = calcOnboardingPct(c);
     const obColor = obPct <= 40 ? 'var(--red)' : obPct <= 70 ? 'var(--amber)' : obPct <= 90 ? 'var(--gold)' : 'var(--green)';
+    const profStr = calcProfileStrength(c);
+    const profColor = profStr <= 40 ? 'var(--red)' : profStr <= 70 ? 'var(--amber)' : profStr <= 90 ? 'var(--gold)' : 'var(--green)';
+    const isIncomplete = c.intakeMode === 'fast_track' && !c.profileComplete;
     const waiverHtml = c.waiverSigned
       ? '<span class="waiver-badge signed">WAIVER SIGNED</span>'
       : '<span class="waiver-badge required" onclick="event.stopPropagation();openWaiverModal(\''+c.id+'\')">WAIVER REQUIRED</span>';
@@ -7447,6 +7514,7 @@ function renderClients() {
     const assessHtml = assessDue ? '<span class="waiver-badge reassess" onclick="event.stopPropagation();openAssessmentModal(\''+c.id+'\')">REASSESSMENT DUE</span>' : '';
     return `<div class="cp-card${isActive?' active-client':''}" id="cpc_${c.id}">
       ${isActive?'<div class="cp-active-badge">ACTIVE</div>':''}
+      ${isIncomplete?'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-family:Barlow Condensed,sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);background:rgba(244,162,97,0.12);border:1px solid rgba(244,162,97,0.3);padding:2px 8px;border-radius:3px;">PROFILE INCOMPLETE</span><div style="flex:1;height:3px;background:var(--navy3);border-radius:2px;"><div style="height:100%;width:'+profStr+'%;background:'+profColor+';border-radius:2px;transition:width 0.3s;"></div></div><span style="font-size:0.6rem;color:var(--text3);">'+profStr+'%</span></div>':''}
       <div class="ob-progress-wrap"><div class="ob-progress-bar"><div class="ob-progress-fill" style="width:${obPct}%;background:${obColor};"></div></div><div class="ob-progress-label"><span>${obPct}% onboarded</span></div></div>
       <div class="cp-card-top" style="margin-top:6px;">
         <div class="cp-avatar">${initials}</div>
@@ -7462,6 +7530,7 @@ function renderClients() {
         <button onclick="event.stopPropagation();buildSessionNow('${c.id}')" style="flex:1;padding:7px 8px;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">BUILD NOW</button>
       </div>
       <div class="cp-card-actions" style="margin-top:6px;">
+        ${isIncomplete?'<button class="cp-btn-view" onclick="event.stopPropagation();openIntakeWizard(null,true)" style="background:var(--amber);color:var(--navy);border-color:var(--amber);">Complete Profile</button>':''}
         <button class="cp-btn-view" onclick="viewClient('${c.id}')">View Profile</button>
         <button class="cp-btn-edit" onclick="openSessionHistory('${c.id}')" title="History">📋</button>
         <button class="cp-btn-edit" onclick="openClientForm('${c.id}')">✏️</button>
@@ -8781,33 +8850,40 @@ function openFastTrackIntake() {
   overlay.id = 'fastTrackOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:900;background:var(--navy);overflow-y:auto;display:flex;flex-direction:column;';
   var html = '<div style="background:var(--navy2);padding:12px 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;">'+
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">New Client — Fast Track</div>'+
-    '<div style="display:flex;align-items:center;gap:12px;">'+
-      '<span style="font-size:0.75rem;color:var(--text3);">90 seconds to first session</span>'+
-      '<button onclick="document.getElementById(\'fastTrackOverlay\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.78rem;">Cancel</button>'+
-    '</div></div>';
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">NEW CLIENT — QUICK START</div>'+
+    '<button onclick="document.getElementById(\'fastTrackOverlay\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.78rem;">Cancel</button>'+
+  '</div>';
   html += '<div style="flex:1;max-width:640px;margin:0 auto;padding:2rem 1.5rem;width:100%;">';
-  html += '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.3rem;">LET US GET STARTED</h2>';
-  html += '<p style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:2rem;">Just the essentials — we will build their full profile over the first 3 sessions automatically.</p>';
-  // Fields
-  html += iwField('ftName','Client First Name','text','',true);
-  html += iwField('ftGoals','What are their goals?','multiCards','',true,['Lose Body Fat','Build Muscle','Improve Strength','General Fitness','Post-Rehab Recovery','GLP-1 Support']);
-  html += iwField('ftLevel','Fitness Level','cards','',true,['Complete Beginner','Some Experience','Intermediate','Advanced']);
-  html += iwField('ftInjuries','Any injuries or pain?','chips','',false,['None','Shoulder','Lower Back','Knee','Hip','Ankle','Wrist','Neck','Other']);
-  html += iwField('ftDays','Training days per week','cards','',false,['2','3','4','5','6']);
-  html += iwField('ftLength','Session length','cards','',false,['30 min','45 min','60 min']);
+  html += '<p style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:2rem;">Get started in 90 seconds. We will build the full profile over your first few sessions.</p>';
+  // Field 1: Name
+  html += iwField('ftName','First Name','text','',true);
+  // Field 2: Primary Goal
+  html += iwField('ftGoals','Primary Goal','multiCards','',true,['Lose Fat','Build Muscle','Get Stronger','GLP-1 Support','Post-Rehab','General Fitness']);
+  // Field 3: Fitness Level
+  html += iwField('ftLevel','Fitness Level','cards','',true,['Beginner','Intermediate','Advanced']);
+  // Field 4: Injuries
+  html += '<div style="margin-bottom:1rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">Any current injuries or pain?</div>';
+  html += '<div data-iwg="ftInjuryStatus" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  html += '<div class="cp-check checked" data-val="No Injuries" onclick="this.parentElement.querySelectorAll(\'.cp-check\').forEach(function(c){c.classList.remove(\'checked\')});this.classList.add(\'checked\');document.getElementById(\'ftInjuryNoteWrap\').style.display=\'none\'" style="padding:12px;text-align:center;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;">No Injuries</div>';
+  html += '<div class="cp-check" data-val="Yes" onclick="this.parentElement.querySelectorAll(\'.cp-check\').forEach(function(c){c.classList.remove(\'checked\')});this.classList.add(\'checked\');document.getElementById(\'ftInjuryNoteWrap\').style.display=\'block\'" style="padding:12px;text-align:center;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;">Yes — I will note them</div>';
   html += '</div>';
-  // Footer
-  html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:0;background:var(--navy2);">';
-  html += '<button onclick="document.getElementById(\'fastTrackOverlay\').remove();openIntakeWizard(null,true)" style="padding:10px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">FULL INTAKE FORM</button>';
-  html += '<button onclick="saveFastTrackAsClient()" style="padding:12px 32px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">SAVE AND BUILD SESSION</button>';
+  html += '<div id="ftInjuryNoteWrap" style="display:none;margin-top:8px;"><textarea data-iw="ftInjuryNotes" placeholder="Describe injuries or pain areas..." style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.9rem;resize:vertical;min-height:60px;outline:none;"></textarea></div></div>';
+  // Field 5: Training Days
+  html += iwField('ftDays','Training days per week','cards','',false,['2','3','4','5']);
+  // Field 6: Equipment
+  html += iwField('ftEquip','Primary equipment','cards','',false,['Full Gym','Dumbbells Only','Bodyweight Only']);
+  html += '</div>';
+  // Footer — Two buttons
+  html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;position:sticky;bottom:0;background:var(--navy2);">';
+  html += '<button onclick="saveFastTrackAsClient(true)" style="width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">SAVE AND BUILD FIRST SESSION</button>';
+  html += '<button onclick="saveFastTrackAsClient(false)" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.88rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">SAVE AND ADD MORE DETAIL</button>';
   html += '</div>';
   overlay.innerHTML = html;
   document.body.appendChild(overlay);
 }
 window.openFastTrackIntake = openFastTrackIntake;
 
-function saveFastTrackAsClient() {
+function saveFastTrackAsClient(buildSession) {
   // Read form values
   var ftData = {};
   document.querySelectorAll('#fastTrackOverlay [data-iw]').forEach(function(el){ ftData[el.dataset.iw] = el.value; });
@@ -8821,16 +8897,25 @@ function saveFastTrackAsClient() {
   if (!ftData.ftGoals || ftData.ftGoals.length === 0) { alert('Please select at least one goal.'); return; }
   if (!ftData.ftLevel) { alert('Please select a fitness level.'); return; }
 
-  // Apply same mappings as saveIntakeAsClient
-  var levelMap = {'Complete Beginner':'none','Some Experience':'0to6mo','Intermediate':'1to2yr','Advanced':'5to10yr'};
-  var goalMap = {'Lose Body Fat':'fat_loss','Build Muscle':'muscle_gain','Improve Strength':'strength','General Fitness':'general','Post-Rehab Recovery':'general','GLP-1 Support':'general'};
+  // Apply mappings
+  var levelMap = {'Beginner':'none','Intermediate':'1to2yr','Advanced':'5to10yr'};
+  var goalMap = {'Lose Fat':'fat_loss','Build Muscle':'muscle_gain','Get Stronger':'strength','General Fitness':'general','Post-Rehab':'general','GLP-1 Support':'general'};
   var goals = (ftData.ftGoals||[]).map(function(g){ return goalMap[g]||'general'; });
-  var injuries = (ftData.ftInjuries||[]).length > 0 ? ftData.ftInjuries : ['None'];
 
-  // Build special population flags from goals
+  // Injury handling
+  var injuryStatus = ftData.ftInjuryStatus || ['No Injuries'];
+  var hasInjury = injuryStatus.indexOf('Yes') !== -1;
+  var injuries = hasInjury ? ['Other'] : ['None'];
+  var injuryNotes = hasInjury ? (ftData.ftInjuryNotes || '') : '';
+
+  // Equipment mapping
+  var equipMap = {'Full Gym':['Barbell and Rack','Dumbbells','Cables and Machines','Kettlebells','Bands','Pull-up Bar','Cardio Machines'],'Dumbbells Only':['Dumbbells'],'Bodyweight Only':['Bodyweight Only']};
+  var equipment = equipMap[ftData.ftEquip] || [];
+
+  // Special population flags from goals
   var special = [];
   if ((ftData.ftGoals||[]).indexOf('GLP-1 Support') !== -1) special.push('GLP-1 or AOM Client');
-  if ((ftData.ftGoals||[]).indexOf('Post-Rehab Recovery') !== -1) special.push('Post-Rehab');
+  if ((ftData.ftGoals||[]).indexOf('Post-Rehab') !== -1) special.push('Post-Rehab');
 
   var client = {
     id: 'cl_' + Date.now(),
@@ -8838,13 +8923,14 @@ function saveFastTrackAsClient() {
     lname: '',
     goals: goals,
     special: special,
-    iwFitnessLevel: ftData.ftLevel,
+    iwFitnessLevel: ftData.ftLevel === 'Beginner' ? 'Complete Beginner' : ftData.ftLevel,
     trainingAge: levelMap[ftData.ftLevel] || 'none',
-    optPhase: ftData.ftLevel === 'Complete Beginner' ? '1' : ftData.ftLevel === 'Some Experience' ? '1' : ftData.ftLevel === 'Intermediate' ? '2' : '3',
+    optPhase: ftData.ftLevel === 'Beginner' ? '1' : ftData.ftLevel === 'Intermediate' ? '2' : '3',
     injuries: injuries,
+    injuryNotes: injuryNotes,
     iwTrainingDays: ftData.ftDays || '3',
-    iwSessionLength: ftData.ftLength || '45 min',
-    equipment: [],
+    iwSessionLength: '45 min',
+    equipment: equipment,
     glp1Med: (ftData.ftGoals||[]).indexOf('GLP-1 Support') !== -1 ? 'other_glp1' : 'no',
     conditions: [],
     mentalHealth: [],
@@ -8852,6 +8938,7 @@ function saveFastTrackAsClient() {
     primaryMotivation: [],
     intakeMode: 'fast_track',
     depthPhase: 0,
+    profileComplete: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -8860,28 +8947,42 @@ function saveFastTrackAsClient() {
   cpClients.push(client);
   cpSaveClients();
 
-  // Close overlay
   var overlay = document.getElementById('fastTrackOverlay');
   if (overlay) overlay.remove();
 
-  // Activate and build
   setActiveClient(client.id);
+  renderClients();
   showBuildToast(client.fname);
-  setTimeout(function(){ buildSessionNow(client.id); }, 300);
+
+  if (buildSession) {
+    setTimeout(function(){ buildSessionNow(client.id); }, 300);
+  } else {
+    // Open full intake wizard pre-populated
+    iwData = {fname: client.fname};
+    openIntakeWizard(null, true);
+  }
 }
 window.saveFastTrackAsClient = saveFastTrackAsClient;
 
-/* ══ PROGRESSIVE DEPTH COLLECTION ══ */
+/* ══ PROGRESSIVE DEPTH COLLECTION — 5 SINGLE QUESTIONS ══ */
+var DEPTH_QUESTIONS = [
+  {phase:1, title:'Medications', sub:'Session saved! One quick question to improve future sessions.', field:'currentMeds', label:'What medications is this client currently taking?', type:'textarea', placeholder:'List medications or leave blank for none', noneBtn:true},
+  {phase:2, title:'Confidence Level', sub:'Session saved! Quick profile update.', field:'confidence', label:'Rate this client\'s confidence level', type:'slider'},
+  {phase:3, title:'Medical Conditions', sub:'Session saved! This keeps programming safe.', field:'conditions', label:'Any diagnosed medical conditions?', type:'chips', options:['None','Type 2 Diabetes','High Blood Pressure','Heart Disease','Arthritis','Asthma','Thyroid Disorder','Osteoporosis','PCOS','Obesity','Other'], noneBtn:false},
+  {phase:4, title:'Sleep and Stress', sub:'Session saved! Recovery data improves programming.', field:'sleepStress', label:'Sleep and stress levels', type:'dualSlider'},
+  {phase:5, title:'Nutrition Habits', sub:'Session saved! Last profile question.', field:'diet', label:'Which eating pattern fits this client best?', type:'cards', options:['Track and eat healthy','Fairly healthy no tracking','Some healthy some not','Eat whatever is convenient','Struggle with food','On a specific diet plan']}
+];
+
 function checkDepthCollection(clientId) {
   cpLoadClients();
   var c = cpClients.find(function(x){ return x.id === clientId; });
   if (!c || c.intakeMode !== 'fast_track') return;
+  if (c.profileComplete) return;
   var sessions = getClientSessions(clientId);
-  var sessionCount = sessions.length;
   var dp = c.depthPhase || 0;
-  if (sessionCount >= 1 && dp < 1) { openDepthModal(clientId, 1); }
-  else if (sessionCount >= 2 && dp < 2) { openDepthModal(clientId, 2); }
-  else if (sessionCount >= 3 && dp < 3) { openDepthModal(clientId, 3); }
+  if (sessions.length > dp && dp < 5) {
+    openDepthModal(clientId, dp + 1);
+  }
 }
 window.checkDepthCollection = checkDepthCollection;
 
@@ -8889,72 +8990,56 @@ function openDepthModal(clientId, phase) {
   cpLoadClients();
   var c = cpClients.find(function(x){ return x.id === clientId; });
   if (!c) return;
-  var phaseLabels = {1:'Lifestyle', 2:'Medical and Safety', 3:'Mindset'};
-  var phaseSubs = {
-    1:'This helps us personalize nutrition guidance and recovery programming.',
-    2:'This keeps your client safe and unlocks medical-aware programming.',
-    3:'Understanding motivation helps us write programs that actually stick.'
-  };
+  var q = DEPTH_QUESTIONS[phase - 1];
+  if (!q) return;
+
   var modal = document.createElement('div');
   modal.id = 'depthModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;';
-  modal.onclick = function(e){ if(e.target===modal){ /* no dismiss on backdrop click */ } };
+  modal.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:1rem;';
 
-  var html = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;margin:auto;">';
-  html += '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
-  html += '<div><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">Profile Update — ' + c.fname + '</div>';
-  html += '<div style="font-size:0.75rem;color:var(--text3);">Step ' + phase + ' of 3 — ' + phaseLabels[phase] + '</div></div>';
+  var html = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:480px;width:100%;">';
+  // Header with progress
+  html += '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">' + c.fname + ' — ' + q.title + '</div>';
+  html += '<span style="font-size:0.72rem;color:var(--text3);">' + phase + ' of 5</span></div>';
+  // Progress bar
   html += '<div style="display:flex;gap:3px;">';
-  for (var i = 1; i <= 3; i++) {
-    html += '<div style="width:24px;height:4px;border-radius:2px;background:' + (i <= phase ? 'var(--gold)' : 'var(--navy3)') + ';"></div>';
+  for (var i = 1; i <= 5; i++) {
+    html += '<div style="flex:1;height:3px;border-radius:2px;background:' + (i <= phase ? 'var(--gold)' : 'var(--navy3)') + ';"></div>';
   }
-  html += '</div></div></div>';
-  html += '<div style="padding:1.5rem;">';
-  html += '<p style="font-size:0.88rem;color:var(--text2);line-height:1.6;margin-bottom:1.5rem;">' + phaseSubs[phase] + '</p>';
+  html += '</div></div>';
+  // Body
+  html += '<div style="padding:1.25rem 1.5rem;">';
+  html += '<p style="font-size:0.85rem;color:var(--text2);margin-bottom:1.25rem;">' + q.sub + '</p>';
 
-  // Phase-specific fields using iwField
-  if (phase === 1) {
-    html += iwField('dpEquipment','Equipment available','chips','',false,['Dumbbells','Barbell and Rack','Cables and Machines','Kettlebells','Bands','Pull-up Bar','Cardio Machines','Bodyweight Only','Full Gym']);
-    html += iwField('dpSleep','Hours of sleep per night','cards','',false,['Under 5','5-6','6-7','7-8','8+']);
-    html += iwField('dpEating','Current eating habits','cards','',false,['Track and eat healthy','Fairly healthy','Some healthy some not','Eat whatever is convenient','Struggle with food']);
-    html += iwField('dpWater','Daily water intake','cards','',false,['Less than 4 cups','4-6 cups','6-8 cups','8+ cups']);
-    html += iwField('dpLocation','Where do you train','chips','',false,['Full commercial gym','Home gym','Bodyweight at home','Outdoors','Multiple locations']);
-  } else if (phase === 2) {
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
-    html += iwField('dpWeight','Current Weight (lbs)','number','e.g. 185');
-    html += iwField('dpHeight','Height (inches)','number','e.g. 68');
-    html += '</div>';
-    html += iwField('dpConditions','Diagnosed conditions','chips','',false,['None','Type 2 Diabetes','High Blood Pressure','Heart Disease','Arthritis','Asthma','Thyroid Disorder','Osteoporosis','PCOS','Other']);
-    html += iwField('dpMeds','Current medications','textarea','List any prescription medications');
-    html += iwField('dpGlp1','GLP-1 or weight loss medication','cards','',false,['No','Yes']);
-    html += iwField('dpGlp1Med','If yes — which medication','select','',false,['Semaglutide Ozempic','Semaglutide Wegovy','Tirzepatide Mounjaro','Tirzepatide Zepbound','Liraglutide','Other']);
-    html += iwField('dpClearance','Physician clearance to exercise','cards','',false,['Yes','No','Not required','Currently seeing physician']);
-  } else if (phase === 3) {
-    html += iwField('dpConfidence','Confidence in reaching goals','slider');
-    html += '<div style="font-size:0.75rem;color:var(--text3);margin:-0.5rem 0 1rem;text-align:center;">1 = I do not believe I can · 10 = I absolutely will</div>';
-    html += iwField('dpMotivation','Primary motivation','cards','',false,['Look better','Feel stronger','Improve health','Sport performance','Doctor recommended','Manage stress','Prove something to myself']);
-    html += iwField('dpGymComfort','How do you feel about the gym','cards','',false,['Love it','Comfortable','Neutral','Somewhat uncomfortable','Very uncomfortable']);
-    html += iwField('dpFear','Biggest fear or concern','textarea','Getting injured? Not seeing results?');
-    html += iwField('dpSuccess','What does success look like in 3 months','textarea','Describe what you want to be different');
+  if (q.type === 'textarea') {
+    html += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;">' + q.label + '</div>';
+    html += '<textarea data-iw="dpVal" placeholder="' + (q.placeholder || '') + '" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.9rem;resize:vertical;min-height:60px;outline:none;"></textarea>';
+    if (q.noneBtn) html += '<button onclick="document.querySelector(\'#depthModal [data-iw=dpVal]\').value=\'None\'" style="margin-top:6px;padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.78rem;cursor:pointer;">None</button>';
+  } else if (q.type === 'slider') {
+    html += iwField('dpVal', q.label, 'slider');
+    html += '<div style="font-size:0.75rem;color:var(--text3);margin:-0.5rem 0 0;text-align:center;">1 = No confidence · 10 = Absolutely will succeed</div>';
+  } else if (q.type === 'chips') {
+    html += iwField('dpVal', q.label, 'chips', '', false, q.options);
+  } else if (q.type === 'cards') {
+    html += iwField('dpVal', q.label, 'cards', '', false, q.options);
+  } else if (q.type === 'dualSlider') {
+    html += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">' + q.label + '</div>';
+    html += '<div style="margin-bottom:1rem;"><div style="font-size:0.78rem;color:var(--text2);margin-bottom:4px;">Hours of sleep per night</div><input type="range" data-iw="dpSleep" min="3" max="10" value="7" style="width:100%;accent-color:var(--gold);" oninput="this.nextElementSibling.textContent=this.value+\' hours\'"><div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">7 hours</div></div>';
+    html += '<div><div style="font-size:0.78rem;color:var(--text2);margin-bottom:4px;">Stress level</div><input type="range" data-iw="dpStress" min="1" max="10" value="5" style="width:100%;accent-color:var(--gold);" oninput="this.nextElementSibling.textContent=this.value+\'/10\'"><div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">5/10</div></div>';
   }
 
   html += '</div>';
   // Footer
   html += '<div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">';
-  html += '<button onclick="skipDepthPhase(\'' + clientId + '\',' + phase + ')" style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">REMIND ME NEXT SESSION</button>';
+  html += '<button onclick="document.getElementById(\'depthModal\').remove()" style="padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">SKIP</button>';
   html += '<button onclick="saveDepthData(\'' + clientId + '\',' + phase + ')" style="padding:10px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">SAVE</button>';
   html += '</div></div>';
   modal.innerHTML = html;
   document.body.appendChild(modal);
 }
 window.openDepthModal = openDepthModal;
-
-function skipDepthPhase(clientId, phase) {
-  var modal = document.getElementById('depthModal');
-  if (modal) modal.remove();
-}
-window.skipDepthPhase = skipDepthPhase;
 
 function saveDepthData(clientId, phase) {
   cpLoadClients();
@@ -8963,69 +9048,62 @@ function saveDepthData(clientId, phase) {
   var modal = document.getElementById('depthModal');
   if (!modal) return;
 
-  // Read form values
-  modal.querySelectorAll('[data-iw]').forEach(function(el){ c['_dp_' + el.dataset.iw] = el.value; });
-  modal.querySelectorAll('[data-iwg]').forEach(function(grp){
-    var vals = [];
-    grp.querySelectorAll('.cp-check.checked').forEach(function(ch){ vals.push(ch.dataset.val); });
-    c['_dp_' + grp.dataset.iwg] = vals;
-  });
+  // Read values
+  var val = '';
+  var valEl = modal.querySelector('[data-iw="dpVal"]');
+  if (valEl) val = valEl.value;
+  var chipVals = [];
+  var chipGrp = modal.querySelector('[data-iwg="dpVal"]');
+  if (chipGrp) chipGrp.querySelectorAll('.cp-check.checked').forEach(function(ch){ chipVals.push(ch.dataset.val); });
 
-  // Apply transforms per phase
-  if (phase === 1) {
-    c.equipment = c._dp_dpEquipment || [];
-    c.sleep = (c._dp_dpSleep === 'Under 5') ? 'less5' : (c._dp_dpSleep === '7-8') ? '7to8' : (c._dp_dpSleep === '8+') ? 'more8' : '6to7';
-    c.diet = c._dp_dpEating || '';
-    c.hydration = c._dp_dpWater || '';
-    c.iwTrainLocation = c._dp_dpLocation || [];
-  } else if (phase === 2) {
-    c.weight = c._dp_dpWeight || '';
-    c.height = c._dp_dpHeight || '';
-    c.conditions = c._dp_dpConditions || [];
-    c.currentMeds = c._dp_dpMeds || '';
-    c.iwPhysClearance = c._dp_dpClearance || '';
-    if (c._dp_dpGlp1 === 'Yes') {
-      c.glp1Med = c._dp_dpGlp1Med || 'other_glp1';
-      c.special = c.special || [];
-      if (c.special.indexOf('GLP-1 or AOM Client') === -1) c.special.push('GLP-1 or AOM Client');
-    }
-  } else if (phase === 3) {
-    c.confidence = c._dp_dpConfidence || '5';
-    c.primaryMotivation = c._dp_dpMotivation ? [c._dp_dpMotivation] : [];
-    c.iwGymComfort = c._dp_dpGymComfort || '';
-    c.iwBiggestFear = c._dp_dpFear || '';
-    c.success = c._dp_dpSuccess || '';
+  // Apply per phase
+  if (phase === 1) { c.currentMeds = val || 'None'; }
+  else if (phase === 2) { c.confidence = val || '5'; }
+  else if (phase === 3) { c.conditions = chipVals.length > 0 ? chipVals : ['None']; }
+  else if (phase === 4) {
+    var sleepEl = modal.querySelector('[data-iw="dpSleep"]');
+    var stressEl = modal.querySelector('[data-iw="dpStress"]');
+    var sleepVal = sleepEl ? parseInt(sleepEl.value) : 7;
+    var stressVal = stressEl ? parseInt(stressEl.value) : 5;
+    c.sleep = sleepVal <= 5 ? 'less5' : sleepVal <= 7 ? '6to7' : sleepVal <= 8 ? '7to8' : 'more8';
+    c.stress = stressVal > 7 ? 'high' : stressVal > 4 ? 'moderate' : 'low';
   }
+  else if (phase === 5) { c.diet = val || ''; }
 
   c.depthPhase = phase;
+  if (phase >= 5) c.profileComplete = true;
   c.updatedAt = new Date().toISOString();
 
-  // Clean up temp keys
-  Object.keys(c).forEach(function(k){ if(k.indexOf('_dp_') === 0) delete c[k]; });
-
   cpSaveClients();
-
-  // Refresh active client if this is them
-  if (window.cpActiveClient && window.cpActiveClient.id === clientId) {
-    setActiveClient(clientId);
-  }
-
+  if (window.cpActiveClient && window.cpActiveClient.id === clientId) setActiveClient(clientId);
   modal.remove();
 
-  // Log it
-  if (typeof logCheckin === 'function') {
-    logCheckin(clientId, 'depthCollection', 'Phase ' + phase + ' profile data collected');
-  }
+  if (typeof logCheckin === 'function') logCheckin(clientId, 'depthCollection', 'Phase ' + phase + ' collected');
 
-  // Show confirmation
-  var phaseLabels = {1:'Lifestyle', 2:'Medical and Safety', 3:'Mindset'};
-  var remaining = 3 - phase;
-  var msg = remaining > 0 ? remaining + ' update' + (remaining > 1 ? 's' : '') + ' remaining — collected after next session.' : 'Profile complete!';
-  showBuildToast(c.fname + ' — ' + phaseLabels[phase] + ' saved. ' + msg);
-
+  var remaining = 5 - phase;
+  showBuildToast(c.fname + ' profile updated. ' + (remaining > 0 ? remaining + ' question' + (remaining > 1 ? 's' : '') + ' remaining.' : 'Profile complete!'));
   setTimeout(renderAlerts, 500);
 }
 window.saveDepthData = saveDepthData;
+
+function calcProfileStrength(c) {
+  if (!c || c.intakeMode !== 'fast_track') return 100;
+  var filled = 0;
+  var total = 11;
+  if (c.fname) filled++;
+  if ((c.goals||[]).length > 0) filled++;
+  if (c.iwFitnessLevel) filled++;
+  if (c.equipment && c.equipment.length > 0) filled++;
+  if (c.iwTrainingDays) filled++;
+  if (c.currentMeds) filled++;
+  if (c.confidence && c.confidence !== '5') filled++;
+  if (c.conditions && c.conditions.length > 0 && c.conditions[0] !== 'None') filled++; else if (c.conditions && c.conditions[0] === 'None') filled++;
+  if (c.sleep) filled++;
+  if (c.diet) filled++;
+  if (c.injuries && c.injuries.length > 0) filled++;
+  return Math.round((filled / total) * 100);
+}
+window.calcProfileStrength = calcProfileStrength;
 
 /* ══ PHASE 1 — AI CONVERSATIONAL INTAKE ══ */
 function openConversationalIntake() {
@@ -9864,12 +9942,6 @@ window.wccEmailSession = function() {
   <div style="display:flex;gap:8px;"><button id="pwaInstallBtn" onclick="installPWA()" style="padding:8px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;">Install App</button><button onclick="dismissPWA()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:0.78rem;">Dismiss</button></div>
 </div>
 
-<!-- ONBOARDING OVERLAY -->
-<div id="onboardOverlay" style="display:none;position:fixed;inset:0;z-index:1100;background:var(--navy);flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;overflow-y:auto;">
-  <div id="onboardContent" style="max-width:560px;width:100%;"></div>
-  <button onclick="skipOnboarding()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;">Skip Tour</button>
-</div>
-
 <!-- PRICING MODAL -->
 <div id="pricingModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:900px;width:100%;margin:2rem auto;padding:2rem;">
@@ -10045,57 +10117,9 @@ window.showPricingInterest=function(plan){
   if(email){var list=JSON.parse(localStorage.getItem('drfitness_pricing_interest')||'[]');list.push({plan:plan,email:email,date:new Date().toISOString()});localStorage.setItem('drfitness_pricing_interest',JSON.stringify(list));alert('Thank you! We will notify you at '+email+' when '+plan+' plan launches.');}
 };
 
-/* ══ ONBOARDING ══ */
-(function(){
-  // Skip onboarding if tourCompleted OR any existing data present
-  if(localStorage.getItem('tourCompleted')==='true')return;
-  if(localStorage.getItem('drfitness_onboarded'))return;
-  if(localStorage.getItem('drfitness_clients_v1') || localStorage.getItem('drfitness_active_client')){
-    localStorage.setItem('tourCompleted','true');
-    return;
-  }
-  if(localStorage.getItem('drfitness_gym_code') || localStorage.getItem('drfitness_trainer_name')){
-    localStorage.setItem('tourCompleted','true');
-    return;
-  }
-  var ob=document.getElementById('onboardOverlay');
-  if(!ob)return;
-  var step=0;
-  var screens=[
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:clamp(2rem,5vw,3.5rem);color:var(--gold);margin-bottom:0.5rem;">DR. FITNESS</div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.85rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Trainer Reference System</div><p style="font-size:1.1rem;color:var(--text);margin-bottom:2rem;line-height:1.6;">Any client. Any goal. Any level. Under 60 seconds.</p><button onclick="obNext()" style="padding:14px 40px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">GET STARTED</button>',
-    '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">HOW IT WORKS</h2><div style="display:flex;flex-direction:column;gap:1.25rem;text-align:left;max-width:400px;margin:0 auto 2rem;"><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">1️⃣</span><div><strong style="color:var(--text);">Select a Client</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">Build their profile once. Every feature personalizes automatically.</p></div></div><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">2️⃣</span><div><strong style="color:var(--text);">Build a Session</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">Choose a training style. Answer 3 questions. Get a complete program.</p></div></div><div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:1.5rem;">3️⃣</span><div><strong style="color:var(--text);">Ask Anything</strong><p style="font-size:0.85rem;color:var(--text2);margin-top:2px;">The AI knows NASM, GLP-1, injuries, nutrition, and more.</p></div></div></div><button onclick="obNext()" style="padding:12px 36px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">NEXT</button>',
-    '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">YOU ARE READY</h2><p style="font-size:1rem;color:var(--text2);margin-bottom:2rem;">Your AI-powered trainer reference system is ready. Build sessions, manage clients, and have every answer at your fingertips.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><button onclick="skipOnboarding();openFastTrackIntake()" style="padding:14px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">YOUR FIRST CLIENT</button><button onclick="skipOnboarding()" style="padding:14px 28px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">EXPLORE THE APP</button></div>'
-  ];
-  window.obNext=function(){step++;if(step>=screens.length)step=screens.length-1;document.getElementById('onboardContent').innerHTML=screens[step];};
-  // Render first screen content, then show overlay
-  try{
-    document.getElementById('onboardContent').innerHTML=screens[0];
-  }catch(e){
-    console.error('Onboarding content render failed:',e);
-  }
-  ob.style.display='flex';
-})();
-window.skipOnboarding=function(){
-  localStorage.setItem('tourCompleted','true');
-  localStorage.setItem('drfitness_onboarded','1');
-  var ob=document.getElementById('onboardOverlay');
-  if(ob)ob.style.display='none';
-  // Show the main app
-  var splash=document.getElementById('splash');
-  if(splash)splash.style.display='none';
-  // Switch to BUILD SESSION (main/home) tab
-  var tabs=document.querySelectorAll('.nav-tab');
-  tabs.forEach(function(t){t.classList.remove('active');});
-  var homeTab=document.querySelector('[data-tab="ask"]');
-  if(homeTab)homeTab.classList.add('active');
-  var panels=document.querySelectorAll('.panel');
-  panels.forEach(function(p){p.classList.remove('active');});
-  var homePanel=document.querySelector('[data-panel="ask"]');
-  if(homePanel)homePanel.classList.add('active');
-  // Show floating AI chat button
-  var fcBtn=document.getElementById('fcBtn');
-  if(fcBtn)fcBtn.style.display='';
-};
+/* ══ ONBOARDING — DISABLED, APP LOADS DIRECTLY ══ */
+localStorage.setItem('tourCompleted','true');
+localStorage.setItem('drfitness_onboarded','1');
 
 /* ══════════════════════════════════════════════════════ */
 /* ══ BUILD 1: DIGITAL WAIVER & FITNESS ASSESSMENT   ══ */
@@ -10445,15 +10469,12 @@ function buildAlerts() {
     }
 
     // TRIGGER 7 — Depth Collection Pending (fast-track clients)
-    if (c.intakeMode === 'fast_track') {
+    if (c.intakeMode === 'fast_track' && !c.profileComplete) {
       var dp = c.depthPhase || 0;
-      var depthLabels = {1:'Lifestyle data needed', 2:'Medical data needed', 3:'Mindset data needed'};
-      if (sessions.length >= 1 && dp < 1) {
-        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:depthLabels[1] + ' (session 1 complete)', days:'', action:'depth1', actionLabel:'COLLECT NOW'});
-      } else if (sessions.length >= 2 && dp < 2) {
-        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:depthLabels[2] + ' (session 2 complete)', days:'', action:'depth2', actionLabel:'COLLECT NOW'});
-      } else if (sessions.length >= 3 && dp < 3) {
-        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:depthLabels[3] + ' (session 3 complete)', days:'', action:'depth3', actionLabel:'COLLECT NOW'});
+      var depthLabels = {1:'Medications',2:'Confidence',3:'Conditions',4:'Sleep and Stress',5:'Nutrition'};
+      var nextPhase = dp + 1;
+      if (sessions.length >= nextPhase && nextPhase <= 5) {
+        alerts.push({priority:3, color:'yellow', client:clientName, clientId:c.id, type:'Profile Update', text:(depthLabels[nextPhase]||'Data') + ' — session ' + nextPhase + ' complete', days:'', action:'depth'+nextPhase, actionLabel:'COLLECT NOW'});
       }
     }
   });
@@ -10517,9 +10538,7 @@ function handleAlert(action, clientId) {
     viewClient(clientId);
     return;
   }
-  if (action === 'depth1') { openDepthModal(clientId, 1); return; }
-  if (action === 'depth2') { openDepthModal(clientId, 2); return; }
-  if (action === 'depth3') { openDepthModal(clientId, 3); return; }
+  if (action && action.indexOf('depth') === 0) { var pNum = parseInt(action.replace('depth','')); if(pNum>=1&&pNum<=5){ openDepthModal(clientId, pNum); return; } }
 
   // Mail-based check-ins
   var subject = '', body = '';
@@ -10943,16 +10962,7 @@ window.autoSaveSession = function(content, style, questionnaire, type) {
       openWaiverModal(c.id);
       return;
     }
-    // Check onboarding %
-    if (client) {
-      var pct = calcOnboardingPct(client);
-      if (pct < 50) {
-        if (!confirm('This client is only ' + pct + '% onboarded. Complete their profile for the best programming results.\n\nCONTINUE ANYWAY?')) {
-          viewClient(c.id);
-          return;
-        }
-      }
-    }
+    // Onboarding % check removed — sessions should never be blocked by incomplete profiles
   }
   _origAutoSaveSession(content, style, questionnaire, type);
 };
@@ -10983,25 +10993,6 @@ setTimeout(function() {
   renderAlerts();
 }, 800);
 
-/* ══ SAFETY FALLBACK — NEVER SHOW BLANK SCREEN ══ */
-setTimeout(function() {
-  var overlay = document.getElementById('onboardOverlay') ||
-                document.querySelector('.onboarding-overlay') ||
-                document.querySelector('[id*="onboard"]') ||
-                document.querySelector('[id*="welcome"]') ||
-                document.querySelector('[id*="tour"]');
-  if (overlay && overlay.style.display !== 'none') {
-    var mainApp = document.getElementById('app') ||
-                  document.getElementById('mainApp') ||
-                  document.querySelector('.app-container') ||
-                  document.querySelector('main');
-    if (mainApp) {
-      overlay.style.display = 'none';
-      mainApp.style.display = 'block';
-      localStorage.setItem('tourCompleted', 'true');
-    }
-  }
-}, 3000);
 
 </script>
 
