@@ -9792,15 +9792,19 @@ window.showPricingInterest=function(plan){
 
 /* ══ ONBOARDING ══ */
 (function(){
-  // Skip onboarding if already completed or if any existing data present
+  // Skip onboarding if tourCompleted OR any existing data present
+  if(localStorage.getItem('tourCompleted')==='true')return;
   if(localStorage.getItem('drfitness_onboarded'))return;
-  if(localStorage.getItem('drfitness_clients_v1') || localStorage.getItem('drfitness_active_client') || localStorage.getItem('drfitness_gym_code')){
-    localStorage.setItem('drfitness_onboarded','1');
+  if(localStorage.getItem('drfitness_clients_v1') || localStorage.getItem('drfitness_active_client')){
+    localStorage.setItem('tourCompleted','true');
+    return;
+  }
+  if(localStorage.getItem('drfitness_gym_code') || localStorage.getItem('drfitness_trainer_name')){
+    localStorage.setItem('tourCompleted','true');
     return;
   }
   var ob=document.getElementById('onboardOverlay');
   if(!ob)return;
-  ob.style.display='flex';
   var step=0;
   var screens=[
     '<div style="font-family:Bebas Neue,sans-serif;font-size:clamp(2rem,5vw,3.5rem);color:var(--gold);margin-bottom:0.5rem;">DR. FITNESS</div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.85rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Trainer Reference System</div><p style="font-size:1.1rem;color:var(--text);margin-bottom:2rem;line-height:1.6;">Any client. Any goal. Any level. Under 60 seconds.</p><button onclick="obNext()" style="padding:14px 40px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;">GET STARTED</button>',
@@ -9808,9 +9812,35 @@ window.showPricingInterest=function(plan){
     '<h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:1.5rem;">YOU ARE READY</h2><p style="font-size:1rem;color:var(--text2);margin-bottom:2rem;">Your AI-powered trainer reference system is ready. Build sessions, manage clients, and have every answer at your fingertips.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><button onclick="skipOnboarding();openIntakeWizard()" style="padding:14px 28px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">YOUR FIRST CLIENT</button><button onclick="skipOnboarding()" style="padding:14px 28px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;">EXPLORE THE APP</button></div>'
   ];
   window.obNext=function(){step++;if(step>=screens.length)step=screens.length-1;document.getElementById('onboardContent').innerHTML=screens[step];};
-  document.getElementById('onboardContent').innerHTML=screens[0];
+  // Render first screen content, then show overlay
+  try{
+    document.getElementById('onboardContent').innerHTML=screens[0];
+  }catch(e){
+    console.error('Onboarding content render failed:',e);
+  }
+  ob.style.display='flex';
 })();
-window.skipOnboarding=function(){localStorage.setItem('drfitness_onboarded','1');var ob=document.getElementById('onboardOverlay');if(ob)ob.style.display='none';};
+window.skipOnboarding=function(){
+  localStorage.setItem('tourCompleted','true');
+  localStorage.setItem('drfitness_onboarded','1');
+  var ob=document.getElementById('onboardOverlay');
+  if(ob)ob.style.display='none';
+  // Show the main app
+  var splash=document.getElementById('splash');
+  if(splash)splash.style.display='none';
+  // Switch to BUILD SESSION (main/home) tab
+  var tabs=document.querySelectorAll('.nav-tab');
+  tabs.forEach(function(t){t.classList.remove('active');});
+  var homeTab=document.querySelector('[data-tab="ask"]');
+  if(homeTab)homeTab.classList.add('active');
+  var panels=document.querySelectorAll('.panel');
+  panels.forEach(function(p){p.classList.remove('active');});
+  var homePanel=document.querySelector('[data-panel="ask"]');
+  if(homePanel)homePanel.classList.add('active');
+  // Show floating AI chat button
+  var fcBtn=document.getElementById('fcBtn');
+  if(fcBtn)fcBtn.style.display='';
+};
 
 /* ══════════════════════════════════════════════════════ */
 /* ══ BUILD 1: DIGITAL WAIVER & FITNESS ASSESSMENT   ══ */
@@ -10681,6 +10711,26 @@ if (typeof _origCompleteSession === 'function') {
 setTimeout(function() {
   renderAlerts();
 }, 800);
+
+/* ══ SAFETY FALLBACK — NEVER SHOW BLANK SCREEN ══ */
+setTimeout(function() {
+  var overlay = document.getElementById('onboardOverlay') ||
+                document.querySelector('.onboarding-overlay') ||
+                document.querySelector('[id*="onboard"]') ||
+                document.querySelector('[id*="welcome"]') ||
+                document.querySelector('[id*="tour"]');
+  if (overlay && overlay.style.display !== 'none') {
+    var mainApp = document.getElementById('app') ||
+                  document.getElementById('mainApp') ||
+                  document.querySelector('.app-container') ||
+                  document.querySelector('main');
+    if (mainApp) {
+      overlay.style.display = 'none';
+      mainApp.style.display = 'block';
+      localStorage.setItem('tourCompleted', 'true');
+    }
+  }
+}, 3000);
 
 </script>
 
