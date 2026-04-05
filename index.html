@@ -7085,7 +7085,7 @@ function cpSaveClients() {
 }
 function cpGenId() { return 'cp_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); }
 function cpInitials(fname, lname) {
-  return ((fname||'?')[0] + (lname||'')(0||'')).toUpperCase().substring(0,2) || '?';
+  return ((fname||'?')[0] + ((lname||'')[0]||'')).toUpperCase().substring(0,2) || '?';
 }
 function cpGetInitials(c) {
   return ((c.fname||'')[0]||'?').toUpperCase() + ((c.lname||'')[0]||'').toUpperCase() || '??';
@@ -7466,8 +7466,10 @@ function cpSaveClient() {
 
 function renderClients() {
   cpLoadClients();
-  const search = (document.getElementById('cpSearch').value||'').toLowerCase();
-  const filter = document.getElementById('cpFilter').value;
+  var searchEl = document.getElementById('cpSearch');
+  var filterEl = document.getElementById('cpFilter');
+  const search = (searchEl ? searchEl.value||'' : '').toLowerCase();
+  const filter = filterEl ? filterEl.value : '';
   let list = cpClients.filter(c => {
     const name = ((c.fname||'') + ' ' + (c.lname||'')).toLowerCase();
     if (search && !name.includes(search)) return false;
@@ -8951,7 +8953,7 @@ function saveFastTrackAsClient(buildSession) {
   if (overlay) overlay.remove();
 
   setActiveClient(client.id);
-  renderClients();
+  try { renderClients(); } catch(e) { console.warn('renderClients error after fast track save:', e); }
   showBuildToast(client.fname);
 
   if (buildSession) {
@@ -9477,7 +9479,7 @@ function saveIntakeAsClient(buildProgram) {
   // Close wizard
   var overlay = document.getElementById('intakeWizardOverlay');
   if(overlay) overlay.remove();
-  renderClients();
+  try { renderClients(); } catch(e) { console.warn('renderClients error after intake save:', e); }
   if(buildProgram === true || buildProgram === 'program') {
     setActiveClient(client.id);
     showBuildToast(client.fname);
@@ -9486,6 +9488,13 @@ function saveIntakeAsClient(buildProgram) {
     setActiveClient(client.id);
     showBuildToast(client.fname);
     setTimeout(function(){ buildSessionNow(client.id); }, 300);
+  } else {
+    // Profile saved only — show confirmation toast
+    var pToast = document.createElement('div');
+    pToast.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--gold);color:var(--navy);padding:10px 24px;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.08em;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.3s;';
+    pToast.textContent = (client.fname || 'Client') + ' profile saved successfully';
+    document.body.appendChild(pToast);
+    setTimeout(function(){ pToast.style.opacity='0'; setTimeout(function(){ pToast.remove(); }, 300); }, 3000);
   }
 }
 
