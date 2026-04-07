@@ -3872,11 +3872,6 @@ function filterPeptides() {
 .waiver-badge.reassess{background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.35);color:var(--gold);cursor:pointer;}
 .assess-badge{font-size:0.58rem;font-weight:700;letter-spacing:0.06em;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;}
 
-/* ONBOARDING PROGRESS */
-.ob-progress-wrap{margin-top:8px;}
-.ob-progress-bar{width:100%;height:6px;background:var(--navy3);border-radius:3px;overflow:hidden;}
-.ob-progress-fill{height:100%;border-radius:3px;transition:width 0.3s;}
-.ob-progress-label{font-size:0.62rem;color:var(--text3);margin-top:3px;display:flex;justify-content:space-between;}
 
 /* ALERTS PANEL */
 .alerts-panel{background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;}
@@ -7504,8 +7499,6 @@ function renderClients() {
     const lastSes = sessions.length > 0 ? new Date(sessions[0].date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : null;
     const levelMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Advanced'};
     const lvl = levelMap[c.trainingAge]||'';
-    const obPct = calcOnboardingPct(c);
-    const obColor = obPct <= 40 ? 'var(--red)' : obPct <= 70 ? 'var(--amber)' : obPct <= 90 ? 'var(--gold)' : 'var(--green)';
     const profStr = calcProfileStrength(c);
     const profColor = profStr <= 40 ? 'var(--red)' : profStr <= 70 ? 'var(--amber)' : profStr <= 90 ? 'var(--gold)' : 'var(--green)';
     const isIncomplete = c.intakeMode === 'fast_track' && !c.profileComplete;
@@ -7517,7 +7510,6 @@ function renderClients() {
     return `<div class="cp-card${isActive?' active-client':''}" id="cpc_${c.id}">
       ${isActive?'<div class="cp-active-badge">ACTIVE</div>':''}
       ${isIncomplete?'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-family:Barlow Condensed,sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);background:rgba(244,162,97,0.12);border:1px solid rgba(244,162,97,0.3);padding:2px 8px;border-radius:3px;">PROFILE INCOMPLETE</span><div style="flex:1;height:3px;background:var(--navy3);border-radius:2px;"><div style="height:100%;width:'+profStr+'%;background:'+profColor+';border-radius:2px;transition:width 0.3s;"></div></div><span style="font-size:0.6rem;color:var(--text3);">'+profStr+'%</span></div>':''}
-      <div class="ob-progress-wrap"><div class="ob-progress-bar"><div class="ob-progress-fill" style="width:${obPct}%;background:${obColor};"></div></div><div class="ob-progress-label"><span>${obPct}% onboarded</span></div></div>
       <div class="cp-card-top" style="margin-top:6px;">
         <div class="cp-avatar">${initials}</div>
         <div>
@@ -7663,9 +7655,6 @@ function viewClient(id) {
     </div>
   `).join('');
 
-  // Onboarding checklist section
-  const obChecklist = buildOnboardingChecklist(c);
-  html_sections += obChecklist;
 
   // Legal / Waiver section
   if (c.waiverSigned) {
@@ -10126,9 +10115,6 @@ window.showPricingInterest=function(plan){
   if(email){var list=JSON.parse(localStorage.getItem('drfitness_pricing_interest')||'[]');list.push({plan:plan,email:email,date:new Date().toISOString()});localStorage.setItem('drfitness_pricing_interest',JSON.stringify(list));alert('Thank you! We will notify you at '+email+' when '+plan+' plan launches.');}
 };
 
-/* ══ ONBOARDING — DISABLED, APP LOADS DIRECTLY ══ */
-localStorage.setItem('tourCompleted','true');
-localStorage.setItem('drfitness_onboarded','1');
 
 /* ══════════════════════════════════════════════════════ */
 /* ══ BUILD 1: DIGITAL WAIVER & FITNESS ASSESSMENT   ══ */
@@ -10899,61 +10885,6 @@ window.printComparison = function(clientId) {
   setTimeout(function(){w.print();},500);
 };
 
-/* ══════════════════════════════════════════════════════ */
-/* ══ ONBOARDING CHECKLIST                            ══ */
-/* ══════════════════════════════════════════════════════ */
-
-function calcOnboardingPct(c) {
-  var items = 0;
-  var total = 9;
-  if (c.waiverSigned) items++;
-  if (c.emergencyName || c.emergencyPhone) items++;
-  if (c.conversationDone) items++;
-  // Intake checklist (phase 2) — has goals and basic info
-  if ((c.goals||[]).length > 0 && c.fname) items++;
-  if (c.assessmentDate) items++;
-  // Starting photos
-  var photos = getClientPhotos(c.id);
-  if (photos.length > 0) items++;
-  // First program built
-  var sessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
-  if (sessions.length > 0) items++;
-  // First session scheduled
-  var sched = (typeof getSchedule === 'function') ? getSchedule() : [];
-  var hasScheduled = sched.some(function(s){return s.clientId===c.id;});
-  if (hasScheduled) items++;
-  // Welcome message sent
-  if (c.welcomeTasks && c.welcomeTasks.message) items++;
-  return Math.round((items / total) * 100);
-}
-
-function buildOnboardingChecklist(c) {
-  var photos = getClientPhotos(c.id);
-  var sessions = (typeof getClientSessions === 'function') ? getClientSessions(c.id) : [];
-  var sched = (typeof getSchedule === 'function') ? getSchedule() : [];
-  var hasScheduled = sched.some(function(s){return s.clientId===c.id;});
-  var pct = calcOnboardingPct(c);
-  var obColor = pct <= 40 ? 'var(--red)' : pct <= 70 ? 'var(--amber)' : pct <= 90 ? 'var(--gold)' : 'var(--green)';
-
-  function item(done, label) {
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:0.82rem;color:' + (done?'var(--text)':'var(--text3)') + ';' + (done?'':'opacity:0.7;') + '">' +
-      '<span style="color:' + (done?'var(--green)':'var(--text3)') + ';">' + (done?'&#9745;':'&#9744;') + '</span> ' + label + '</div>';
-  }
-
-  var html = '<div class="cp-detail-section"><div class="cp-detail-label">Onboarding Checklist</div>';
-  html += '<div style="margin-bottom:10px;"><div class="ob-progress-bar" style="height:8px;"><div class="ob-progress-fill" style="width:' + pct + '%;background:' + obColor + ';"></div></div><div style="font-size:0.72rem;color:var(--text2);margin-top:4px;">' + pct + '% complete</div></div>';
-  html += item(c.waiverSigned, 'Waiver signed');
-  html += item(c.emergencyName || c.emergencyPhone, 'Emergency contact added');
-  html += item(c.conversationDone, 'Intake conversation completed (Phase 1)');
-  html += item((c.goals||[]).length > 0 && c.fname, 'Intake checklist completed (Phase 2)');
-  html += item(!!c.assessmentDate, 'Baseline fitness assessment done');
-  html += item(photos.length > 0, 'Starting photos taken (optional)');
-  html += item(sessions.length > 0, 'First program built');
-  html += item(hasScheduled, 'First session scheduled');
-  html += item(c.welcomeTasks && c.welcomeTasks.message, 'Welcome message sent');
-  html += '</div>';
-  return html;
-}
 
 /* ══ WAIVER CHECK ON SESSION LOG ══ */
 var _origAutoSaveSession = autoSaveSession;
@@ -10971,7 +10902,6 @@ window.autoSaveSession = function(content, style, questionnaire, type) {
       openWaiverModal(c.id);
       return;
     }
-    // Onboarding % check removed — sessions should never be blocked by incomplete profiles
   }
   _origAutoSaveSession(content, style, questionnaire, type);
 };
