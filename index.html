@@ -28,15 +28,6 @@ body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;fo
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(-55deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 28px);pointer-events:none;z-index:0;}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;background:var(--navy);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;}
-.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:0.04em;color:var(--gold);line-height:1;margin-bottom:0.2rem;}
-.splash-sub{font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text2);margin-bottom:2.5rem;}
-.splash-disc{background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:var(--radius);padding:1.25rem 1.5rem;max-width:480px;margin-bottom:2rem;text-align:left;}
-.splash-disc h3{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.6rem;display:flex;align-items:center;gap:6px;}
-.splash-disc p{font-size:0.82rem;color:var(--text2);line-height:1.65;}
-.splash-disc strong{color:var(--text);font-weight:500;}
-.splash-enter{background:var(--gold);color:var(--navy);border:none;padding:14px 40px;border-radius:var(--radius);font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
-.splash-enter:hover{background:var(--gold2);transform:translateY(-1px);}
 
 /* HEADER */
 header{position:sticky;top:0;z-index:100;background:rgba(10,22,40,0.97);backdrop-filter:blur(14px);border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;}
@@ -246,7 +237,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
 <style id="print-styles">
 @media print {
-  #splash, header, .nav-tabs, .lang-toggle { display: none !important; }
+  header, .nav-tabs, .lang-toggle { display: none !important; }
   body { background: white !important; color: black !important; }
   .panel { display: block !important; }
   .panel:not([data-panel="workout"]) { display: none !important; }
@@ -261,24 +252,6 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </head>
 <body>
 
-<div id="splash">
-  <div style="margin-bottom:1rem;font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--text3);">Best Fitness — Professional Tools</div>
-  <div class="splash-logo" style="font-size:4.5rem;margin-bottom:0;">Dr. Fitness</div>
-  <div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.12em;color:var(--text);margin-bottom:0.3rem;">Trainer Reference System</div>
-  <div class="splash-sub" style="margin-bottom:1.5rem;">Powered by Claude AI · NASM · ACE · EPI · ISSA</div>
-  <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;justify-content:center;">
-    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">46</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">Peptide Protocols</div></div>
-    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">20</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">Training Styles</div></div>
-    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">12-Week</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">Program Capability</div></div>
-    <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--gold-dim);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">AI</div><div style="font-size:0.62rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;">On Every Screen</div></div>
-  </div>
-  <div class="splash-disc">
-    <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Scope of Practice Notice</h3>
-    <p>DR. FITNESS is an <strong>AI-powered expert reference system built exclusively for certified personal trainers</strong>. It takes any client — regardless of injuries, medications, confidence level, or goals — and builds a complete personalized program in under 60 seconds. All AI outputs are for trainer education and programming guidance only. Always refer clients with medical concerns to <strong>their physician</strong>. Nutritional guidance is educational — refer detailed dietary therapy to a Registered Dietitian.</p>
-  </div>
-  <button class="splash-enter" onclick="document.getElementById('splash').style.display='none'">I Understand — Enter Dr. Fitness</button>
-  <div style="margin-top:1.5rem;font-size:0.65rem;color:var(--text3);">Dr. Michael Lovato EdD · CEO, AILG · Fitness Director, Best Fitness</div>
-</div>
 
 <header>
   <div><div class="hdr-logo">Dr. Fitness</div><div class="hdr-tagline">Trainer Reference System</div></div>
@@ -8076,9 +8049,6 @@ const i18n = {
     tab_plbb: "🏆 PL & BB",
     tab_peptides: "🔬 Peptides",
     chat_placeholder: "Ask about a client situation, injury, nutrition, workout generation, Olympic lifting, recovery…",
-    splash_title: "DR. FITNESS",
-    splash_sub: "TRAINER REFERENCE SYSTEM",
-    splash_btn: "I UNDERSTAND — ENTER",
     yt_title: "📺 Video Resource Library",
     yt_sub: "Curated YouTube channels and videos by category. Tap any link to open in YouTube.",
   },
@@ -8100,9 +8070,6 @@ const i18n = {
     tab_plbb: "🏆 PL & BB",
     tab_peptides: "🔬 Péptidos",
     chat_placeholder: "Pregunta sobre una situación de cliente, lesión, nutrición, entrenamiento, levantamiento olímpico, recuperación…",
-    splash_title: "DR. FITNESS",
-    splash_sub: "SISTEMA DE REFERENCIA PARA ENTRENADORES",
-    splash_btn: "ENTIENDO — INGRESAR",
     yt_title: "📺 Biblioteca de Recursos en Video",
     yt_sub: "Canales y videos de YouTube curados por categoría.",
   },
@@ -8124,9 +8091,6 @@ const i18n = {
     tab_plbb: "🏆 PL & BB",
     tab_peptides: "🔬 Peptídeos",
     chat_placeholder: "Pergunte sobre uma situação de cliente, lesão, nutrição, treino, levantamento olímpico, recuperação…",
-    splash_title: "DR. FITNESS",
-    splash_sub: "SISTEMA DE REFERÊNCIA PARA TREINADORES",
-    splash_btn: "ENTENDO — ENTRAR",
     yt_title: "📺 Biblioteca de Recursos em Vídeo",
     yt_sub: "Canais e vídeos do YouTube curados por categoria.",
   }
@@ -8160,13 +8124,6 @@ function setLanguage(lang) {
   const qiEl = document.getElementById('qi');
   if (qiEl) qiEl.placeholder = t.chat_placeholder;
 
-  // Update splash if visible
-  const splashLogo = document.querySelector('.splash-logo');
-  const splashSub = document.querySelector('.splash-sub');
-  const splashBtn = document.querySelector('.splash-enter');
-  if (splashLogo) splashLogo.textContent = t.splash_title;
-  if (splashSub) splashSub.textContent = t.splash_sub;
-  if (splashBtn) splashBtn.textContent = t.splash_btn;
 
   // Update AI system prompt language instruction
   updateSysPromptLang(lang);
