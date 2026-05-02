@@ -1,0 +1,25 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Local backup files (never commit working-copy backups)
+*_backup_*.html
+*.bak
+*~
+
+# Local env / secrets
+.env
+.env.local
+.env.*.local
+
+# Netlify local dev artifacts
+.netlify/
+
+# Node (defensive — no node_modules currently, but if added later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

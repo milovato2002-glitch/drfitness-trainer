@@ -1,3 +1,10 @@
+// Hard caps on user-controllable fields. max_tokens is capped for cost
+// protection; model defaults preserve current behavior for any caller that
+// doesn't pass one.
+const MAX_TOKENS_CAP = 4000;
+const DEFAULT_MAX_TOKENS = 1000;
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
+
 exports.handler = async function(event, context) {
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -23,6 +30,10 @@ exports.handler = async function(event, context) {
   }
   try {
     const body = JSON.parse(event.body);
+    const requestedTokens = Number(body.max_tokens) || DEFAULT_MAX_TOKENS;
+    const cappedTokens = Math.min(Math.max(1, requestedTokens), MAX_TOKENS_CAP);
+    const model = body.model || DEFAULT_MODEL;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -31,8 +42,8 @@ exports.handler = async function(event, context) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
+        model: model,
+        max_tokens: cappedTokens,
         system: body.system || '',
         messages: body.messages || []
       })

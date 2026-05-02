@@ -809,7 +809,7 @@ window.wccGenerate = async function(){
     var res = await fetch('/.netlify/functions/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
     });
     var d = await res.json();
     if(d.content && d.content[0]){
@@ -5582,7 +5582,7 @@ async function send(){
   msgs.push({role:'user',content:pfx+text});
   addMsg('user',text);addTyping();
   try{
-    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS+(window.langSuffix||'')+(window.cpClientContext||''),messages:msgs})});
+    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:SYS+(window.langSuffix||'')+(window.cpClientContext||''),messages:msgs})});
     const d=await res.json();removeTyping();
     if(d.content&&d.content[0]){const r=d.content[0].text;msgs.push({role:'assistant',content:r});addMsg('ai',r);}
     else throw new Error('No response');
@@ -6810,7 +6810,7 @@ Be specific, practical, and aligned to NASM OPT principles. Use professional tra
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         system: SYS + (window.langSuffix || ''),
         messages: [{role:'user', content: prompt}]
@@ -7737,7 +7737,7 @@ Provide specific recommendations covering: recommended OPT phase and why, key ex
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 600,
         system: 'You are Dr. Fitness, an elite trainer reference AI. Provide direct, practical, evidence-based recommendations for certified personal trainers. Be concise and specific.',
         messages: [{role:'user', content: prompt}]
@@ -7820,10 +7820,10 @@ window.deleteProgressNote = function(idx) {
   renderProgressNotes();
 };
 
-function cpBuildClientContext(c) {
-  if (!c) return '';
-  return `\n\n[ACTIVE CLIENT CONTEXT]\nTrainer is currently working with: ${c.fname} ${c.lname||''}, Age ${c.age||'N/A'}, ${c.sex||''}. Goals: ${(c.goals||[]).join(', ')||'not specified'}. Special population: ${(c.special||[]).filter(s=>s&&s!=='none').join(', ')||'none'}. OPT Phase: ${c.optPhase ? 'Phase '+c.optPhase : 'not assessed'}. Injuries: ${(c.injuries||[]).filter(x=>x&&x!=='no_injuries').join(', ')||'none reported'}. Medical conditions: ${(c.conditions||[]).filter(x=>x&&x!=='none_hx').join(', ')||'none reported'}. GLP-1 medication: ${c.glp1Med&&c.glp1Med!=='no'?c.glp1Med:'no'}. Training style: ${c.style||'not specified'}. Respond with this specific client in mind.`;
-}
+// cpBuildClientContext is defined further down (line ~8321) — the
+// comprehensive confidence-aware version. The two earlier definitions that
+// previously lived here and at line ~8045 were dead code (overridden) and
+// have been removed.
 
 function cpOpenAiChat() {
   closeCpModal();
@@ -8040,17 +8040,6 @@ function updateInjuryConsiderations(c) {
   if (existing) { existing.outerHTML = html; }
   else { injPanel.insertAdjacentHTML('afterbegin', html); }
 }
-
-// Override cpBuildClientContext with expanded version
-cpBuildClientContext = function(c) {
-  if (!c) return '';
-  var special = (c.special||[]).filter(function(s){return s&&s!=='none';}).join(', ')||'none';
-  var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).join(', ')||'none reported';
-  var conditions = (c.conditions||[]).filter(function(x){return x&&x!=='none_hx';}).join(', ')||'none reported';
-  var meds = c.currentMeds || c.medications || 'none listed';
-  var clearance = c.physClearanceObtained ? 'yes' : 'not confirmed';
-  return '\n\nACTIVE CLIENT: Name ' + (c.fname||'') + ' ' + (c.lname||'') + ', Age ' + (c.age||'N/A') + ', Weight ' + (c.weight||'N/A') + 'lbs, Level ' + (c.trainingAge||'not assessed') + ', OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + ', Goal ' + ((c.goals||[]).join(', ')||'not specified') + ', Special Populations ' + special + ', Medications ' + meds + ', Physician Clearance ' + clearance + '. Tailor all responses to this client.';
-};
 
 // Init
 cpLoadClients();
@@ -8290,7 +8279,7 @@ window.generateSuppStack = async function(){
 
   try{
     var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sysPrompt,messages:[{role:'user',content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sysPrompt,messages:[{role:'user',content:prompt}]})});
     var d = await res.json();
     if(d.content&&d.content[0]){
       var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
@@ -8307,7 +8296,7 @@ window.checkSuppInteractions = async function(){
   output.innerHTML = '<div style="color:var(--text3);font-size:0.82rem;">Checking interactions...</div>';
   var prompt = 'Check for interactions between these supplements: '+supps+'\nAnd these medications: '+(meds||'none')+'\n\nFor each combination state: SAFE / USE WITH CAUTION / CONSULT PHYSICIAN. Explain any concerns briefly. End with disclaimer to verify with pharmacist.';
   try{
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'You are a supplement safety advisor for personal trainers. Provide evidence-based interaction information. Always recommend consulting a physician or pharmacist for medical decisions.',messages:[{role:'user',content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:'You are a supplement safety advisor for personal trainers. Provide evidence-based interaction information. Always recommend consulting a physician or pharmacist for medical decisions.',messages:[{role:'user',content:prompt}]})});
     var d = await res.json();
     if(d.content&&d.content[0]){
       var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
@@ -8317,8 +8306,10 @@ window.checkSuppInteractions = async function(){
 };
 
 /* ══ SYSTEM 3: CONFIDENCE-AWARE AI RESPONSES ══ */
-// Override cpBuildClientContext to include confidence and mindset data
-cpBuildClientContext = function(c) {
+// cpBuildClientContext — confidence-aware client context builder used by all
+// AI endpoints that take active-client context. This is the single canonical
+// definition (two earlier overridden versions were removed).
+function cpBuildClientContext(c) {
   if (!c) return '';
   var special = (c.special||[]).filter(function(s){return s&&s!=='none'&&s!=='None';}).join(', ')||'none';
   var injuries = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries'&&x!=='None';}).join(', ')||'none reported';
@@ -8374,7 +8365,7 @@ cpBuildClientContext = function(c) {
     'MINDSET: Confidence ' + confidence + '/10, Motivation ' + motivation + ', Gym Comfort ' + gymComfort + ', Body Image ' + bodyImage + ', Biggest Fear ' + biggestFear + ', Success Vision ' + successVision + ', Barriers ' + barriers + '\n' +
     'OPT Phase ' + (c.optPhase ? 'Phase '+c.optPhase : 'not assessed') + '. Tailor all responses to this specific client.' + toneRule;
   return ctx;
-};
+}
 
 /* ══ BUILD SESSION NOW — from client card ══ */
 /* ══ EXPERIENCE-BASED ROUTING ══ */
@@ -8499,7 +8490,7 @@ async function generateBeginnerSession(c, answers) {
     '\n\nBEGINNER RULES: Simple movement patterns. Technique over load. Encouraging coaching cues throughout. Clear simple instructions. NASM Phase 1 parameters. Every exercise must have a modification for total beginners.';
   try {
     var sysP = (typeof SYS!=='undefined')?SYS:'You are Dr. Fitness.';
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sysP,messages:[{role:'user',content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sysP,messages:[{role:'user',content:prompt}]})});
     var d = await res.json();
     if(d.content&&d.content[0]){
       document.getElementById('beginnerBuilder').remove();
@@ -8789,7 +8780,7 @@ window.generateCompleteProgram = async function() {
 
   try{
     var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})});
     var d = await res.json();
     if(d.content&&d.content[0]){
       var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.5rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
@@ -9145,7 +9136,7 @@ window.convoRespond = async function(text) {
       var followUpPrompt = step === 0
         ? 'The trainer said about their client: "'+text+'". Ask ONE specific follow-up question referencing something they said. Be conversational and warm. Do not use apostrophes in contractions.'
         : 'The trainer previously said: "'+window._convoHistory[0].content+'". Then added: "'+text+'". Ask ONE final question: "What is the biggest challenge or barrier you expect with this client — what has stopped them before or what might get in the way?" Frame it naturally referencing their previous answers.';
-      var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
+      var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
       var d = await res.json();
       if (d.content && d.content[0]) aiDiv.textContent = d.content[0].text;
       else aiDiv.textContent = step===0 ? 'Tell me more — what specifically are they hoping to achieve?' : 'What is the biggest challenge or barrier you expect with this client?';
@@ -9192,13 +9183,11 @@ function sendIntakeToClient() {
 }
 window.sendIntakeToClient = sendIntakeToClient;
 
+// 6-character intake code prompt removed (was a placeholder gate for the
+// client-side intake-by-code workflow). Until proper auth (Supabase, Phase 3)
+// is in place, the INTAKE button opens the trainer-facing wizard directly.
 function openClientIntakeEntry() {
-  var code = prompt('Enter your 6-character intake code:');
-  if(!code || code.length !== 6) return;
-  code = code.toUpperCase();
-  var stored = localStorage.getItem('drfitness_intake_code_'+code);
-  if(!stored) { alert('Invalid code. Check with your trainer.'); return; }
-  openIntakeWizard(code);
+  openIntakeWizard();
 }
 window.openClientIntakeEntry = openClientIntakeEntry;
 
@@ -11321,7 +11310,7 @@ window.generateAIMealPlan = async function() {
     '\nFor each of the ' + ctx.mealsPerDay + ' meals include:\n- Meal name and time (e.g., Meal 1 - Breakfast 7:00 AM)\n- List of foods with exact serving sizes\n- For each food: carbs/protein/fat/kcal\n- Meal total row\n- One coaching note explaining the rationale\n\nEnd with a Daily Total Summary table comparing actual vs target macros with adjustment notes.\n\nFormat clearly with ### headers for each meal. Use **bold** for meal totals. Be specific with gram weights.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000, system:'You are Dr. Fitness, an expert nutrition coach for certified personal trainers. Generate detailed, evidence-based, client-specific meal plans. Be precise with macros. Format cleanly with markdown.', messages:[{role:'user', content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:2000, system:'You are Dr. Fitness, an expert nutrition coach for certified personal trainers. Generate detailed, evidence-based, client-specific meal plans. Be precise with macros. Format cleanly with markdown.', messages:[{role:'user', content:prompt}]})});
     var d = await res.json();
     if (d.content && d.content[0]) {
       var text = d.content[0].text
@@ -11364,7 +11353,7 @@ window.generateAIFoodPlan = async function() {
     'Format with ### headers for each section. Be specific with serving sizes.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1500, system:'You are Dr. Fitness, an expert nutrition coach. Generate detailed client-specific food recommendations. Format with markdown tables and headers.', messages:[{role:'user', content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1500, system:'You are Dr. Fitness, an expert nutrition coach. Generate detailed client-specific food recommendations. Format with markdown tables and headers.', messages:[{role:'user', content:prompt}]})});
     var d = await res.json();
     if (d.content && d.content[0]) {
       var text = d.content[0].text
@@ -11406,7 +11395,7 @@ window.generateAISuppStack = async function() {
     '\n\nFor each supplement include:\n- Name\n- Tier badge: TIER 1 — FOUNDATIONAL or TIER 2 — PERFORMANCE or TIER 2 — RECOVERY\n- Specific dose and form\n- Timing and how to take\n- Why recommended for THIS specific client (reference their age, goal, training frequency)\n\nInclude 4-6 supplements total. Prioritize by evidence grade. Start with the most important.\n\nEnd with a Scope of Practice note that all supplements should be discussed with their physician.\n\nFormat with ### for each supplement name.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1500, system:'You are Dr. Fitness, an expert supplement advisor for certified personal trainers. Provide evidence-based, client-specific supplement recommendations using NASM, ISSN, and ACE guidelines. Always stay within trainer scope of practice.', messages:[{role:'user', content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1500, system:'You are Dr. Fitness, an expert supplement advisor for certified personal trainers. Provide evidence-based, client-specific supplement recommendations using NASM, ISSN, and ACE guidelines. Always stay within trainer scope of practice.', messages:[{role:'user', content:prompt}]})});
     var d = await res.json();
     if (d.content && d.content[0]) {
       var text = d.content[0].text
@@ -11446,7 +11435,7 @@ window.generateAICoachingNotes = async function() {
     (ctx.isOlder ? 'Include 55+ specific guidance: anabolic resistance, leucine threshold, vitamin D and calcium.\n' : '');
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1200, system:'You are Dr. Fitness, an expert coaching advisor. Generate practical, evidence-based coaching notes for personal trainers. Use NASM, ACE, and ISSN guidelines. Be specific and actionable.', messages:[{role:'user', content:prompt}]})});
+    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1200, system:'You are Dr. Fitness, an expert coaching advisor. Generate practical, evidence-based coaching notes for personal trainers. Use NASM, ACE, and ISSN guidelines. Be specific and actionable.', messages:[{role:'user', content:prompt}]})});
     var d = await res.json();
     if (d.content && d.content[0]) {
       var text = d.content[0].text
