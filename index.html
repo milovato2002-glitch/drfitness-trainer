@@ -5285,6 +5285,7 @@ SCOPE OF PRACTICE: Trainers do not diagnose injuries. On every injury response e
 
 RESPONSE FORMAT: Lead with most actionable content. Bold headers, bullet points. For injury: MODIFICATIONS: / AVOID: / ALTERNATIVES:. For workouts: complete session with sets/reps/tempo/rest. For OPT/lifting: reference the specific phases and drills. Dense value — no filler.`;
 
+console.log('init: main script start');
 let msgs=[], activeMode='general', loading=false;
 const welcomeEl=document.getElementById('welcomeEl');
 const msgsEl=document.getElementById('msgsEl');
@@ -5292,44 +5293,57 @@ const qi=document.getElementById('qi');
 const sendBtn=document.getElementById('sendBtn');
 
 /* NAV */
-document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');
-  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-panel="'+t.dataset.tab+'"]').classList.add('active');
-}));
+try {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
+    if (!t.dataset.tab) return;
+    const panel = document.querySelector('[data-panel="'+t.dataset.tab+'"]');
+    if (!panel) { console.warn('No panel found for tab:', t.dataset.tab); return; }
+    document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    panel.classList.add('active');
+  }));
+  console.log('init: nav-tabs OK');
+} catch (err) { console.error('init: nav-tabs FAILED:', err); }
 
 /* MODE CHIPS */
-document.querySelectorAll('.mode-chip').forEach(c=>c.addEventListener('click',()=>{
-  document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));
-  c.classList.add('active');
-  activeMode=c.dataset.m;
-}));
+try {
+  document.querySelectorAll('.mode-chip').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    activeMode=c.dataset.m;
+  }));
+  console.log('init: mode-chips OK');
+} catch (err) { console.error('init: mode-chips FAILED:', err); }
 
-/* QA + WELCOME CARDS */
-document.querySelectorAll('.qa-btn').forEach(b=>b.addEventListener('click',()=>{closeSidebar();switchAsk();qi.value=b.dataset.p;send();}));
-document.querySelectorAll('.w-card').forEach(c=>c.addEventListener('click',()=>{
-  if(c.dataset.m){document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));const ch=document.querySelector('.mode-chip[data-m="'+c.dataset.m+'"]');if(ch){ch.classList.add('active');activeMode=c.dataset.m;}}
-  qi.value=c.dataset.p;send();
-}));
+/* QA + WELCOME CARDS — wires up Quick Reference qa-btn buttons */
+try {
+  var qaCount = document.querySelectorAll('.qa-btn').length;
+  document.querySelectorAll('.qa-btn').forEach(b=>b.addEventListener('click',()=>{closeSidebar();switchAsk();if(qi)qi.value=b.dataset.p;send();}));
+  document.querySelectorAll('.w-card').forEach(c=>c.addEventListener('click',()=>{
+    if(c.dataset.m){document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));const ch=document.querySelector('.mode-chip[data-m="'+c.dataset.m+'"]');if(ch){ch.classList.add('active');activeMode=c.dataset.m;}}
+    if(qi)qi.value=c.dataset.p;send();
+  }));
+  console.log('init: qa-btns + welcome-cards OK ('+qaCount+' Quick Reference buttons wired)');
+} catch (err) { console.error('init: qa-btns + welcome-cards FAILED:', err); }
 
 function switchAsk(){
   document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-tab="ask"]').classList.add('active');
+  var askTab = document.querySelector('[data-tab="ask"]'); if (askTab) askTab.classList.add('active');
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-panel="ask"]').classList.add('active');
+  var askPanel = document.querySelector('[data-panel="ask"]'); if (askPanel) askPanel.classList.add('active');
 }
 
 /* SIDEBAR OVERLAY */
 function openSidebar(){
-  document.getElementById('qaSidebar').classList.add('open');
-  document.getElementById('qaSidebarOverlay').classList.add('open');
-  document.getElementById('qaPullTab').style.display='none';
+  var s=document.getElementById('qaSidebar'); if(s) s.classList.add('open');
+  var o=document.getElementById('qaSidebarOverlay'); if(o) o.classList.add('open');
+  var p=document.getElementById('qaPullTab'); if(p) p.style.display='none';
 }
 function closeSidebar(){
-  document.getElementById('qaSidebar').classList.remove('open');
-  document.getElementById('qaSidebarOverlay').classList.remove('open');
-  document.getElementById('qaPullTab').style.display='';
+  var s=document.getElementById('qaSidebar'); if(s) s.classList.remove('open');
+  var o=document.getElementById('qaSidebarOverlay'); if(o) o.classList.remove('open');
+  var p=document.getElementById('qaPullTab'); if(p) p.style.display='';
 }
 window.openSidebar=openSidebar;
 window.closeSidebar=closeSidebar;
@@ -5597,7 +5611,7 @@ function calcCalories(){
   const protCals=protG*4;const fatCals=fatG*9;
   const carbCals=Math.max(0,targetCals-protCals-fatCals);
   const carbG=Math.round(carbCals/4);
-  document.getElementById('calcResults').classList.add('show');
+  var calcRes = document.getElementById('calcResults'); if (calcRes) calcRes.classList.add('show');
   document.getElementById('resultCards').innerHTML=`
     <div class="result-card"><div class="rc-val">${Math.round(rmr)}</div><div class="rc-unit">kcal</div><div class="rc-label">RMR (Mifflin-St Jeor)</div></div>
     <div class="result-card"><div class="rc-val">${Math.round(tdee)}</div><div class="rc-unit">kcal</div><div class="rc-label">TDEE (Maintenance)</div></div>
@@ -5757,34 +5771,42 @@ function openExercise(idx) {
   document.getElementById('elModalTargets').textContent = ex.bp.join(', ');
   const nasmSlug = ex.slug || ex.name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
   document.getElementById('elNasmLink').href = 'https://www.nasm.org/exercise-library/' + nasmSlug;
-  document.getElementById('elAskBtn').onclick = () => {
+  var elAskBtn = document.getElementById('elAskBtn');
+  if (elAskBtn) elAskBtn.onclick = () => {
     closeElModal();
     document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-    document.querySelector('[data-tab="ask"]').classList.add('active');
+    var askTab = document.querySelector('[data-tab="ask"]'); if (askTab) askTab.classList.add('active');
     document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-    document.querySelector('[data-panel="ask"]').classList.add('active');
-    document.getElementById('qi').value = 'Tell me how to coach the ' + ex.name + ' effectively. Include common mistakes, coaching cues, progressions, and regressions.';
+    var askPanel = document.querySelector('[data-panel="ask"]'); if (askPanel) askPanel.classList.add('active');
+    var qiEl = document.getElementById('qi'); if (qiEl) qiEl.value = 'Tell me how to coach the ' + ex.name + ' effectively. Include common mistakes, coaching cues, progressions, and regressions.';
   };
-  document.getElementById('elModal').classList.add('open');
+  var elModal = document.getElementById('elModal'); if (elModal) elModal.classList.add('open');
 }
 window.openExercise = openExercise;
 
-function closeElModal() { document.getElementById('elModal').classList.remove('open'); }
+function closeElModal() { var m = document.getElementById('elModal'); if (m) m.classList.remove('open'); }
 window.closeElModal = closeElModal;
-document.getElementById('elModal').addEventListener('click', function(e) { if(e.target===this) closeElModal(); });
+(function(){ var m = document.getElementById('elModal'); if (m) m.addEventListener('click', function(e) { if(e.target===this) closeElModal(); }); })();
 
 // Init render
-renderExercises(EXERCISES);
+try { renderExercises(EXERCISES); console.log('init: exercise-library rendered'); }
+catch (err) { console.error('init: exercise-library FAILED:', err); }
 
 /* ══ CALCULATORS ══ */
-document.querySelectorAll('.calc-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.calc-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.calc-content').forEach(c=>c.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelector('.calc-content[data-calc="'+tab.dataset.calc+'"]').classList.add('active');
+try {
+  document.querySelectorAll('.calc-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      if (!tab.dataset.calc) return;
+      const content = document.querySelector('.calc-content[data-calc="'+tab.dataset.calc+'"]');
+      if (!content) { console.warn('No calc panel found for:', tab.dataset.calc); return; }
+      document.querySelectorAll('.calc-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.calc-content').forEach(c=>c.classList.remove('active'));
+      tab.classList.add('active');
+      content.classList.add('active');
+    });
   });
-});
+  console.log('init: calc-tabs OK');
+} catch (err) { console.error('init: calc-tabs FAILED:', err); }
 
 function calcORM() {
   const w = parseFloat(document.getElementById('orm-weight').value);
@@ -5808,7 +5830,7 @@ function calcORM() {
       const phase = p>=90?'Phase 4-5 (Max/Power)':p>=80?'Phase 3-4 (Hypertrophy/Max)':p>=70?'Phase 2-3 (Strength End./Hypertrophy)':'Phase 1-2 (Stability/Strength End.)';
       return `<tr><td>${p}%</td><td>${z}</td><td>${Math.round(avg*p/100)}</td><td style="font-size:0.72rem;color:var(--text3);">${phase}</td></tr>`;
     }).join('') + '</tbody>';
-  document.getElementById('orm-results').classList.add('show');
+  var ormRes = document.getElementById('orm-results'); if (ormRes) ormRes.classList.add('show');
 }
 
 function calcHRZ() {
@@ -5836,7 +5858,7 @@ function calcHRZ() {
       const max = Math.round((hrr * hi/100) + rhr);
       return `<tr><td>${name}</td><td style="font-size:0.72rem;color:var(--text3);">${desc}</td><td>${min}</td><td>${max}</td></tr>`;
     }).join('') + '</tbody>';
-  document.getElementById('hrz-results').classList.add('show');
+  var hrzRes = document.getElementById('hrz-results'); if (hrzRes) hrzRes.classList.add('show');
 }
 
 function calcHydration() {
@@ -5857,7 +5879,7 @@ function calcHydration() {
     <div class="calc-result-card"><div class="calc-result-val">${cups}</div><div class="calc-result-unit">cups</div><div class="calc-result-lbl">8oz Cups/Day</div></div>
     <div class="calc-result-card"><div class="calc-result-val">${Math.round(base)}</div><div class="calc-result-unit">oz</div><div class="calc-result-lbl">Base (no exercise)</div></div>
   `;
-  document.getElementById('hyd-results').classList.add('show');
+  var hydRes = document.getElementById('hyd-results'); if (hydRes) hydRes.classList.add('show');
 }
 
 function calcFFMI() {
@@ -5900,7 +5922,7 @@ function calcFFMI() {
       const isUser = userRange && r[2] === userRange[2];
       return `<tr style="${isUser?'background:var(--gold-dim);':''}"><td>${r[0]}–${r[1]===999?'+':r[1]}</td><td style="color:${isUser?'var(--gold)':'var(--text2)'};">${isUser?'▶ ':''} ${r[2]}</td><td style="font-size:0.72rem;color:var(--text3);">${r[3]}</td><td>${isUser?'← You':''}</td></tr>`;
     }).join('') + '</tbody>';
-  document.getElementById('ffmi-results').classList.add('show');
+  var ffmiRes = document.getElementById('ffmi-results'); if (ffmiRes) ffmiRes.classList.add('show');
 }
 
 /* ══ WORKOUT LIBRARY ══ */
@@ -6619,35 +6641,36 @@ function openSession(id) {
     <h4>Cool-Down</h4>
     <p>${s.cooldown || 'Static stretch 5 min. Full body.'}</p>
   `;
-  document.getElementById('wlModal').classList.add('open');
+  var wlM = document.getElementById('wlModal'); if (wlM) wlM.classList.add('open');
 }
 window.openSession = openSession;
 
 function closeModal() {
-  document.getElementById('wlModal').classList.remove('open');
+  var m = document.getElementById('wlModal'); if (m) m.classList.remove('open');
 }
 window.closeModal = closeModal;
 
 // Close modal on overlay click
-document.getElementById('wlModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+(function(){ var m = document.getElementById('wlModal'); if (m) m.addEventListener('click', function(e) { if (e.target === this) closeModal(); }); console.log('init: workout-library modal OK'); })();
 
 /* ══ WORKOUT BUILDER ══ */
-document.querySelectorAll('.wb-chip').forEach(chip => {
-  chip.addEventListener('click', () => chip.classList.toggle('active'));
-});
+try {
+  document.querySelectorAll('.wb-chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('active'));
+  });
+  console.log('init: workout-builder chips OK');
+} catch (err) { console.error('init: workout-builder chips FAILED:', err); }
 
 function getEquipment() {
   return Array.from(document.querySelectorAll('.wb-chip.active')).map(c => c.dataset.eq).join(', ');
 }
 
 function resetBuilder() {
-  document.getElementById('workoutOutput').classList.remove('show');
-  document.getElementById('workoutOutput').style.display = 'none';
+  var wo = document.getElementById('workoutOutput');
+  if (wo) { wo.classList.remove('show'); wo.style.display = 'none'; }
   var form = document.getElementById('wbFormSection');
   if (form) form.style.display = 'block';
-  document.getElementById('woContent').innerHTML = '';
+  var woc = document.getElementById('woContent'); if (woc) woc.innerHTML = '';
 }
 
 function renderWorkout(text, profile) {
@@ -6698,10 +6721,10 @@ function renderWorkout(text, profile) {
     bodyHtml += `<div class="wo-section"><div class="wo-section-hdr">${sectionTitle}</div><div class="wo-card"><p style="font-size:0.83rem;color:var(--text2);line-height:1.7;">${sectionBody}</p></div></div>`;
   });
 
-  woContent.innerHTML = headerHtml + bodyHtml;
-  document.querySelector('.workout-builder-form').style.display = 'none';
-  document.getElementById('workoutOutput').style.display = 'block';
-  document.getElementById('workoutOutput').classList.add('show');
+  if (woContent) woContent.innerHTML = headerHtml + bodyHtml;
+  var wbf = document.querySelector('.workout-builder-form'); if (wbf) wbf.style.display = 'none';
+  var wo = document.getElementById('workoutOutput');
+  if (wo) { wo.style.display = 'block'; wo.classList.add('show'); }
 }
 
 async function generateWorkout() {
@@ -7372,12 +7395,12 @@ function openClientForm(editId) {
     document.getElementById('cpFormTitle').textContent = 'New Client Assessment';
   }
   cpUpdateStepUI();
-  document.getElementById('cpFormOverlay').classList.add('open');
+  var fo = document.getElementById('cpFormOverlay'); if (fo) fo.classList.add('open');
 }
 window.openClientForm = openClientForm;
 
 function closeClientForm() {
-  document.getElementById('cpFormOverlay').classList.remove('open');
+  var fo = document.getElementById('cpFormOverlay'); if (fo) fo.classList.remove('open');
   cpEditingId = null;
 }
 window.closeClientForm = closeClientForm;
@@ -7673,8 +7696,8 @@ function viewClient(id) {
 
   document.getElementById('cpModalContent').innerHTML = html_sections;
   document.getElementById('cpAiText').textContent = 'Analyzing client profile...';
-  document.getElementById('cpAiText').style.fontStyle = 'italic';
-  document.getElementById('cpModal').classList.add('open');
+  var aiTxt = document.getElementById('cpAiText'); if (aiTxt) aiTxt.style.fontStyle = 'italic';
+  var cpM = document.getElementById('cpModal'); if (cpM) cpM.classList.add('open');
 
   // Render progress notes
   if (typeof renderProgressNotes === 'function') renderProgressNotes();
@@ -7735,10 +7758,10 @@ Provide specific recommendations covering: recommended OPT phase and why, key ex
   }
 }
 
-function closeCpModal() { document.getElementById('cpModal').classList.remove('open'); cpViewingClient = null; }
+function closeCpModal() { var m = document.getElementById('cpModal'); if (m) m.classList.remove('open'); cpViewingClient = null; }
 window.closeCpModal = closeCpModal;
-document.getElementById('cpModal').addEventListener('click', function(e){if(e.target===this)closeCpModal();});
-document.getElementById('cpFormOverlay').addEventListener('click', function(e){if(e.target===this)closeClientForm();});
+(function(){ var m = document.getElementById('cpModal'); if (m) m.addEventListener('click', function(e){if(e.target===this)closeCpModal();}); })();
+(function(){ var fo = document.getElementById('cpFormOverlay'); if (fo) fo.addEventListener('click', function(e){if(e.target===this)closeClientForm();}); console.log('init: client-profile modals OK'); })();
 
 /* ══ PROGRESS NOTES ══ */
 function getProgressNotes(clientId) {
@@ -7805,13 +7828,13 @@ function cpBuildClientContext(c) {
 function cpOpenAiChat() {
   closeCpModal();
   document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-tab="ask"]').classList.add('active');
+  var askTab = document.querySelector('[data-tab="ask"]'); if (askTab) askTab.classList.add('active');
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-panel="ask"]').classList.add('active');
+  var askPanel = document.querySelector('[data-panel="ask"]'); if (askPanel) askPanel.classList.add('active');
   if (cpViewingClient) {
     const c = cpViewingClient;
     const promptText = 'I just loaded the profile for ' + c.fname + (c.lname?' '+c.lname:'') + '. Based on their assessment, what are your top training priorities and where should we start?';
-    document.getElementById('qi').value = promptText;
+    var qiEl = document.getElementById('qi'); if (qiEl) qiEl.value = promptText;
     window.cpActiveClient = c;
   }
 }
@@ -7820,9 +7843,9 @@ window.cpOpenAiChat = cpOpenAiChat;
 function cpOpenWorkoutBuilder() {
   closeCpModal();
   document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-tab="workout"]').classList.add('active');
+  var wTab = document.querySelector('[data-tab="workout"]'); if (wTab) wTab.classList.add('active');
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-panel="workout"]').classList.add('active');
+  var wPanel = document.querySelector('[data-panel="workout"]'); if (wPanel) wPanel.classList.add('active');
   if (cpViewingClient) {
     const c = cpViewingClient;
     setTimeout(() => {
@@ -7841,9 +7864,9 @@ window.cpOpenWorkoutBuilder = cpOpenWorkoutBuilder;
 function cpOpenCalcWithClient() {
   closeCpModal();
   document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-tab="calcs"]').classList.add('active');
+  var cTab = document.querySelector('[data-tab="calcs"]'); if (cTab) cTab.classList.add('active');
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.querySelector('[data-panel="calcs"]').classList.add('active');
+  var cPanel = document.querySelector('[data-panel="calcs"]'); if (cPanel) cPanel.classList.add('active');
   if (cpViewingClient) {
     const c = cpViewingClient;
     setTimeout(() => {
@@ -8176,19 +8199,22 @@ var SUPP_LIBRARY = [
 ];
 
 // Render supplement education library
-(function(){
-  var grid = document.getElementById('suppLibGrid');
-  if (!grid) return;
-  var gradeStyle = {A:'background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3)',B:'background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)'};
-  grid.innerHTML = SUPP_LIBRARY.map(function(s){
-    return '<div class="supp-lib-card" style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.2rem;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h4 style="font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);">'+s.name+'</h4><span style="font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;'+gradeStyle[s.grade]+'">GRADE '+s.grade+'</span></div>' +
-      '<p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:4px;"><strong style="color:var(--text3);">Who:</strong> '+s.who+'</p>' +
-      '<p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:6px;"><strong style="color:var(--text3);">Dose:</strong> '+s.dose+'</p>' +
-      '<div style="display:flex;gap:6px;"><a href="https://examine.com/supplements/'+s.link+'/" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">Examine.com</a><a href="https://pubmed.ncbi.nlm.nih.gov/?term='+encodeURIComponent(s.name)+'" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">PubMed</a></div>' +
-    '</div>';
-  }).join('');
-})();
+try {
+  (function(){
+    var grid = document.getElementById('suppLibGrid');
+    if (!grid) { console.warn('init: supplement-advisor library grid element not found'); return; }
+    var gradeStyle = {A:'background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3)',B:'background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)'};
+    grid.innerHTML = SUPP_LIBRARY.map(function(s){
+      return '<div class="supp-lib-card" style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:1rem 1.2rem;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h4 style="font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);">'+s.name+'</h4><span style="font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;'+gradeStyle[s.grade]+'">GRADE '+s.grade+'</span></div>' +
+        '<p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:4px;"><strong style="color:var(--text3);">Who:</strong> '+s.who+'</p>' +
+        '<p style="font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:6px;"><strong style="color:var(--text3);">Dose:</strong> '+s.dose+'</p>' +
+        '<div style="display:flex;gap:6px;"><a href="https://examine.com/supplements/'+s.link+'/" target="_blank" style="font-size:0.68rem;color:var(--gold);text-decoration:none;">Examine.com</a><a href="https://pubmed.ncbi.nlm.nih.gov/?term='+encodeURIComponent(s.name)+'" target="_blank" style="font-size:0.68rem;color:var(--teal);text-decoration:none;">PubMed</a></div>' +
+      '</div>';
+    }).join('');
+  })();
+  console.log('init: supplement-advisor library OK');
+} catch (err) { console.error('init: supplement-advisor library FAILED:', err); }
 
 window.filterSuppLib = function(){
   var q = (document.getElementById('suppLibSearch').value||'').toLowerCase();
@@ -8209,9 +8235,12 @@ function updateSuppClientSummary(){
 }
 // Hook into tab navigation
 var _origNavHandler = null;
-document.querySelectorAll('.nav-tab').forEach(function(t){
-  t.addEventListener('click', function(){ setTimeout(updateSuppClientSummary, 100); });
-});
+try {
+  document.querySelectorAll('.nav-tab').forEach(function(t){
+    t.addEventListener('click', function(){ setTimeout(updateSuppClientSummary, 100); });
+  });
+  console.log('init: supplement-advisor nav-hook OK');
+} catch (err) { console.error('init: supplement-advisor nav-hook FAILED:', err); }
 
 window.openSuppBuilder = function(){
   var c = window.cpActiveClient;
@@ -9662,6 +9691,7 @@ window.wccEmailSession = function() {
   emailSession(c.id, sessions[0].id);
 };
 
+console.log('init: main script complete');
 </script>
 <!-- ══ PERSISTENT FLOATING CHAT ══ -->
 <style>
@@ -9737,6 +9767,7 @@ window.wccEmailSession = function() {
 <button class="fc-btn" id="fcBtn" onclick="fcToggle()" title="DR. FITNESS AI">💬</button>
 
 <script>
+console.log('init: floating-chat script start');
 (function(){
   var fcOpen = false;
   var fcMsgsData = [];
@@ -9746,14 +9777,14 @@ window.wccEmailSession = function() {
   window.fcToggle = function(){fcOpen ? fcClose() : fcOpenPanel();};
   window.fcClose = function(){
     fcOpen = false;
-    document.getElementById('fcPanel').classList.remove('open');
-    document.getElementById('fcOverlay').classList.remove('open');
+    var p = document.getElementById('fcPanel'); if (p) p.classList.remove('open');
+    var o = document.getElementById('fcOverlay'); if (o) o.classList.remove('open');
   };
   window.fcOpenPanel = function(){
     fcOpen = true;
-    document.getElementById('fcPanel').classList.add('open');
-    document.getElementById('fcOverlay').classList.add('open');
-    setTimeout(()=>document.getElementById('fcQi').focus(),300);
+    var p = document.getElementById('fcPanel'); if (p) p.classList.add('open');
+    var o = document.getElementById('fcOverlay'); if (o) o.classList.add('open');
+    setTimeout(()=>{ var q = document.getElementById('fcQi'); if (q) q.focus(); },300);
   };
 
   document.querySelectorAll('.fc-chip').forEach(function(c){
@@ -9873,9 +9904,10 @@ window.wccEmailSession = function() {
     fcMsgsData = [];
     localStorage.removeItem('drfitness_fc_history');
     var msgsEl = document.getElementById('fcMsgs');
-    msgsEl.innerHTML = '<div class="fc-msg ai"><div class="fc-bubble">Chat cleared. Ask me anything — injury mods, workout ideas, nutrition guidance, GLP-1 protocols.</div></div>';
+    if (msgsEl) msgsEl.innerHTML = '<div class="fc-msg ai"><div class="fc-bubble">Chat cleared. Ask me anything — injury mods, workout ideas, nutrition guidance, GLP-1 protocols.</div></div>';
   };
 })();
+console.log('init: floating-chat complete');
 </script>
 <!-- MOBILE BOTTOM NAV -->
 <nav id="mobileBottomNav" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--navy2);border-top:1px solid var(--border);padding:6px 0 env(safe-area-inset-bottom,0);">
@@ -9920,13 +9952,14 @@ window.wccEmailSession = function() {
 </div>
 
 <script>
+console.log('init: secondary script start (mobile nav, PWA, messaging, schedule, builds 1-3)');
 /* ══ MOBILE NAV ══ */
 function mobileNavTo(tab){
   document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
   var t=document.querySelector('[data-tab="'+tab+'"]');if(t)t.classList.add('active');
   document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
   var p=document.querySelector('[data-panel="'+tab+'"]');if(p)p.classList.add('active');
-  document.getElementById('mobileMoreMenu').style.display='none';
+  var menu=document.getElementById('mobileMoreMenu'); if (menu) menu.style.display='none';
 }
 window.mobileNavTo=mobileNavTo;
 // Show mobile nav on small screens
@@ -10891,10 +10924,11 @@ if (typeof _origCompleteSession === 'function') {
 
 /* ══ RUN CHECK-IN ENGINE ON LOAD ══ */
 setTimeout(function() {
-  renderAlerts();
+  try { renderAlerts(); console.log('init: check-in engine renderAlerts OK'); }
+  catch (err) { console.error('init: check-in engine renderAlerts FAILED:', err); }
 }, 800);
 
-
+console.log('init: secondary script complete');
 </script>
 
 
@@ -10905,6 +10939,7 @@ setTimeout(function() {
 ══════════════════════════════════════════════════════════════════ -->
 
 <script>
+console.log('init: nutrition + enhanced client context script start');
 /* ══ ENHANCED CLIENT CONTEXT LAYER ══
    Replaces cpBuildClientContext with full data extraction
    Feeds nutrition plan, supplement stack, AI chat, workout builder
@@ -11528,6 +11563,7 @@ setTimeout(function() {
   }
 }, 300);
 
+console.log('init: nutrition + enhanced client context complete — ALL INIT DONE');
 </script>
 
 </body>
