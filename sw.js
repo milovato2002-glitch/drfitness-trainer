@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drfitness-v11';
+const CACHE_NAME = 'drfitness-v12';
 const ASSETS = [
   '/',
   '/index.html',
