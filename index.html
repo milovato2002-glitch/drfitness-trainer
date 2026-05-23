@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Dr. Fitness">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -494,10 +495,10 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
     <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;flex-wrap:wrap;gap:8px;">
       <h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Generated Workout</h3>
       <div style="display:flex;gap:6px;align-items:center;">
-        <button onclick="wccEmailSession()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">EMAIL</button>
-        <button onclick="wccCopyWorkout()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">COPY</button>
+        <button onclick="wccCopyForClient()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">COPY FOR CLIENT</button>
+        <button onclick="wccViewClientSessions()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">CLIENT SESSIONS</button>
         <button onclick="openWorkoutLibrary()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">LIBRARY</button>
-        <button onclick="wccPrintWorkout()" style="padding:6px 12px;background:var(--gold);color:var(--navy);border:1px solid var(--gold);border-radius:var(--radius-sm);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">PDF / PRINT</button>
+        <button onclick="wccDownloadPDF()" style="padding:6px 12px;background:var(--gold);color:var(--navy);border:1px solid var(--gold);border-radius:var(--radius-sm);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">DOWNLOAD PDF</button>
         <button onclick="closeWccModal('wccOutputModal')" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">✕</button>
       </div>
     </div>
@@ -825,7 +826,7 @@ function buildQuickView(rawText, styleName){
     if(t.indexOf('EX|') === 0){
       if(!cur) newDay(null);
       var p = t.substring(3).split('|').map(function(x){return x.trim();});
-      var cue = p[6] || '';
+      var cue = p[5] || '';
       var mod = '';
       var modMatch = cue.match(/\[MOD:\s*(.+?)\]/i);
       if(modMatch){ mod = modMatch[1].trim(); cue = cue.replace(/\[MOD:.*?\]/i,'').trim(); }
@@ -935,7 +936,7 @@ function buildDetailView(rawText){
     }
     if(t.indexOf('EX|') === 0){
       var p = t.substring(3).split('|').map(function(x){return x.trim();});
-      var cue = p[6]||'';
+      var cue = p[5]||'';
       var mod=''; var mm = cue.match(/\[MOD:\s*(.+?)\]/i); if(mm){ mod=mm[1].trim(); cue=cue.replace(/\[MOD:.*?\]/i,'').trim(); }
       if(!inTable){ out += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:0.75rem;"><thead><tr>'+
         ['Exercise','Sets\u00d7Reps','Tempo','Rest','Load','Cue'].map(function(h){return '<th style="text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);color:var(--text3);font-family:Barlow Condensed,sans-serif;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;">'+h+'</th>';}).join('')+
@@ -1200,6 +1201,135 @@ window.wccPrintWorkout = function(){
     '</div></body></html>');
   win.document.close();
   setTimeout(function(){ try{ win.print(); }catch(e){} }, 400);
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   DELIVER LOOP — real PDF, clean share text, view client sessions.
+   Replaces the fragile mailto:/print-window delivery.
+══════════════════════════════════════════════════════════════════ */
+
+// Parse the EX| contract text into a structured object (shared by PDF + share text).
+function wccParseWorkout(text){
+  var lines = (text||'').split('\n');
+  var out = { title:'', summary:'', days:[] };
+  var cur = null, sec = 'MAIN';
+  function newDay(label){ cur = {label:label||('Day '+(out.days.length+1)), WARMUP:[], MAIN:[], COOLDOWN:[], NOTES:[]}; out.days.push(cur); sec='MAIN'; }
+  lines.forEach(function(line){
+    var t = line.trim(); if(!t) return;
+    var mT=t.match(/^TITLE:\s*(.+)$/i); if(mT){ out.title=mT[1].trim(); return; }
+    var mS=t.match(/^SUMMARY:\s*(.+)$/i); if(mS){ out.summary=mS[1].trim(); return; }
+    var mD=t.match(/^===\s*DAY\s*(\d+)\s*===\s*(.*)$/i); if(mD){ newDay('Day '+mD[1]+(mD[2]?' — '+mD[2].trim():'')); return; }
+    var mSec=t.match(/^##\s*(WARMUP|MAIN|COOLDOWN|NOTES)\b/i); if(mSec){ if(!cur)newDay(null); sec=mSec[1].toUpperCase(); return; }
+    if(t.indexOf('EX|')===0){ if(!cur)newDay(null);
+      var p=t.substring(3).split('|').map(function(x){return x.trim();});
+      var cue=p[5]||'', mod=''; var mm=cue.match(/\[MOD:\s*(.+?)\]/i); if(mm){mod=mm[1].trim();cue=cue.replace(/\[MOD:.*?\]/i,'').trim();}
+      cur[sec].push({name:p[0]||'',sr:p[1]||'',tempo:p[2]||'',rest:p[3]||'',load:p[4]||'',cue:cue,mod:mod}); return; }
+    if(cur && sec==='NOTES') cur.NOTES.push(t.replace(/\*\*/g,''));
+  });
+  return out;
+}
+
+// REAL PDF — generates a downloadable .pdf file via jsPDF (no print dialog).
+window.wccDownloadPDF = function(){
+  var w = window._wccLastWorkout;
+  if(!w){ alert('Generate a workout first.'); return; }
+  if(!window.jspdf || !window.jspdf.jsPDF){ alert('PDF engine still loading — try again in a moment.'); return; }
+  var doc = new window.jspdf.jsPDF({unit:'pt', format:'letter'});
+  var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  var M = 48, y = M;
+  var c = window.cpActiveClient || {};
+  var clientName = (c.fname ? (c.fname+' '+(c.lname||'')).trim() : 'Client');
+  var data = wccParseWorkout(w.text);
+
+  function checkPage(need){ if(y+need > H-M){ doc.addPage(); y=M; } }
+  // Header band
+  doc.setFillColor(10,22,40); doc.rect(0,0,W,70,'F');
+  doc.setTextColor(240,165,0); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+  doc.text((w.styleName||'Training')+(w.days>1?' — '+w.days+'-Day Program':' Session'), M, 34);
+  doc.setTextColor(205,214,224); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text(clientName+'  •  Dr. Fitness  •  Dr. Michael Lovato EdD  •  '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), M, 52);
+  y = 92;
+  // Meta line
+  doc.setTextColor(60,60,60); doc.setFontSize(9);
+  doc.text('Level: '+(w.level||'-')+'    Duration: '+(w.duration||'-')+'    Goal: '+(w.goal||'-')+(w.injuries?'    Injuries: '+w.injuries:''), M, y); y+=18;
+  if(data.summary){ doc.setFont('helvetica','italic'); doc.setTextColor(90,90,90);
+    var sl=doc.splitTextToSize(data.summary, W-2*M); checkPage(sl.length*12); doc.text(sl,M,y); y+=sl.length*12+6; doc.setFont('helvetica','normal'); }
+
+  var SEC={WARMUP:'WARM-UP',MAIN:'MAIN TRAINING BLOCK',COOLDOWN:'COOL-DOWN'};
+  data.days.forEach(function(d){
+    if(data.days.length>1){ checkPage(28); doc.setFillColor(240,165,0); doc.rect(M,y-10,W-2*M,2,'F');
+      doc.setFont('helvetica','bold'); doc.setTextColor(10,22,40); doc.setFontSize(13); doc.text(d.label,M,y+6); y+=26; }
+    ['WARMUP','MAIN','COOLDOWN'].forEach(function(k){
+      if(!d[k].length) return;
+      checkPage(30); doc.setFont('helvetica','bold'); doc.setTextColor(120,120,120); doc.setFontSize(8);
+      doc.text(SEC[k], M, y); y+=4; doc.setDrawColor(220,220,220); doc.line(M,y,W-M,y); y+=12;
+      d[k].forEach(function(ex){
+        checkPage(26); doc.setFont('helvetica','bold'); doc.setTextColor(20,20,20); doc.setFontSize(10);
+        doc.text((ex.mod?'* ':'')+ex.name, M, y);
+        var specs=[ex.sr,ex.tempo&&ex.tempo!=='-'?'tempo '+ex.tempo:'',ex.rest&&ex.rest!=='-'?ex.rest+' rest':'',ex.load&&ex.load!=='-'?ex.load:''].filter(Boolean).join('   ');
+        doc.setFont('helvetica','normal'); doc.setTextColor(90,90,90); doc.setFontSize(9);
+        doc.text(specs, W-M, y, {align:'right'}); y+=13;
+        if(ex.cue){ var cl=doc.splitTextToSize(ex.cue, W-2*M-20); checkPage(cl.length*11); doc.setTextColor(130,130,130); doc.setFontSize(8); doc.text(cl,M+12,y); y+=cl.length*11; }
+        if(ex.mod){ checkPage(12); doc.setTextColor(200,140,0); doc.setFontSize(8); doc.text('Modification: '+ex.mod, M+12, y); y+=12; }
+        y+=3;
+      });
+      y+=6;
+    });
+    if(d.NOTES.length){ checkPage(24); doc.setFont('helvetica','bold'); doc.setTextColor(120,120,120); doc.setFontSize(8); doc.text('TRAINER NOTES',M,y); y+=12;
+      doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80); doc.setFontSize(9);
+      d.NOTES.forEach(function(n){ var nl=doc.splitTextToSize(n,W-2*M); checkPage(nl.length*12); doc.text(nl,M,y); y+=nl.length*12+2; }); }
+  });
+  // Footer disclaimer on each page
+  var pages=doc.internal.getNumberOfPages();
+  for(var i=1;i<=pages;i++){ doc.setPage(i); doc.setTextColor(160,160,160); doc.setFontSize(7);
+    doc.text('Not medical advice. Trainers operate within NASM/ACE scope of practice.  •  Page '+i+' of '+pages, M, H-20); }
+
+  var fname = (clientName.replace(/[^a-z0-9]/gi,'_')+'_'+(w.styleName||'workout').replace(/[^a-z0-9]/gi,'_')+'.pdf').toLowerCase();
+  doc.save(fname);
+};
+
+// CLEAN SHARE TEXT — plain, formatted, copy-to-clipboard. Works everywhere.
+window.wccCopyForClient = function(){
+  var w = window._wccLastWorkout;
+  if(!w){ alert('Generate a workout first.'); return; }
+  var c = window.cpActiveClient || {};
+  var clientName = (c.fname ? c.fname : 'there');
+  var data = wccParseWorkout(w.text);
+  var L = [];
+  L.push((data.title || (w.styleName+' Session')).toUpperCase());
+  if(data.summary) L.push(data.summary);
+  L.push('');
+  var SEC={WARMUP:'WARM-UP',MAIN:'MAIN BLOCK',COOLDOWN:'COOL-DOWN'};
+  data.days.forEach(function(d){
+    if(data.days.length>1){ L.push(''); L.push('— '+d.label.toUpperCase()+' —'); }
+    ['WARMUP','MAIN','COOLDOWN'].forEach(function(k){
+      if(!d[k].length) return;
+      L.push(''); L.push(SEC[k]+':');
+      d[k].forEach(function(ex){
+        var line='• '+ex.name; var bits=[ex.sr,ex.rest&&ex.rest!=='-'?ex.rest+' rest':''].filter(function(x){return x&&x!=='-';});
+        if(bits.length) line+=' — '+bits.join(', ');
+        L.push(line);
+        if(ex.mod) L.push('   (if needed: '+ex.mod+')');
+      });
+    });
+    if(d.NOTES.length){ L.push(''); L.push('NOTES: '+d.NOTES.join(' ')); }
+  });
+  L.push(''); L.push('— Prepared by Dr. Fitness');
+  var txt = L.join('\n');
+  navigator.clipboard.writeText(txt).then(function(){
+    var btn=document.querySelector('[onclick="wccCopyForClient()"]');
+    if(btn){ var o=btn.textContent; btn.textContent='✓ COPIED'; setTimeout(function(){btn.textContent=o;},1500); }
+  }).catch(function(){ alert('Copy failed — your browser blocked clipboard access.'); });
+};
+
+// VIEW CLIENT SESSIONS — jump to the active client's session history.
+window.wccViewClientSessions = function(){
+  var c = window.cpActiveClient;
+  if(!c || !c.id){ alert('No active client selected.'); return; }
+  // close the workout modal, open the client profile (which renders session history)
+  var m=document.getElementById('wccOutputModal'); if(m) m.style.display='none';
+  if(typeof viewClient==='function'){ viewClient(c.id); }
+  else { alert('Open the Clients tab to view '+c.fname+'\u2019s saved sessions.'); }
 };
 
 /* ══════════════════════════════════════════════════════════════════
