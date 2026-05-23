@@ -433,6 +433,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
               <h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px;margin-bottom:0.2rem;">CHOOSE A STYLE</h2>
               <p style="font-size:0.85rem;color:var(--text2);line-height:1.5;">Select your training approach, then answer 5 quick questions to generate a complete session.</p>
             </div>
+            <button onclick="wccRecommend()" id="wccRecommendBtn" style="padding:9px 20px;background:var(--gold);color:var(--navy);border:1px solid var(--gold);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">\u2728 RECOMMEND FOR CLIENT</button>
             <button onclick="openHelpMeChoose()" style="padding:9px 20px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">HELP ME CHOOSE</button>
             <button onclick="openWorkoutLibrary()" style="padding:9px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">MY LIBRARY</button>
           </div>
@@ -488,9 +489,9 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </div>
 
 <!-- WORKOUT OUTPUT MODAL -->
-<div id="wccOutputModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;animation:fadeIn 0.2s ease;">
-  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;width:100%;margin:2rem auto;padding:0;position:relative;animation:scaleIn 0.2s ease;">
-    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;">
+<div id="wccOutputModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease;">
+  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;width:100%;margin:2rem auto;padding:0;position:relative;animation:scaleIn 0.2s ease;max-height:calc(100vh - 4rem);overflow-y:auto;">
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);z-index:5;border-radius:var(--radius) var(--radius) 0 0;flex-wrap:wrap;gap:8px;">
       <h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Generated Workout</h3>
       <div style="display:flex;gap:6px;align-items:center;">
         <button onclick="wccEmailSession()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">EMAIL</button>
@@ -592,6 +593,61 @@ window.wccSelectStyle = function(el, id) {
   openQuestionModal();
 };
 
+// ── RECOMMENDATION ENGINE ──
+// Reads the active client profile and asks the AI to recommend a training
+// approach (style + OPT phase + goals + days) with rationale, then pre-selects
+// it in the Q1–Q6 modal. Trainer can accept or override anything.
+window.wccRecommend = async function(){
+  var c = window.cpActiveClient;
+  if(!c || !c.fname){
+    alert('Select a client first — recommendations are based on the client\u2019s profile.');
+    return;
+  }
+  var btn = document.getElementById('wccRecommendBtn');
+  var orig = btn ? btn.textContent : '';
+  if(btn){ btn.textContent = '\u2728 ANALYZING\u2026'; btn.disabled = true; }
+
+  var styleList = WCC_STYLES.map(function(s){ return s.id + ' = ' + s.name; }).join('; ');
+  var clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(c) : '';
+  var sysPrompt = (typeof SYS !== 'undefined' ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.') +
+    ' You make evidence-based programming recommendations using NASM OPT, ACE, and ISSA frameworks.';
+
+  var prompt = 'Based on this client profile, recommend the single best training approach for their NEXT program.\n' +
+    clientCtx + '\n\n' +
+    'AVAILABLE TRAINING STYLES (use the id): ' + styleList + '\n\n' +
+    'Choose the style whose WHO/WHY best fits this client\u2019s goals, level, injuries, and special populations. ' +
+    'Then recommend: NASM OPT phase (1-5), client level (Beginner/Intermediate/Advanced/Elite), 1-2 primary goals ' +
+    '(from: Strength, Hypertrophy, Fat Loss, Endurance, Power, Skill Development, Recovery, Rehab), and program length in days (1-7).\n\n' +
+    'Respond with ONLY a JSON object, no markdown, no preamble:\n' +
+    '{"styleId":"<id>","level":"<level>","optPhase":<1-5>,"goals":["<g1>","<g2>"],"days":<1-7>,"rationale":"<2-3 sentence evidence-based explanation of why this approach fits THIS client>"}';
+
+  try{
+    var res = await fetch('/.netlify/functions/chat',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
+    });
+    var d = await res.json();
+    if(!(d.content && d.content[0])) throw new Error('No recommendation returned');
+    var raw = d.content[0].text.replace(/```json|```/g,'').trim();
+    var rec = JSON.parse(raw);
+
+    // Apply the recommendation
+    var style = WCC_STYLES.find(function(s){return s.id===rec.styleId;});
+    if(!style){ throw new Error('Recommended style not recognized: '+rec.styleId); }
+    selectedStyle = style;
+    // visually mark the recommended style card
+    document.querySelectorAll('#styleGrid .style-card').forEach(function(card){
+      card.classList.toggle('selected', card.dataset.style===rec.styleId);
+    });
+    window._wccRecommendation = rec; // consumed by openQuestionModal to pre-fill + show rationale
+    openQuestionModal();
+  }catch(err){
+    alert('Could not generate a recommendation. ' + err.message);
+  }finally{
+    if(btn){ btn.textContent = orig; btn.disabled = false; }
+  }
+};
+
 function openQuestionModal(){
   if(!selectedStyle) return;
   document.getElementById('wccModalTitle').textContent = selectedStyle.icon + ' ' + selectedStyle.name;
@@ -612,6 +668,7 @@ function openQuestionModal(){
   document.getElementById('wccInjuries').value = '';
   // Pre-fill from active client
   var note = document.getElementById('wccPrefillNote');
+  var rec = window._wccRecommendation;
   if (window.cpActiveClient && window.cpActiveClient.fname) {
     var c = window.cpActiveClient;
     note.style.display = 'block';
@@ -623,6 +680,25 @@ function openQuestionModal(){
     if(inj.length && !c.injuryNotes) document.getElementById('wccInjuries').value = inj.join(', ').replace(/_/g,' ');
   } else {
     note.style.display = 'none';
+  }
+  // Apply AI recommendation if present (overrides defaults, shows rationale)
+  if(rec){
+    if(rec.level) selectChip('wccLevel', rec.level);
+    if(rec.days){
+      var dayLabel = (rec.days===1) ? 'Single Session' : (rec.days + ' Days');
+      selectChip('wccDays', dayLabel);
+    }
+    if(rec.goals && rec.goals.length){
+      // clear goal chips then activate up to 2 recommended
+      document.querySelectorAll('#wccGoal .wcc-chip').forEach(function(ch){ ch.classList.remove('active'); });
+      rec.goals.slice(0,2).forEach(function(g){ selectChipAdd('wccGoal', g); });
+    }
+    note.style.display = 'block';
+    note.innerHTML = '<strong style="color:var(--gold);">\u2728 Dr. Fitness recommends:</strong> ' +
+      (selectedStyle?selectedStyle.name:'') + (rec.optPhase?' \u00b7 OPT Phase '+rec.optPhase:'') +
+      '<br><span style="color:var(--text2);font-style:italic;">'+(rec.rationale||'')+'</span>' +
+      '<br><span style="color:var(--text3);font-size:0.72rem;">Pre-filled below \u2014 adjust anything before generating.</span>';
+    window._wccRecommendation = null; // consume once
   }
   showModal('wccQuestionModal');
 }
@@ -662,6 +738,11 @@ window.wccGoalToggle = function(chip){
 function selectChip(containerId, val) {
   document.querySelectorAll('#'+containerId+' .wcc-chip').forEach(function(c){
     if(c.dataset.val===val){c.classList.add('active');}else{c.classList.remove('active');}
+  });
+}
+function selectChipAdd(containerId, val) {
+  document.querySelectorAll('#'+containerId+' .wcc-chip').forEach(function(c){
+    if(c.dataset.val===val){ c.classList.add('active'); }
   });
 }
 function getSelected(containerId) {
@@ -773,6 +854,10 @@ function buildQuickView(rawText, styleName){
   if(summary) html += '<div style="font-size:0.8rem;color:var(--text2);margin-top:6px;line-height:1.5;">' + summary + '</div>';
   html += '</div>';
 
+  // Track Live Session toggle — checkboxes/progress only when actively running the workout.
+  html += '<div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;">' +
+    '<button onclick="wccToggleTrackMode()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid '+(window._wccTrackMode?'var(--green);background:var(--green);color:var(--navy);':'var(--border);background:transparent;color:var(--text2);')+'">'+(window._wccTrackMode?'\u25cf TRACKING \u2014 TAP TO STOP':'\u25b7 TRACK LIVE SESSION')+'</button></div>';
+
   days.forEach(function(d){
     if(days.length > 1){
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.25rem;color:var(--gold);letter-spacing:0.04em;margin:1.25rem 0 0.5rem;padding-bottom:4px;border-bottom:2px solid var(--gold-dim);">' + d.label + '</div>';
@@ -796,14 +881,16 @@ function buildQuickView(rawText, styleName){
         if(ex.load && ex.load!=='-') html += '<span style="font-size:0.72rem;color:var(--text3);">' + ex.load + '</span>';
         html += '</div>';
         html += '</div>';
-        html += '<label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0;"><input type="checkbox" class="qv-check" onchange="updateQvProgress()" style="width:20px;height:20px;accent-color:var(--green);cursor:pointer;"></label>';
+        html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">';
+        if(tut.url && tut.url!=='#') html += '<a href="' + tut.url + '" target="_blank" title="Watch form video" style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:rgba(230,57,70,0.12);border:1px solid rgba(230,57,70,0.35);border-radius:14px;color:var(--red);font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.04em;text-decoration:none;white-space:nowrap;">\u25b6 FORM</a>';
+        if(window._wccTrackMode){ html += '<label style="display:flex;align-items:center;cursor:pointer;"><input type="checkbox" class="qv-check" onchange="updateQvProgress()" style="width:20px;height:20px;accent-color:var(--green);cursor:pointer;"></label>'; }
+        html += '</div>';
         html += '</div>';
         if(ex.cue || ex.mod){
-          html += '<details style="margin-top:6px;"><summary style="font-size:0.7rem;color:var(--text3);cursor:pointer;">Cue, tutorial' + (ex.mod?', modification':'') + '</summary>';
+          html += '<details style="margin-top:6px;"><summary style="font-size:0.7rem;color:var(--text3);cursor:pointer;">Coaching cue' + (ex.mod?' + modification':'') + (tut.coach && tut.coach!=='YouTube'?' \u00b7 video: '+tut.coach:'') + '</summary>';
           html += '<div style="padding:6px 0 0 54px;font-size:0.78rem;color:var(--text2);line-height:1.5;">';
           if(ex.cue) html += '<div>' + ex.cue + '</div>';
           if(ex.mod) html += '<div style="margin-top:4px;color:var(--gold);">\u26a0 Modification: ' + ex.mod + '</div>';
-          if(tut.url && tut.url!=='#') html += '<div style="margin-top:6px;"><a href="' + tut.url + '" target="_blank" style="padding:4px 10px;background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:12px;color:var(--red);font-size:0.68rem;font-weight:700;text-decoration:none;">\u25b6 Tutorial' + (tut.coach?' \u2014 '+tut.coach:'') + '</a></div>';
           html += '</div></details>';
         }
         html += '</div>';
@@ -817,7 +904,9 @@ function buildQuickView(rawText, styleName){
     }
   });
 
-  html = '<div id="wccProgressBar" style="height:4px;background:var(--navy3);border-radius:2px;margin-bottom:1rem;overflow:hidden;"><div id="wccProgressFill" style="height:100%;width:0%;background:var(--green);transition:width 0.3s;border-radius:2px;"></div></div>' + html;
+  if(window._wccTrackMode){
+    html = '<div id="wccProgressBar" style="height:4px;background:var(--navy3);border-radius:2px;margin-bottom:1rem;overflow:hidden;"><div id="wccProgressFill" style="height:100%;width:0%;background:var(--green);transition:width 0.3s;border-radius:2px;"></div></div>' + html;
+  }
 
   return html;
 }
@@ -882,6 +971,16 @@ window.updateQvProgress = function(){
   var pct=checks.length>0?Math.round((done/checks.length)*100):0;
   var fill=document.getElementById('wccProgressFill');
   if(fill) fill.style.width=pct+'%';
+};
+window.wccToggleTrackMode = function(){
+  window._wccTrackMode = !window._wccTrackMode;
+  var w = window._wccLastWorkout;
+  var qv = document.getElementById('wccQuickView');
+  if(qv && w && typeof buildQuickView==='function'){
+    qv.innerHTML = buildQuickView(w.text, w.styleName);
+    // ensure Quick View is the visible pane
+    if(typeof setWccView==='function') setWccView('quick');
+  }
 };
 
 window.wccGenerate = async function(){
@@ -989,6 +1088,7 @@ window.wccGenerate = async function(){
     }
     if(text){
       // ── from here down, identical to the original non-streaming path ──
+      window._wccTrackMode = false; // fresh workout starts as clean reference, not tracker
       window._wccLastWorkout = { text: text, styleName: styleName, level: level, duration: duration, goal: goal, days: dayCount, injuries: injuries };
       var formatted = text
         .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
@@ -9166,7 +9266,7 @@ function openFastTrackIntake() {
   html += '</div>';
   html += '<div id="ftInjuryNoteWrap" style="display:none;margin-top:8px;"><textarea data-iw="ftInjuryNotes" placeholder="Describe injuries or pain areas..." style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.9rem;resize:vertical;min-height:60px;outline:none;"></textarea></div></div>';
   // Field 5: Training Days
-  html += iwField('ftDays','Training days per week','cards','',false,['2','3','4','5']);
+  html += iwField('ftDays','Training days per week','cards','',false,['2','3','4','5','6','7']);
   // Field 6: Equipment
   html += iwField('ftEquip','Primary equipment','cards','',false,['Full Gym','Dumbbells Only','Bodyweight Only']);
   html += '</div>';
