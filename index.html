@@ -438,6 +438,10 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
             <button onclick="openHelpMeChoose()" style="padding:9px 20px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">HELP ME CHOOSE</button>
             <button onclick="openWorkoutLibrary()" style="padding:9px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">MY LIBRARY</button>
           </div>
+          <div id="wccRecoBanner" style="display:none;background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.3);border-radius:var(--radius);padding:14px 18px;margin-bottom:1.25rem;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;color:var(--gold);letter-spacing:0.04em;">✨ Not sure which style fits <span id="wccRecoClientName">this client</span>?</div><div style="font-size:0.8rem;color:var(--text2);margin-top:2px;">Dr. Fitness can recommend the training approach and OPT phase based on their full profile.</div></div>
+            <button onclick="wccRecommend()" style="padding:10px 22px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">Get Recommendation</button>
+          </div>
           <div id="styleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
         </div>
         <!-- AI CHAT SECTION -->
@@ -1012,6 +1016,24 @@ window.wccGenerate = async function(){
   var sessionType = dayCount > 1 ? (dayCount + '-Day Program') : 'Session';
   window._programTimeframe = null; // legacy reset; multi-day now driven by Q6
 
+  // ── MANDATORY PROFILE APPLICATION ──
+  // Forces the AI to ACT on the client profile, not just acknowledge it.
+  // Rigor is full on single/short sessions; concise (but still enforced) on
+  // long multi-day programs so generation stays within time/length limits.
+  var concise = dayCount > 2;
+  var applicationRules =
+    '\n\nMANDATORY PROFILE APPLICATION — these are not optional, and the output must SHOW the adjustment, not just mention the data:\n' +
+    '• INJURIES/LIMITATIONS: For every exercise that is contraindicated or risky given the client\u2019s injuries/limitations, you MUST substitute or modify it. ' +
+      (concise
+        ? 'Append " [MOD: <safe alternative>]" to that exercise\u2019s cue. Do not prescribe any movement that aggravates a listed injury.\n'
+        : 'Either replace it outright with a safe alternative, or append " [MOD: <safe alternative>]" to its cue, and in the cue state briefly WHY (e.g. reduces axial load). Do not prescribe any movement that aggravates a listed injury.\n') +
+    '• AGE + SLEEP + STRESS: Adjust total volume, intensity, and rest accordingly. Older age, poor sleep, or high stress \u2192 reduce volume, extend rest, expand warm-up, favor lower-risk loading. State the adjustment in ##NOTES.\n' +
+    '• MEDICATIONS / GLP-1: If on a GLP-1 or weight-loss medication, prioritize lean-mass preservation (adequate resistance stimulus), account for reduced energy/fatigue tolerance and hydration needs, and avoid excessive metabolic volume. Reflect this in loading and rest.\n' +
+    '• EQUIPMENT/LOCATION: Hard constraint. Never prescribe equipment the client does not have. Every exercise must be performable with the listed equipment.\n' +
+    '• GOALS: The primary (first-listed) goal must drive the loading scheme (sets/reps/rest/intensity). Secondary goal is accessory.\n' +
+    '• CONFIDENCE / MENTAL-HEALTH FLAGS: Honor the tone and language rules already specified in the client profile block exactly.\n' +
+    (concise ? '' : '• For a single session, briefly note in ##NOTES the 2\u20133 most important profile-driven decisions you made and why.\n');
+
   // ── STRICT OUTPUT CONTRACT ──
   var contract =
     '\n\nOUTPUT FORMAT — FOLLOW EXACTLY:\n' +
@@ -1039,7 +1061,7 @@ window.wccGenerate = async function(){
     (goal.indexOf(',') !== -1 ? 'NOTE: Two goals are selected. If they are complementary (e.g. Strength + Hypertrophy), integrate them. If they are in tension (e.g. Recovery + Power, Fat Loss + Power), briefly state the tradeoff in the SUMMARY line and bias the programming toward the first-listed goal.\n' : '') +
     (dayCount > 1 ? 'PROGRAM LENGTH: ' + dayCount + ' days (vary the focus across days; include at least one lighter/recovery day if 5+ days)\n' : '') +
     (injuries ? 'INJURIES/LIMITATIONS: ' + injuries + '\n' : '') +
-    clientCtx + injuryInstructions + contract;
+    clientCtx + injuryInstructions + applicationRules + contract;
 
   try{
     var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
@@ -8508,6 +8530,9 @@ function updateActiveClientBanner() {
       tags.push('<span style="font-size:0.62rem;padding:2px 6px;border-radius:10px;background:var(--gold-dim);color:var(--gold);border:1px solid var(--border);">' + s.replace(/_/g,' ') + '</span>');
     });
     document.getElementById('acbTags').innerHTML = tags.join('');
+    // Show the proactive recommendation banner in Build Session
+    var rb = document.getElementById('wccRecoBanner');
+    if(rb){ rb.style.display='flex'; var rn=document.getElementById('wccRecoClientName'); if(rn) rn.textContent=c.fname; }
     // Update nutrition targets if visible
     updateNutritionTargets(c);
     // Update injury considerations
@@ -8515,6 +8540,7 @@ function updateActiveClientBanner() {
   } else {
     banner.style.display = 'none';
     emptyBanner.style.display = 'block';
+    var rb2 = document.getElementById('wccRecoBanner'); if(rb2) rb2.style.display='none';
   }
 }
 
