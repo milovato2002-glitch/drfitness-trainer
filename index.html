@@ -434,6 +434,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
               <p style="font-size:0.85rem;color:var(--text2);line-height:1.5;">Select your training approach, then answer 5 quick questions to generate a complete session.</p>
             </div>
             <button onclick="openHelpMeChoose()" style="padding:9px 20px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">HELP ME CHOOSE</button>
+            <button onclick="openWorkoutLibrary()" style="padding:9px 20px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">MY LIBRARY</button>
           </div>
           <div id="styleGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
         </div>
@@ -494,6 +495,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
       <div style="display:flex;gap:6px;align-items:center;">
         <button onclick="wccEmailSession()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">EMAIL</button>
         <button onclick="wccCopyWorkout()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">COPY</button>
+        <button onclick="openWorkoutLibrary()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">LIBRARY</button>
         <button onclick="wccPrintWorkout()" style="padding:6px 12px;background:var(--gold);color:var(--navy);border:1px solid var(--gold);border-radius:var(--radius-sm);font-size:0.72rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.08em;">PDF / PRINT</button>
         <button onclick="closeWccModal('wccOutputModal')" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">✕</button>
       </div>
@@ -598,6 +600,14 @@ function openQuestionModal(){
   buildRadioChips('wccDuration',['30 min','45 min','60 min','75 min','90 min'],'60 min');
   buildCheckChips('wccEquipment',['Full Gym','Barbell and Rack','Dumbbells','Kettlebells','Cables','Bodyweight Only','Resistance Bands','Specialty Equipment']);
   buildRadioChips('wccGoal',['Strength','Hypertrophy','Fat Loss','Endurance','Power','Skill Development','Recovery','Rehab'],'Strength');
+  // Q4 is now multi-select (up to 2). Convert chips to capped toggles.
+  (function(){
+    var el = document.getElementById('wccGoal');
+    if(!el) return;
+    el.querySelectorAll('.wcc-chip').forEach(function(chip){
+      chip.setAttribute('onclick','wccGoalToggle(this)');
+    });
+  })();
   buildRadioChips('wccDays',['Single Session','2 Days','3 Days','4 Days','5 Days','6 Days','7 Days'],'Single Session');
   document.getElementById('wccInjuries').value = '';
   // Pre-fill from active client
@@ -632,6 +642,22 @@ function buildCheckChips(containerId, options) {
 window.wccRadioSelect = function(chip) {
   chip.parentElement.querySelectorAll('.wcc-chip').forEach(function(c){c.classList.remove('active');});
   chip.classList.add('active');
+};
+window.wccGoalToggle = function(chip){
+  var group = chip.parentElement;
+  var active = group.querySelectorAll('.wcc-chip.active');
+  if(chip.classList.contains('active')){
+    chip.classList.remove('active');
+  } else {
+    if(active.length >= 2){
+      // Cap at 2 — briefly flash the group to signal the limit.
+      group.style.transition='opacity 0.1s';
+      group.style.opacity='0.5';
+      setTimeout(function(){ group.style.opacity='1'; }, 120);
+      return;
+    }
+    chip.classList.add('active');
+  }
 };
 function selectChip(containerId, val) {
   document.querySelectorAll('#'+containerId+' .wcc-chip').forEach(function(c){
@@ -910,6 +936,7 @@ window.wccGenerate = async function(){
     'SESSION DURATION (per day): ' + duration + '\n' +
     'EQUIPMENT: ' + equipment + '\n' +
     'PRIMARY GOAL: ' + goal + '\n' +
+    (goal.indexOf(',') !== -1 ? 'NOTE: Two goals are selected. If they are complementary (e.g. Strength + Hypertrophy), integrate them. If they are in tension (e.g. Recovery + Power, Fat Loss + Power), briefly state the tradeoff in the SUMMARY line and bias the programming toward the first-listed goal.\n' : '') +
     (dayCount > 1 ? 'PROGRAM LENGTH: ' + dayCount + ' days (vary the focus across days; include at least one lighter/recovery day if 5+ days)\n' : '') +
     (injuries ? 'INJURIES/LIMITATIONS: ' + injuries + '\n' : '') +
     clientCtx + injuryInstructions + contract;
@@ -1001,16 +1028,24 @@ window.wccGenerate = async function(){
       var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+buildDetailView(text)+'</div>';
       var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(text, styleName) + '</div>';
       var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(text) : '';
-      document.getElementById('wccOutputContent').innerHTML = banner + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
-      // Auto-save to client history
-      if (typeof autoSaveSession === 'function') {
+      // Save status + actions row (prepended to output)
+      var activeC = window.cpActiveClient;
+      var saveStatus;
+      if (activeC && activeC.id && typeof autoSaveSession === 'function') {
         autoSaveSession(
           banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml,
           styleName,
           {level:level,duration:duration,equipment:equipment,goal:goal,injuries:injuries},
           sessionType
         );
+        var cName = (activeC.fname + ' ' + (activeC.lname||'')).trim();
+        saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--green);"><span>\u2713</span><span>Saved to <strong>'+cName+'</strong>\u2019s session history</span></div>';
+      } else {
+        saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--gold);"><span>\u26a0</span><span>No active client \u2014 not saved to a profile. Select a client to auto-save, or add to your Library below.</span></div>';
       }
+      var libBtn = '<button onclick="wccSaveToLibrary()" style="padding:7px 14px;background:transparent;border:1px solid var(--gold);border-radius:20px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;">+ SAVE TO LIBRARY</button>';
+      var actionRow = '<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;"><div style="flex:1;min-width:200px;">'+saveStatus+'</div>'+libBtn+'</div>';
+      document.getElementById('wccOutputContent').innerHTML = actionRow + banner + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
     } else {
       throw new Error('No response from AI');
     }
@@ -1065,6 +1100,108 @@ window.wccPrintWorkout = function(){
     '</div></body></html>');
   win.document.close();
   setTimeout(function(){ try{ win.print(); }catch(e){} }, 400);
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   WORKOUT LIBRARY (localStorage stage — to migrate to Supabase later)
+   Stores generated workouts as reusable templates, independent of client.
+   Storage shape: { items: [ {id,name,styleName,days,level,goal,text,date} ] }
+══════════════════════════════════════════════════════════════════ */
+var WORKOUT_LIBRARY_KEY = 'drfitness_workout_library';
+
+function getWorkoutLibrary(){
+  try { return JSON.parse(localStorage.getItem(WORKOUT_LIBRARY_KEY) || '{"items":[]}').items || []; }
+  catch(e){ return []; }
+}
+function saveWorkoutLibrary(items){
+  try { localStorage.setItem(WORKOUT_LIBRARY_KEY, JSON.stringify({items:items})); return true; }
+  catch(e){ console.error('Library save failed', e); return false; }
+}
+
+window.wccSaveToLibrary = function(){
+  var w = window._wccLastWorkout;
+  if(!w){ alert('Generate a workout first.'); return; }
+  var defaultName = (w.styleName||'Workout') + (w.days>1 ? ' \u2014 '+w.days+'-Day' : '') + ' \u2014 ' + (w.goal||'');
+  var name = prompt('Name this workout for your library:', defaultName);
+  if(name === null) return; // cancelled
+  name = name.trim() || defaultName;
+  var items = getWorkoutLibrary();
+  items.unshift({
+    id: 'lib_' + Date.now(),
+    name: name,
+    styleName: w.styleName||'',
+    days: w.days||1,
+    level: w.level||'',
+    duration: w.duration||'',
+    goal: w.goal||'',
+    injuries: w.injuries||'',
+    text: w.text||'',
+    date: new Date().toISOString()
+  });
+  if(saveWorkoutLibrary(items)){
+    var btn = document.querySelector('[onclick="wccSaveToLibrary()"]');
+    if(btn){ var o=btn.textContent; btn.textContent='\u2713 SAVED'; btn.style.background='var(--gold)'; btn.style.color='var(--navy)'; setTimeout(function(){ btn.textContent=o; btn.style.background='transparent'; btn.style.color='var(--gold)'; }, 1600); }
+  } else {
+    alert('Could not save to library (storage may be full).');
+  }
+};
+
+window.openWorkoutLibrary = function(){
+  var items = getWorkoutLibrary();
+  var modal = document.getElementById('wlibModal');
+  if(modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'wlibModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+
+  var rows = '';
+  if(!items.length){
+    rows = '<div style="text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:0.88rem;">Your library is empty. Generate a workout and tap <strong style="color:var(--gold);">+ Save to Library</strong> to keep reusable templates here.</div>';
+  } else {
+    items.forEach(function(it){
+      var d = new Date(it.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      rows += '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">'+
+        '<div style="flex:1;min-width:0;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);">'+it.name+'</div>'+
+        '<div style="font-size:0.72rem;color:var(--text3);margin-top:2px;">'+(it.days>1?it.days+'-day \u00b7 ':'')+(it.level||'')+(it.goal?' \u00b7 '+it.goal:'')+' \u00b7 '+d+'</div></div>'+
+        '<div style="display:flex;gap:6px;flex-shrink:0;">'+
+        '<button onclick="wlibLoad(\''+it.id+'\')" style="padding:5px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:14px;font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">OPEN</button>'+
+        '<button onclick="wlibDelete(\''+it.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:14px;font-size:0.7rem;cursor:pointer;">\u2715</button>'+
+        '</div></div></div>';
+    });
+  }
+
+  modal.innerHTML = '<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:640px;width:100%;margin:2rem auto;">'+
+    '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--navy2);border-radius:var(--radius) var(--radius) 0 0;">'+
+    '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Workout Library <span style="font-size:0.7rem;color:var(--text3);font-family:Barlow,sans-serif;letter-spacing:0;">('+items.length+')</span></h3>'+
+    '<button onclick="document.getElementById(\'wlibModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">\u2715</button>'+
+    '</div>'+
+    '<div style="padding:1.25rem 1.5rem;">'+rows+'</div></div>';
+  document.body.appendChild(modal);
+};
+
+window.wlibLoad = function(id){
+  var items = getWorkoutLibrary();
+  var it = items.find(function(x){ return x.id === id; });
+  if(!it) return;
+  // Reconstruct the output modal using the saved text + the existing renderers.
+  window._wccLastWorkout = { text: it.text, styleName: it.styleName, level: it.level, duration: it.duration, goal: it.goal, days: it.days, injuries: it.injuries };
+  var lm = document.getElementById('wlibModal'); if(lm) lm.remove();
+  var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
+  var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
+  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(it.text, it.styleName) + '</div>';
+  var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+buildDetailView(it.text)+'</div>';
+  var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(it.text) : '';
+  document.getElementById('wccOutputContent').innerHTML = toggleHtml + diagramHtml + quickContent + detailContent;
+  showModal('wccOutputModal');
+};
+
+window.wlibDelete = function(id){
+  if(!confirm('Remove this workout from your library?')) return;
+  var items = getWorkoutLibrary().filter(function(x){ return x.id !== id; });
+  saveWorkoutLibrary(items);
+  openWorkoutLibrary(); // refresh
 };
 
 })();
