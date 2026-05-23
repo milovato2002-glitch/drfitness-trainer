@@ -806,14 +806,52 @@ window.wccGenerate = async function(){
 
   try{
     var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
+    // STREAMING: keeps the Netlify function alive past the 10s sync limit and
+    // shows the session building live. We accumulate the full text, then run
+    // the existing post-processing (QuickView, diagram, auto-save) on completion.
     var res = await fetch('/.netlify/functions/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({stream:true,model:'claude-sonnet-4-6',max_tokens:4000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
     });
-    var d = await res.json();
-    if(d.content && d.content[0]){
-      var text = d.content[0].text;
+    if(!res.ok || !res.body){
+      var errPayload = '';
+      try{ errPayload = (await res.json()).error || ''; }catch(e){}
+      throw new Error(errPayload || ('Server error '+res.status));
+    }
+    // Live streaming container — text appears here as it generates.
+    document.getElementById('wccOutputContent').innerHTML =
+      '<div style="display:flex;gap:6px;margin-bottom:0.75rem;align-items:center;"><span style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);animation:tdot 1.2s infinite;">⚡ Building live…</span></div>' +
+      '<div id="wccStreamLive" style="font-size:0.88rem;color:var(--text2);line-height:1.7;white-space:pre-wrap;"></div>';
+    var liveEl = document.getElementById('wccStreamLive');
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var sseBuffer = '';
+    var text = '';
+    while(true){
+      var chunk = await reader.read();
+      if(chunk.done) break;
+      sseBuffer += decoder.decode(chunk.value, {stream:true});
+      var lines = sseBuffer.split('\n');
+      sseBuffer = lines.pop(); // keep incomplete trailing line
+      for(var li=0; li<lines.length; li++){
+        var line = lines[li];
+        if(line.indexOf('data:') !== 0) continue;
+        var payload = line.slice(5).trim();
+        if(!payload || payload === '[DONE]') continue;
+        try{
+          var evt = JSON.parse(payload);
+          if(evt.type === 'content_block_delta' && evt.delta && typeof evt.delta.text === 'string'){
+            text += evt.delta.text;
+            if(liveEl){ liveEl.textContent = text; liveEl.scrollTop = liveEl.scrollHeight; }
+          } else if(evt.type === 'error'){
+            throw new Error((evt.error && evt.error.message) || 'Stream error');
+          }
+        }catch(e){ /* ignore non-JSON keepalive lines */ }
+      }
+    }
+    if(text){
+      // ── from here down, identical to the original non-streaming path ──
       var formatted = text
         .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
         .replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.25rem 0 0.4rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>')
