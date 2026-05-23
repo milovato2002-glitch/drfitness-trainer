@@ -9217,13 +9217,13 @@ window.generateCompleteProgram = async function() {
 
 /* ══ GUIDED INTAKE WIZARD ══ */
 var INTAKE_STEPS = [
-  {title:'WHO YOU ARE',sub:'Let us start with the basics so we can build something that fits your life.'},
-  {title:'YOUR PHYSICAL REALITY',sub:'Honest answers here protect you and help us build something you can actually do.'},
-  {title:'YOUR LIFESTYLE',sub:'Your program only works if it fits how you actually live.'},
-  {title:'YOUR MEDICAL PICTURE',sub:'This section ensures your safety. All information is confidential.'},
-  {title:'YOUR MIND AND MOTIVATION',sub:'This is where most programs fail. Understanding what drives you makes all the difference.'},
-  {title:'YOUR GOALS',sub:'Let us make sure we are building toward the right target.'},
-  {title:'REVIEW AND CONFIRM',sub:'Review everything before we build your profile.'}
+  {title:'WHO THEY ARE',sub:'Start with the basics so you can build something that fits this client\u2019s life.'},
+  {title:'PHYSICAL REALITY',sub:'Accurate answers here protect the client and help you build something they can actually do.'},
+  {title:'LIFESTYLE',sub:'The program only works if it fits how the client actually lives.'},
+  {title:'MEDICAL PICTURE',sub:'This section ensures client safety. All information is confidential.'},
+  {title:'MIND AND MOTIVATION',sub:'This is where most programs fail. Understanding what drives the client makes all the difference.'},
+  {title:'GOALS',sub:'Make sure you are building toward the right target for this client.'},
+  {title:'REVIEW AND CONFIRM',sub:'Review everything before building this client\u2019s profile.'}
 ];
 var iwStep = 0;
 var iwData = {};
@@ -9705,14 +9705,14 @@ function buildStepContent(step) {
     h += iwField('trainingDays','Training days available per week','cards','',false,['1','2','3','4','5','6']);
     h += iwField('sessionLength','Preferred session length','cards','',false,['20 min','30 min','45 min','60 min','75 min','90 min']);
     h += iwField('trainingTime','Preferred training time','cards','',false,['Early morning','Morning','Midday','Afternoon','Evening','Late night','No preference']);
-    h += iwField('trainLocation','Where do you train','chips','',false,['Full commercial gym','Basic equipment gym','Home gym','Bodyweight only at home','Outdoors','Multiple locations']);
+    h += iwField('trainLocation','Where they train','chips','',false,['Full commercial gym','Basic equipment gym','Home gym','Bodyweight only at home','Outdoors','Multiple locations']);
     h += iwField('equipmentAvail','Equipment available','chips','',false,['Barbell and rack','Dumbbells','Cables and machines','Kettlebells','Bands','Pull-up bar','Cardio machines','Specialty equipment','Bodyweight only']);
     h += iwField('eatingHabits','Current eating habits','cards','',false,['Track and eat very healthy','Fairly healthy no tracking','Some healthy some not','Eat whatever is convenient','Struggle with food relationship','On a specific diet plan']);
     h += iwField('mealsPerDay','Meals per day','cards','',false,['1-2','3','4-5','6+','Very irregular']);
     h += iwField('alcohol','Alcohol use','cards','',false,['Never','Occasionally','Regularly','Daily','Prefer not to say']);
     h += iwField('waterIntake','Daily water intake','cards','',false,['Less than 4 cups','4-6 cups','6-8 cups','8+ cups','I rarely drink water']);
     h += iwField('supplements','Current supplements — list all','textarea','Protein powder, creatine, vitamin D, etc.');
-    h += iwField('medications','Prescription medications','textarea','Helps ensure your program is safe');
+    h += iwField('medications','Prescription medications','textarea','Helps ensure the program is safe');
     h += iwField('glp1','GLP-1 or weight loss medication','cards','',false,['No','Yes']);
     h += iwField('glp1Med','If yes — which medication','select','',false,['Semaglutide Ozempic','Semaglutide Wegovy','Tirzepatide Mounjaro','Tirzepatide Zepbound','Liraglutide','Retatrutide','Other']);
     h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+iwField('glp1Dose','Current dose','text','e.g. 0.5mg weekly')+iwField('glp1Weeks','Weeks on medication','number','')+'</div>';
@@ -9727,13 +9727,13 @@ function buildStepContent(step) {
     h += iwField('allergies','Known allergies','textarea','Food, medication, or environmental');
     h += iwField('pregnant','Pregnant','cards','',false,['No','Yes','Prefer not to say']);
   } else if(step === 4) {
-    h += iwField('confidence','Confidence in reaching your goals','slider');
+    h += iwField('confidence','Client confidence in reaching their goals','slider');
     h += '<div style="font-size:0.75rem;color:var(--text3);margin:-0.5rem 0 1rem;text-align:center;">1 = I do not believe I can do this · 10 = I absolutely will do this</div>';
     h += iwField('prevAttempts','Previous fitness attempts','cards','',false,['Never tried','Tried once and stopped','Tried multiple times and stopped','Maintained before but lost it','Currently consistent']);
-    h += iwField('gymComfort','How do you feel about going to the gym','cards','',false,['Love it','Comfortable','Neutral','Somewhat uncomfortable','Very uncomfortable']);
-    h += iwField('bodyImage','How do you feel about your body right now','cards','',false,['Very negative','Somewhat negative','Neutral','Mostly positive','Very positive']);
+    h += iwField('gymComfort','How they feel about going to the gym','cards','',false,['Love it','Comfortable','Neutral','Somewhat uncomfortable','Very uncomfortable']);
+    h += iwField('bodyImage','How they feel about their body right now','cards','',false,['Very negative','Somewhat negative','Neutral','Mostly positive','Very positive']);
     h += iwField('motivation','Primary motivation','cards','',false,['Look better and feel more attractive','Feel stronger and more capable','Improve health and live longer','Perform better in a sport','Doctor recommended exercise','Manage stress or mental health','Prove something to myself','Support a medical condition','Doing this for someone I love']);
-    h += iwField('successVision','What does success look like in 3 months','textarea','Describe in your own words what you want to be different');
+    h += iwField('successVision','What success looks like in 3 months','textarea','In the client\u2019s own words \u2014 what they want to be different');
     h += iwField('biggestFear','Biggest fear or concern about starting','textarea','Getting injured? Not seeing results? Be honest.');
     h += iwField('mentalHealth','Mental health flags','chips','',false,['None','Anxiety','Depression','PTSD Military','PTSD Other','Eating disorder history','Body image concerns','Chronic stress','Grief or loss','Addiction recovery','Prefer not to say']);
     h += '<div style="font-size:0.75rem;color:var(--gold);font-style:italic;margin-top:0.5rem;">These help us write your program to support your whole self. All information is confidential.</div>';
@@ -9741,7 +9741,7 @@ function buildStepContent(step) {
     h += iwField('primaryGoals','Select All Goals That Apply','multiCards','',false,['Lose Body Fat','Build Muscle','Body Recomposition','Improve Strength','Athletic Performance','Improve Health and Longevity','Post-Rehab Recovery','GLP-1 Support','General Fitness','Competition Prep']);
     h += iwField('eventDeadline','Specific event or deadline','textarea','What and when — leave blank if none');
     h += iwField('targetWeight','Target weight (optional)','number','lbs');
-    h += iwField('nonNeg1','Non-negotiable 1','text','Things you will NOT give up');
+    h += iwField('nonNeg1','Non-negotiable 1','text','Things the client will NOT give up');
     h += iwField('nonNeg2','Non-negotiable 2','text','e.g. Sunday family dinner');
     h += iwField('nonNeg3','Non-negotiable 3','text','e.g. Morning coffee routine');
     h += iwField('specialPop','Special population flags','chips','',false,['GLP-1 or AOM Client','GIP Next-Gen AOM','Older Adult 55+','Post-Rehab','Prenatal','Postpartum','Youth Athlete','Bariatric Post-Op','Cardiac Rehab','Diabetic','Osteoporosis','Neurological','Veteran','Wheelchair','Chronic Pain','Obesity','Beginner','Competition Athlete','None']);
@@ -9796,6 +9796,17 @@ function saveIntakeDraft() {
 
 function saveIntakeAsClient(buildProgram) {
   saveStepData();
+  // Single-select 'cards' fields are stored as 1-element arrays by saveStepData
+  // (they share the data-iwg path with multi-select chips). Coerce array→string
+  // for the fields the mapping below reads as strings, so comparisons work and
+  // .toLowerCase() doesn't throw on an array.
+  var iwStr = function(v){ return Array.isArray(v) ? (v[0]||'') : (v||''); };
+  ['sex','hoursOnFeet','sleepHours','tobacco','fitnessLevel','dominantSide',
+   'trainingDays','sessionLength','trainingTime','eatingHabits','alcohol',
+   'waterIntake','glp1','glp1Med','physClearance','underPhysCare','pregnant',
+   'gymComfort','bodyImage','motivation','stressLevel'].forEach(function(k){
+    if(k in iwData) iwData[k] = iwStr(iwData[k]);
+  });
   // Map wizard data to existing client data structure
   var age = iwData.dob ? Math.floor((Date.now()-new Date(iwData.dob).getTime())/(365.25*24*60*60*1000)) : '';
   var levelMap = {'Complete Beginner':'none','Some Experience':'0to6mo','Intermediate':'1to2yr','Advanced':'5to10yr','Athlete':'10yr+'};
