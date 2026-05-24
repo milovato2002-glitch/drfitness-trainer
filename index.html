@@ -494,8 +494,8 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </div>
 
 <!-- WORKOUT OUTPUT MODAL -->
-<div id="wccOutputModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;animation:fadeIn 0.2s ease;">
-  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;width:100%;padding:0;position:relative;animation:scaleIn 0.2s ease;max-height:calc(100vh - 2rem);display:flex;flex-direction:column;overflow:hidden;margin:auto;">
+<div id="wccOutputModal" style="display:none;position:fixed;top:120px;left:0;right:0;bottom:16px;z-index:700;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;padding:0 1rem;overflow-y:auto;animation:fadeIn 0.2s ease;">
+  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:800px;width:100%;padding:0;position:relative;animation:scaleIn 0.2s ease;max-height:calc(100vh - 150px);display:flex;flex-direction:column;overflow:hidden;margin:auto;">
     <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--navy2);border-radius:var(--radius) var(--radius) 0 0;flex-wrap:wrap;gap:8px;flex-shrink:0;">
       <h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;">Generated Workout</h3>
       <button onclick="closeWccModal('wccOutputModal')" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.82rem;">✕</button>
@@ -759,9 +759,15 @@ function getSelected(containerId) {
 function showModal(id){
   var m=document.getElementById(id);
   m.style.display='flex';
+  // Suppress fixed bottom chrome so it can't overlap the modal's action bar.
+  var pwa=document.getElementById('pwaInstallBanner'); if(pwa) pwa.dataset.prevDisplay=pwa.style.display, pwa.style.display='none';
+  var mbn=document.getElementById('mobileBottomNav'); if(mbn) mbn.dataset.prevDisplay=mbn.style.display, mbn.style.display='none';
 }
 window.closeWccModal = function(id){
   document.getElementById(id).style.display='none';
+  // Restore fixed bottom chrome
+  var pwa=document.getElementById('pwaInstallBanner'); if(pwa && pwa.dataset.prevDisplay!==undefined) pwa.style.display=pwa.dataset.prevDisplay;
+  var mbn=document.getElementById('mobileBottomNav'); if(mbn && mbn.dataset.prevDisplay!==undefined) mbn.style.display=mbn.dataset.prevDisplay;
 };
 // ESC to close
 document.addEventListener('keydown',function(e){
