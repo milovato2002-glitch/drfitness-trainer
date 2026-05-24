@@ -996,6 +996,8 @@ window.wccToggleTrackMode = function(){
 };
 
 window.wccGenerate = async function(){
+  // SAFETY GATE: block workout generation for chest pain / dizziness red flags.
+  if(window.cpActiveClient && typeof window.nptSafetyGate==='function' && !window.nptSafetyGate(window.cpActiveClient)) return;
   var level = getSelected('wccLevel')||'Intermediate';
   var duration = getSelected('wccDuration')||'60 min';
   var equipment = getSelected('wccEquipment')||'Full Gym';
@@ -1035,6 +1037,14 @@ window.wccGenerate = async function(){
         ? 'Append " [MOD: <safe alternative>]" to that exercise\u2019s cue. Do not prescribe any movement that aggravates a listed injury.\n'
         : 'Either replace it outright with a safe alternative, or append " [MOD: <safe alternative>]" to its cue, and in the cue state briefly WHY (e.g. reduces axial load). Do not prescribe any movement that aggravates a listed injury.\n') +
     '• AGE + SLEEP + STRESS: Adjust total volume, intensity, and rest accordingly. Older age, poor sleep, or high stress \u2192 reduce volume, extend rest, expand warm-up, favor lower-risk loading. State the adjustment in ##NOTES.\n' +
+    (function(){
+      var pc = window.cpActiveClient ? window.cpActiveClient.currentPain : '';
+      pc = Array.isArray(pc) ? (pc[0]||'') : (pc||''); pc = String(pc).toLowerCase();
+      if(pc==='mild') return '• CURRENT PAIN (MILD): Client reports occasional minor discomfort during exercise. Stay in pain-free range of motion, avoid loaded end-range, prioritize controlled tempo, and note "work in a pain-free ROM" on affected movements.\n';
+      if(pc==='moderate') return '• CURRENT PAIN (MODERATE): Client reports pain that limits some activities. Significantly reduce loading on affected patterns, substitute high-risk movements for low-impact alternatives, keep all work strictly pain-free, and add a note recommending physician/PT clearance if pain persists.\n';
+      if(pc==='severe') return '• CURRENT PAIN (SEVERE): Client reports pain preventing normal exercise. Program only gentle, restorative, pain-free movement (mobility, light activation). Avoid all loading of affected areas. Strongly recommend medical clearance before progressing.\n';
+      return '';
+    })() +
     '• MEDICATIONS / GLP-1: If on a GLP-1 or weight-loss medication, prioritize lean-mass preservation (adequate resistance stimulus), account for reduced energy/fatigue tolerance and hydration needs, and avoid excessive metabolic volume. Reflect this in loading and rest.\n' +
     '• EQUIPMENT/LOCATION: Hard constraint. Never prescribe equipment the client does not have. Every exercise must be performable with the listed equipment.\n' +
     '• GOALS: The primary (first-listed) goal must drive the loading scheme (sets/reps/rest/intensity). Secondary goal is accessory.\n' +
@@ -9355,6 +9365,9 @@ window.openCompleteProgramBuilder = function() {
 window.generateCompleteProgram = async function() {
   var c = window.cpActiveClient;
   if(!c) return;
+  // SAFETY GATE: chest pain or dizziness during exercise are medical red flags.
+  // Do not generate a program — refer to a physician. This is scope-of-practice.
+  if(typeof window.nptSafetyGate==='function' && !window.nptSafetyGate(c)) return;
   var tf=''; document.querySelectorAll('#cpbTimeframe .wcc-chip.active').forEach(function(x){tf=x.dataset.val;});
   var style=''; document.querySelectorAll('#cpbStyle .wcc-chip.active').forEach(function(x){style=x.dataset.val;});
   var budget=''; document.querySelectorAll('#cpbBudget .wcc-chip.active').forEach(function(x){budget=x.dataset.val;});
@@ -9395,7 +9408,12 @@ window.generateCompleteProgram = async function() {
     var rawProg = await window.streamChat({ max_tokens:4000, system:sysPrompt+(window.langSuffix||''), messages:[{role:'user',content:prompt}] });
     if(rawProg && rawProg.trim()){
       var text = rawProg.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.5rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
-      document.getElementById('cpbContent').innerHTML = '<p>'+text+'</p>';
+      document.getElementById('cpbContent').innerHTML =
+        '<div style="background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">' +
+          '<div style="flex:1;min-width:220px;"><div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:var(--green);font-size:0.95rem;">📋 This program covers training, supplements & mindset.</div><div style="font-size:0.8rem;color:var(--text2);margin-top:2px;">For the full nutrition plan — macros, meal tables, grocery list & shopping guide — generate the dedicated Nutrition Plan document.</div></div>' +
+          '<button onclick="document.getElementById(\'cpbOutputModal\').remove(); if(typeof openNutritionPlanGenerator===\'function\') openNutritionPlanGenerator();" style="padding:10px 20px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.06em;cursor:pointer;white-space:nowrap;">BUILD NUTRITION PLAN →</button>' +
+        '</div>' +
+        '<p>'+text+'</p>';
       if(typeof autoSaveSession==='function') autoSaveSession('<p>'+text+'</p>', style, {timeframe:tf,budget:budget}, tf.indexOf('week')!==-1?'12-Week Transformation':tf==='monthly'?'Monthly Program':tf+' Program');
     } else { throw new Error('No response'); }
   }catch(err){ document.getElementById('cpbContent').innerHTML = '<div style="color:var(--red);padding:2rem;text-align:center;">Failed to generate program. '+err.message+'</div>'; }
@@ -11991,6 +12009,23 @@ window.nptRenderMealTables = function(raw){
   flushMeal();
   if(sumRows) html+='<h3>Daily Total Summary</h3><table><tr><th>Macro</th><th>Actual</th><th>Target</th><th>Status</th></tr>'+sumRows+'</table>';
   return html || window.nptMdToHtml(raw); // fallback if format wasn't followed
+};
+
+// SAFETY GATE — chest pain or dizziness during exercise are medical red flags
+// that fall outside trainer scope of practice. Returns false (blocks generation)
+// and shows a referral message. Returns true if safe to proceed.
+window.nptSafetyGate = function(c){
+  if(!c) return true;
+  var pain = Array.isArray(c.currentPain) ? (c.currentPain[0]||'') : (c.currentPain||'');
+  pain = String(pain).toLowerCase();
+  if(pain === 'chest_pain' || pain === 'dizziness' || pain.indexOf('chest')!==-1 || pain.indexOf('dizz')!==-1){
+    alert('⚠ MEDICAL REFERRAL REQUIRED\n\n' + (c.fname||'This client') + ' reported ' +
+      (pain.indexOf('chest')!==-1 ? 'chest pain or pressure' : 'dizziness or lightheadedness') +
+      ' during exercise. These are medical red-flag symptoms that fall outside personal-training scope of practice.\n\n' +
+      'Do not generate or prescribe a program. Refer the client to a physician for clearance before any exercise programming.');
+    return false;
+  }
+  return true;
 };
 
 // Shared markdown→HTML for all nutrition AI outputs (one source of truth so
