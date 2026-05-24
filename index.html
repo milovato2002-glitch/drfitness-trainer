@@ -7433,19 +7433,9 @@ Be specific, practical, and aligned to NASM OPT principles. Use professional tra
   document.getElementById('wb-generate').disabled = true;
 
   try {
-    const res = await fetch('/.netlify/functions/chat', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        system: SYS + (window.langSuffix || ''),
-        messages: [{role:'user', content: prompt}]
-      })
-    });
-    const d = await res.json();
-    if (d.content && d.content[0]) {
-      renderWorkout(d.content[0].text, profile);
+    const rawWO = await window.streamChat({ max_tokens:1500, system: SYS + (window.langSuffix || ''), messages:[{role:'user', content: prompt}] });
+    if (rawWO && rawWO.trim()) {
+      renderWorkout(rawWO, profile);
     } else {
       throw new Error('No response from AI');
     }
@@ -8360,18 +8350,9 @@ CLIENT PROFILE SUMMARY:
 Provide specific recommendations covering: recommended OPT phase and why, key exercise considerations based on injuries/conditions, nutrition priority, programming approach, and one motivational coaching note based on their stage of change. Keep each bullet concise and actionable. No disclaimers — this is for a certified trainer.`;
 
   try {
-    const res = await fetch('/.netlify/functions/chat', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 600,
-        system: 'You are Dr. Fitness, an elite trainer reference AI. Provide direct, practical, evidence-based recommendations for certified personal trainers. Be concise and specific.',
-        messages: [{role:'user', content: prompt}]
-      })
-    });
-    const d = await res.json();
-    if (d.content && d.content[0]) {
+    const rawSugg = await window.streamChat({ max_tokens:600, system:'You are Dr. Fitness, an elite trainer reference AI. Provide direct, practical, evidence-based recommendations for certified personal trainers. Be concise and specific.', messages:[{role:'user', content: prompt}] });
+    if (rawSugg && rawSugg.trim()) {
+      const d = { content:[{ text: rawSugg }] };
       const text = d.content[0].text
         .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
         .replace(/^[-•] (.+)$/gm,'<li>$1</li>')
@@ -8910,9 +8891,9 @@ window.generateSuppStack = async function(){
 
   try{
     var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sysPrompt,messages:[{role:'user',content:prompt}]})});
-    var d = await res.json();
-    if(d.content&&d.content[0]){
+    var rawSupp2 = await window.streamChat({ max_tokens:2000, system:sysPrompt, messages:[{role:'user',content:prompt}] });
+    if(rawSupp2 && rawSupp2.trim()){
+      var d = { content:[{ text: rawSupp2 }] };
       var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
       output.innerHTML = '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+text+'</p></div>';
     } else { throw new Error('No response'); }
@@ -9121,9 +9102,9 @@ async function generateBeginnerSession(c, answers) {
     '\n\nBEGINNER RULES: Simple movement patterns. Technique over load. Encouraging coaching cues throughout. Clear simple instructions. NASM Phase 1 parameters. Every exercise must have a modification for total beginners.';
   try {
     var sysP = (typeof SYS!=='undefined')?SYS:'You are Dr. Fitness.';
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,system:sysP,messages:[{role:'user',content:prompt}]})});
-    var d = await res.json();
-    if(d.content&&d.content[0]){
+    var rawBeg = await window.streamChat({ max_tokens:2000, system:sysP, messages:[{role:'user',content:prompt}] });
+    if(rawBeg && rawBeg.trim()){
+      var d = { content:[{ text: rawBeg }] };
       document.getElementById('beginnerBuilder').remove();
       // Show in the standard output modal
       showModal('wccOutputModal');
@@ -9411,12 +9392,10 @@ window.generateCompleteProgram = async function() {
 
   try{
     var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})});
-    var d = await res.json();
-    if(d.content&&d.content[0]){
-      var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.5rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
+    var rawProg = await window.streamChat({ max_tokens:4000, system:sysPrompt+(window.langSuffix||''), messages:[{role:'user',content:prompt}] });
+    if(rawProg && rawProg.trim()){
+      var text = rawProg.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.5rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;">'+m+'</ul>';}).replace(/<\/ul>\s*<ul[^>]*>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2');
       document.getElementById('cpbContent').innerHTML = '<p>'+text+'</p>';
-      // Auto-save
       if(typeof autoSaveSession==='function') autoSaveSession('<p>'+text+'</p>', style, {timeframe:tf,budget:budget}, tf.indexOf('week')!==-1?'12-Week Transformation':tf==='monthly'?'Monthly Program':tf+' Program');
     } else { throw new Error('No response'); }
   }catch(err){ document.getElementById('cpbContent').innerHTML = '<div style="color:var(--red);padding:2rem;text-align:center;">Failed to generate program. '+err.message+'</div>'; }
