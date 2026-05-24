@@ -1238,6 +1238,44 @@ window.wccPrintWorkout = function(){
 ══════════════════════════════════════════════════════════════════ */
 
 // Parse the EX| contract text into a structured object (shared by PDF + share text).
+
+/* Reusable streaming helper — calls chat with stream:true, accumulates the
+   full text, and fires onChunk(progressiveText) as it arrives. Returns the
+   complete text. Used by nutrition/supplement/coaching generators so they
+   don't hit the 10s Netlify timeout (same fix as workouts). */
+async function streamChat(opts, onChunk){
+  var res = await fetch('/.netlify/functions/chat',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      stream:true,
+      model: opts.model || 'claude-sonnet-4-6',
+      max_tokens: opts.max_tokens || 2000,
+      system: opts.system || '',
+      messages: opts.messages || []
+    })
+  });
+  if(!res.ok || !res.body){
+    var e=''; try{ e=(await res.json()).error||''; }catch(x){}
+    throw new Error(e || ('Server error '+res.status));
+  }
+  var reader=res.body.getReader(), dec=new TextDecoder(), buf='', text='';
+  while(true){
+    var ch=await reader.read(); if(ch.done) break;
+    buf += dec.decode(ch.value,{stream:true});
+    var lines=buf.split('\n'); buf=lines.pop();
+    for(var i=0;i<lines.length;i++){
+      var ln=lines[i]; if(ln.indexOf('data:')!==0) continue;
+      var pl=ln.slice(5).trim(); if(!pl||pl==='[DONE]') continue;
+      try{ var ev=JSON.parse(pl);
+        if(ev.type==='content_block_delta' && ev.delta && typeof ev.delta.text==='string'){
+          text += ev.delta.text; if(typeof onChunk==='function') onChunk(text);
+        } else if(ev.type==='error'){ throw new Error((ev.error&&ev.error.message)||'Stream error'); }
+      }catch(e){}
+    }
+  }
+  return text;
+}
+
 function wccParseWorkout(text){
   var lines = (text||'').split('\n');
   var out = { title:'', summary:'', days:[] };
@@ -11933,10 +11971,13 @@ window.generateAIMealPlan = async function() {
     '\nFor each of the ' + ctx.mealsPerDay + ' meals include:\n- Meal name and time (e.g., Meal 1 - Breakfast 7:00 AM)\n- List of foods with exact serving sizes\n- For each food: carbs/protein/fat/kcal\n- Meal total row\n- One coaching note explaining the rationale\n\nEnd with a Daily Total Summary table comparing actual vs target macros with adjustment notes.\n\nFormat clearly with ### headers for each meal. Use **bold** for meal totals. Be specific with gram weights.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:2000, system:'You are Dr. Fitness, an expert nutrition coach for certified personal trainers. Generate detailed, evidence-based, client-specific meal plans. Be precise with macros. Format cleanly with markdown.', messages:[{role:'user', content:prompt}]})});
-    var d = await res.json();
-    if (d.content && d.content[0]) {
-      var text = d.content[0].text
+    var rawPlan = await streamChat({
+      max_tokens:2000,
+      system:'You are Dr. Fitness, an expert nutrition coach for certified personal trainers. Generate detailed, evidence-based, client-specific meal plans. Be precise with macros. Format cleanly with markdown.',
+      messages:[{role:'user', content:prompt}]
+    });
+    if (rawPlan && rawPlan.trim()) {
+      var text = rawPlan
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/^### (.+)$/gm, '<h3>$1</h3>')
         .replace(/^## (.+)$/gm, '<h3>$1</h3>')
@@ -11949,7 +11990,7 @@ window.generateAIMealPlan = async function() {
       btn.textContent = '✓ Meal Plan Generated — Regenerate';
       btn.disabled = false;
       document.getElementById('nutPlanDownloadBtn').style.display = 'inline-block';
-      window._nptMealPlan = d.content[0].text;
+      window._nptMealPlan = rawPlan;
     } else { throw new Error('No response'); }
   } catch(err) {
     content.innerHTML = '<div style="color:var(--red);padding:1rem;">Failed to generate meal plan. Check your connection and try again.<br><small>' + err.message + '</small></div>';
@@ -11976,10 +12017,13 @@ window.generateAIFoodPlan = async function() {
     'Format with ### headers for each section. Be specific with serving sizes.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1500, system:'You are Dr. Fitness, an expert nutrition coach. Generate detailed client-specific food recommendations. Format with markdown tables and headers.', messages:[{role:'user', content:prompt}]})});
-    var d = await res.json();
-    if (d.content && d.content[0]) {
-      var text = d.content[0].text
+    var rawFood = await streamChat({
+      max_tokens:1500,
+      system:'You are Dr. Fitness, an expert nutrition coach. Generate detailed client-specific food recommendations. Format with markdown tables and headers.',
+      messages:[{role:'user', content:prompt}]
+    });
+    if (rawFood && rawFood.trim()) {
+      var text = rawFood
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/^### (.+)$/gm, '<h3>$1</h3>')
         .replace(/^\- (.+)$/gm, '<li>$1</li>')
@@ -11990,7 +12034,7 @@ window.generateAIFoodPlan = async function() {
       content.innerHTML = '<p>' + text + '</p>';
       btn.textContent = '✓ Food Plan Generated — Regenerate';
       btn.disabled = false;
-      window._nptFoodPlan = d.content[0].text;
+      window._nptFoodPlan = rawFood;
     } else { throw new Error('No response'); }
   } catch(err) {
     content.innerHTML = '<div style="color:var(--red);padding:1rem;">Failed to generate food plan. Try again.<br><small>' + err.message + '</small></div>';
@@ -12018,10 +12062,13 @@ window.generateAISuppStack = async function() {
     '\n\nFor each supplement include:\n- Name\n- Tier badge: TIER 1 — FOUNDATIONAL or TIER 2 — PERFORMANCE or TIER 2 — RECOVERY\n- Specific dose and form\n- Timing and how to take\n- Why recommended for THIS specific client (reference their age, goal, training frequency)\n\nInclude 4-6 supplements total. Prioritize by evidence grade. Start with the most important.\n\nEnd with a Scope of Practice note that all supplements should be discussed with their physician.\n\nFormat with ### for each supplement name.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1500, system:'You are Dr. Fitness, an expert supplement advisor for certified personal trainers. Provide evidence-based, client-specific supplement recommendations using NASM, ISSN, and ACE guidelines. Always stay within trainer scope of practice.', messages:[{role:'user', content:prompt}]})});
-    var d = await res.json();
-    if (d.content && d.content[0]) {
-      var text = d.content[0].text
+    var rawSupp = await streamChat({
+      max_tokens:1500,
+      system:'You are Dr. Fitness, an expert supplement advisor for certified personal trainers. Provide evidence-based, client-specific supplement recommendations using NASM, ISSN, and ACE guidelines. Always stay within trainer scope of practice.',
+      messages:[{role:'user', content:prompt}]
+    });
+    if (rawSupp && rawSupp.trim()) {
+      var text = rawSupp
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/^### (.+)$/gm, '<h3>$1</h3>')
         .replace(/^\- (.+)$/gm, '<li>$1</li>')
@@ -12033,7 +12080,7 @@ window.generateAISuppStack = async function() {
       btn.textContent = '✓ Supplement Stack Generated — Regenerate';
       btn.disabled = false;
       document.getElementById('nutPlanDownloadBtn').style.display = 'inline-block';
-      window._nptSuppStack = d.content[0].text;
+      window._nptSuppStack = rawSupp;
     } else { throw new Error('No response'); }
   } catch(err) {
     content.innerHTML = '<div style="color:var(--red);padding:1rem;">Failed to generate supplement stack. Try again.<br><small>' + err.message + '</small></div>';
@@ -12058,10 +12105,13 @@ window.generateAICoachingNotes = async function() {
     (ctx.isOlder ? 'Include 55+ specific guidance: anabolic resistance, leucine threshold, vitamin D and calcium.\n' : '');
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1200, system:'You are Dr. Fitness, an expert coaching advisor. Generate practical, evidence-based coaching notes for personal trainers. Use NASM, ACE, and ISSN guidelines. Be specific and actionable.', messages:[{role:'user', content:prompt}]})});
-    var d = await res.json();
-    if (d.content && d.content[0]) {
-      var text = d.content[0].text
+    var rawNotes = await streamChat({
+      max_tokens:1200,
+      system:'You are Dr. Fitness, an expert coaching advisor. Generate practical, evidence-based coaching notes for personal trainers. Use NASM, ACE, and ISSN guidelines. Be specific and actionable.',
+      messages:[{role:'user', content:prompt}]
+    });
+    if (rawNotes && rawNotes.trim()) {
+      var text = rawNotes
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/^### (.+)$/gm, '<h3>$1</h3>')
         .replace(/^## (.+)$/gm, '<h3>$1</h3>')
@@ -12075,7 +12125,7 @@ window.generateAICoachingNotes = async function() {
       btn.textContent = '✓ Coaching Notes Generated — Regenerate';
       btn.disabled = false;
       document.getElementById('nutPlanDownloadBtn').style.display = 'inline-block';
-      window._nptCoachNotes = d.content[0].text;
+      window._nptCoachNotes = rawNotes;
     } else { throw new Error('No response'); }
   } catch(err) {
     content.innerHTML = '<div style="color:var(--red);padding:1rem;">Failed to generate coaching notes. Try again.<br><small>' + err.message + '</small></div>';
