@@ -1243,7 +1243,7 @@ window.wccPrintWorkout = function(){
    full text, and fires onChunk(progressiveText) as it arrives. Returns the
    complete text. Used by nutrition/supplement/coaching generators so they
    don't hit the 10s Netlify timeout (same fix as workouts). */
-async function streamChat(opts, onChunk){
+window.streamChat = async function(opts, onChunk){
   var res = await fetch('/.netlify/functions/chat',{
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -1274,7 +1274,7 @@ async function streamChat(opts, onChunk){
     }
   }
   return text;
-}
+};
 
 function wccParseWorkout(text){
   var lines = (text||'').split('\n');
