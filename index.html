@@ -11972,6 +11972,33 @@ window.nptSwitch = function(btn, sec) {
 };
 
 /* ── AI: Meal Plan ── */
+// Renders the meal-plan pipe format into real HTML tables (per-meal tables
+// with a MEAL TOTAL row, plus a daily summary table) — matches the reference
+// document style instead of converted markdown prose.
+window.nptRenderMealTables = function(raw){
+  if(!raw) return '';
+  var lines = raw.split('\n'), html='', inSummary=false, sumRows='', meal=null, rows='';
+  function flushMeal(){
+    if(meal){
+      html += '<h3>'+meal+'</h3><table><tr><th>Food</th><th>Carbs</th><th>Protein</th><th>Fat</th><th>kcal</th></tr>'+rows+'</table>';
+      meal=null; rows='';
+    }
+  }
+  for(var i=0;i<lines.length;i++){
+    var t=lines[i].trim(); if(!t) continue;
+    if(t.indexOf('MEAL:')===0){ flushMeal(); meal=t.substring(5).trim(); continue; }
+    if(t.indexOf('F|')===0){ var p=t.substring(2).split('|'); rows+='<tr><td>'+(p[0]||'')+'</td><td>'+(p[1]||'')+'g</td><td>'+(p[2]||'')+'g</td><td>'+(p[3]||'')+'g</td><td>'+(p[4]||'')+'</td></tr>'; continue; }
+    if(t.indexOf('T|')===0){ var q=t.substring(2).split('|'); rows+='<tr class="total"><td>MEAL TOTAL</td><td>'+(q[0]||'')+'g</td><td>'+(q[1]||'')+'g</td><td>'+(q[2]||'')+'g</td><td>'+(q[3]||'')+'</td></tr>'; continue; }
+    if(t.indexOf('NOTE:')===0){ flushMeal(); html+='<p style="font-style:italic;color:#6b7280;">'+t.substring(5).trim()+'</p>'; continue; }
+    if(t==='SUMMARY_START'){ flushMeal(); inSummary=true; continue; }
+    if(t==='SUMMARY_END'){ if(sumRows){ html+='<h3>Daily Total Summary</h3><table><tr><th>Macro</th><th>Actual</th><th>Target</th><th>Status</th></tr>'+sumRows+'</table>'; sumRows=''; } inSummary=false; continue; }
+    if(t.indexOf('S|')===0){ var s=t.substring(2).split('|'); sumRows+='<tr><td>'+(s[0]||'')+'</td><td>'+(s[1]||'')+'</td><td>'+(s[2]||'')+'</td><td>'+(s[3]||'')+'</td></tr>'; continue; }
+  }
+  flushMeal();
+  if(sumRows) html+='<h3>Daily Total Summary</h3><table><tr><th>Macro</th><th>Actual</th><th>Target</th><th>Status</th></tr>'+sumRows+'</table>';
+  return html || window.nptMdToHtml(raw); // fallback if format wasn't followed
+};
+
 // Shared markdown→HTML for all nutrition AI outputs (one source of truth so
 // parsers can't drift out of sync). Handles #/##/###, bold, tier badges
 // ![...], bullets, numbered lists, dividers, and paragraphs.
@@ -12062,7 +12089,17 @@ window.generateAIMealPlan = async function() {
     (ctx.isGlp1 ? 'GLP-1 client: protein-first eating, small portions, 5 meals to manage satiety.\n' : '') +
     (ctx.isOlder ? 'Age 55+: minimum 30-40g protein per meal, leucine-rich sources, easy to digest foods.\n' : '') +
     (ctx.injuries.length ? 'Injury considerations: ' + ctx.injuries.join(', ') + '\n' : '') +
-    '\nFor each of the ' + ctx.mealsPerDay + ' meals include:\n- Meal name and time (e.g., Meal 1 - Breakfast 7:00 AM)\n- List of foods with exact serving sizes\n- For each food: carbs/protein/fat/kcal\n- Meal total row\n- One coaching note explaining the rationale\n\nEnd with a Daily Total Summary table comparing actual vs target macros with adjustment notes.\n\nFormat clearly with ### headers for each meal. Use **bold** for meal totals. Be specific with gram weights.';
+    '\nOUTPUT FORMAT — follow EXACTLY so it can be rendered as tables. For each of the ' + ctx.mealsPerDay + ' meals, output:\n' +
+    'MEAL: <number> — <name> (<time>)\n' +
+    'Then one line per food in this exact pipe format (no markdown, nothing else on the line):\n' +
+    'F|<food + serving size>|<carbs g>|<protein g>|<fat g>|<kcal>\n' +
+    'Then a totals line: T|<carbs g>|<protein g>|<fat g>|<kcal>\n' +
+    'Then: NOTE: <one coaching sentence on the meal rationale>\n' +
+    'After all meals, output:\n' +
+    'SUMMARY_START\n' +
+    'S|<macro>|<actual>|<target>|<status note>\n  (one S| line each for Calories, Protein, Carbs, Fat)\n' +
+    'SUMMARY_END\n' +
+    'Use exact gram weights. Do not use markdown headers, asterisks, or tables — only the pipe format above.';
 
   try {
     var rawPlan = await streamChat({
@@ -12071,8 +12108,8 @@ window.generateAIMealPlan = async function() {
       messages:[{role:'user', content:prompt}]
     });
     if (rawPlan && rawPlan.trim()) {
-      var text = window.nptMdToHtml(rawPlan);
-      content.innerHTML = '<p>' + text + '</p>';
+      var text = window.nptRenderMealTables(rawPlan);
+      content.innerHTML = text;
       btn.textContent = '✓ Meal Plan Generated — Regenerate';
       btn.disabled = false;
       document.getElementById('nutPlanDownloadBtn').style.display = 'inline-block';
@@ -12247,36 +12284,44 @@ window.downloadNutritionPlanPDF = function() {
   var date = new Date().toLocaleDateString('en-US', {month:'long', year:'numeric'});
   var heightStr = Math.floor(ctx.heightIn/12) + '\'' + (ctx.heightIn%12) + '"';
 
-  var mealContent = window._nptMealPlan ? window._nptMealPlan.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>';}).replace(/<\/ul>\s*<ul>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2') : '<p style="color:#999;">Meal plan not yet generated. Return to the app and click Generate Personalized Meal Plan.</p>';
-  var foodContent = window._nptFoodPlan ? window._nptFoodPlan.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>';}).replace(/<\/ul>\s*<ul>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2') : '<p style="color:#999;">Food list not yet generated.</p>';
-  var suppContent = window._nptSuppStack ? window._nptSuppStack.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>';}).replace(/<\/ul>\s*<ul>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2') : '<p style="color:#999;">Supplement stack not yet generated.</p>';
-  var coachContent = window._nptCoachNotes ? window._nptCoachNotes.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>';}).replace(/<\/ul>\s*<ul>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2') : '<p style="color:#999;">Coaching notes not yet generated.</p>';
+  var mealContent = window._nptMealPlan ? window.nptRenderMealTables(window._nptMealPlan) : '<p style="color:#999;">Meal plan not yet generated. Return to the app and click Generate Personalized Meal Plan.</p>';
+  var foodContent = window._nptFoodPlan ? window.nptMdToHtml(window._nptFoodPlan) : '<p style="color:#999;">Food list not yet generated.</p>';
+  var suppContent = window._nptSuppStack ? window.nptMdToHtml(window._nptSuppStack) : '<p style="color:#999;">Supplement stack not yet generated.</p>';
+  var coachContent = window._nptCoachNotes ? window.nptMdToHtml(window._nptCoachNotes) : '<p style="color:#999;">Coaching notes not yet generated.</p>';
 
   w.document.write('<!DOCTYPE html><html><head><title>Nutrition Plan — ' + ctx.fname + ' ' + ctx.lname + '</title><style>' +
-    'body{font-family:Arial,sans-serif;color:#222;margin:0;padding:0;background:#fff;}' +
-    '.page{max-width:780px;margin:0 auto;padding:2rem 2.5rem;}' +
-    '.header{background:#1a5c4a;color:#fff;padding:1.5rem 2rem;border-radius:8px;margin-bottom:1.5rem;}' +
-    '.header h1{margin:0 0 4px;font-size:1.4rem;}' +
-    '.header p{margin:0;font-size:0.82rem;opacity:0.75;}' +
-    'h2{color:#1a5c4a;font-size:1rem;border-bottom:2px solid #1a5c4a;padding-bottom:5px;margin:1.5rem 0 0.75rem;}' +
-    'h3{color:#1a5c4a;font-size:0.9rem;margin:1rem 0 0.4rem;}' +
-    'table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:1rem;}' +
-    'th{background:#1a5c4a;color:#fff;padding:7px 10px;text-align:left;font-size:0.75rem;}' +
-    'td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;}' +
-    'tr:nth-child(even) td{background:#f8fffe;}' +
-    '.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}' +
-    '.stat{border:2px solid #1a5c4a;border-radius:6px;padding:0.875rem;text-align:center;}' +
-    '.stat-val{font-size:1.6rem;font-weight:700;color:#1a5c4a;}' +
-    '.stat-lbl{font-size:0.65rem;text-transform:uppercase;color:#888;margin-top:2px;}' +
-    'p{font-size:0.83rem;line-height:1.65;color:#444;}' +
-    'ul{font-size:0.82rem;color:#444;line-height:1.65;margin-left:1rem;}' +
-    'strong{color:#1a5c4a;}' +
-    '.footer{margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd;font-size:0.7rem;color:#aaa;display:flex;justify-content:space-between;}' +
+    '*{box-sizing:border-box;}' +
+    'body{font-family:Georgia,"Times New Roman",serif;color:#1f2937;margin:0;padding:0;background:#fff;line-height:1.6;}' +
+    '.page{max-width:760px;margin:0 auto;padding:2.5rem 3rem;}' +
+    '.header{background:linear-gradient(135deg,#1a5c4a 0%,#0f3d31 100%);color:#fff;padding:1.75rem 2rem;border-radius:10px;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(26,92,74,0.2);}' +
+    '.header .brand{font-family:Arial,sans-serif;font-size:0.66rem;letter-spacing:0.22em;text-transform:uppercase;opacity:0.7;margin-bottom:8px;}' +
+    '.header h1{margin:0 0 6px;font-size:1.55rem;font-family:Arial,sans-serif;font-weight:800;letter-spacing:-0.01em;}' +
+    '.header p{margin:0;font-size:0.8rem;opacity:0.82;font-family:Arial,sans-serif;}' +
+    'h2{color:#1a5c4a;font-size:1.05rem;font-family:Arial,sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2.5px solid #1a5c4a;padding-bottom:6px;margin:1.75rem 0 0.9rem;}' +
+    'h3{color:#0f3d31;font-size:0.92rem;font-family:Arial,sans-serif;font-weight:700;margin:1.1rem 0 0.45rem;}' +
+    'h4{color:#1a5c4a;font-size:0.82rem;font-family:Arial,sans-serif;font-weight:700;margin:0.8rem 0 0.3rem;}' +
+    'table{width:100%;border-collapse:collapse;font-size:0.8rem;margin:0.5rem 0 1.25rem;font-family:Arial,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.06);border-radius:6px;overflow:hidden;}' +
+    'th{background:#1a5c4a;color:#fff;padding:9px 12px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:700;}' +
+    'td{padding:8px 12px;border-bottom:1px solid #edf2f0;vertical-align:top;color:#374151;}' +
+    'tr:nth-child(even) td{background:#f6fbf9;}' +
+    'tr:last-child td{border-bottom:none;}' +
+    '.total-row td,tr.total td{background:#1a5c4a!important;color:#fff;font-weight:700;}' +
+    '.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem;}' +
+    '.stat{background:#f6fbf9;border:1.5px solid #1a5c4a;border-radius:8px;padding:1rem 0.5rem;text-align:center;}' +
+    '.stat-val{font-size:1.7rem;font-weight:800;color:#1a5c4a;font-family:Arial,sans-serif;line-height:1;}' +
+    '.stat-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:#6b7280;margin-top:5px;font-family:Arial,sans-serif;font-weight:600;}' +
+    'p{font-size:0.85rem;line-height:1.7;color:#374151;margin:0.5rem 0;}' +
+    'ul{font-size:0.83rem;color:#374151;line-height:1.7;margin:0.4rem 0 0.9rem;padding-left:1.3rem;}' +
+    'li{margin-bottom:3px;}' +
+    'strong{color:#0f3d31;font-weight:700;}' +
+    'hr{border:none;border-top:1px solid #e5e7eb;margin:1rem 0;}' +
+    '.footer{margin-top:2.5rem;padding-top:1rem;border-top:2px solid #1a5c4a;font-size:0.68rem;color:#9ca3af;display:flex;justify-content:space-between;font-family:Arial,sans-serif;}' +
     '.section-break{page-break-before:always;padding-top:1rem;}' +
+    '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.section-break{page-break-before:always;}.header{box-shadow:none;}}' +
     '@media print{.section-break{page-break-before:always;}}' +
     '</style></head><body><div class="page">' +
 
-    '<div class="header"><h1>' + ctx.goalLabel + ' — Nutrition Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Dr. Fitness · Best Fitness Gyms · Dr. Michael Lovato EdD · ' + date + '</p></div>' +
+    '<div class="header"><div class="brand">Best Fitness · Dr. Michael Lovato, EdD</div><h1>' + (ctx.goalLabel||'Nutrition').toUpperCase() + ' — MACRO PLAN</h1><p>' + ctx.fname + ' ' + ctx.lname + '  ·  ' + ctx.age + ' y/o  ·  ' + ctx.weight + ' lbs  ·  ' + date + '</p></div>' +
 
     '<h2>Client Profile</h2>' +
     '<table><tr><th>Age</th><td>' + ctx.age + ' years</td><th>Height</th><td>' + heightStr + ' (' + ctx.heightCm + ' cm)</td></tr>' +
