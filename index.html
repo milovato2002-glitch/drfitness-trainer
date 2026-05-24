@@ -1259,8 +1259,14 @@ window.streamChat = async function(opts, onChunk){
     throw new Error(e || ('Server error '+res.status));
   }
   var reader=res.body.getReader(), dec=new TextDecoder(), buf='', text='';
+  var TIMEOUT_MS = opts.timeoutMs || 60000;
   while(true){
-    var ch=await reader.read(); if(ch.done) break;
+    // Race each read against a timeout so a stalled stream can't hang forever.
+    var ch = await Promise.race([
+      reader.read(),
+      new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('Stream timed out')); }, TIMEOUT_MS); })
+    ]).catch(function(err){ try{ reader.cancel(); }catch(x){} throw err; });
+    if(ch.done) break;
     buf += dec.decode(ch.value,{stream:true});
     var lines=buf.split('\n'); buf=lines.pop();
     for(var i=0;i<lines.length;i++){
@@ -11768,6 +11774,7 @@ window.openNutritionPlanGenerator = function(startSection) {
       '<div style="font-size:0.72rem;color:var(--text3);">' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.goalLabel + ' · ' + ctx.age + ' y/o · ' + ctx.weight + ' lbs</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;">' +
+      '<button id="nutPlanBuildAllBtn" onclick="nptBuildCompletePlan()" style="padding:8px 18px;background:var(--green);color:#fff;border:none;border-radius:6px;font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">⚡ BUILD COMPLETE PLAN</button>' +
       '<button id="nutPlanDownloadBtn" onclick="downloadNutritionPlanPDF()" style="display:none;padding:8px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:6px;font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">⬇ DOWNLOAD PDF</button>' +
       '<button onclick="document.getElementById(\'nutPlanOverlay\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:7px 14px;cursor:pointer;font-size:0.78rem;">✕ Close</button>' +
     '</div>' +
@@ -12020,7 +12027,72 @@ window.nptMdToHtml = function(raw){
     .replace(/([^>])\n([^<])/g, '$1<br>$2');
 };
 
-// ── HYBRID FLOW ORCHESTRATOR ──
+// ── COMPLETE DOCUMENT BUILD ──
+// One button → builds every section start to finish, shows full-screen
+// progress, can't get stuck (each step is timeout-guarded), and opens the
+// finished PDF automatically. This is the "one complete document" flow.
+window.nptBuildCompletePlan = async function() {
+  var btn = document.getElementById('nutPlanBuildAllBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '⚡ BUILDING…'; }
+
+  // Full-screen progress panel
+  var ov = document.getElementById('nptBuildOverlay');
+  if(ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'nptBuildOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:rgba(8,15,30,0.96);display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+  ov.innerHTML = '<div style="max-width:420px;width:100%;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:1.75rem;">' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:4px;">Building Complete Plan</div>' +
+    '<div style="font-size:0.8rem;color:var(--text3);margin-bottom:1.25rem;">Generating every section, then assembling the full document.</div>' +
+    '<div id="nptBuildSteps"></div>' +
+    '<div id="nptBuildDone" style="display:none;margin-top:1rem;"></div>' +
+    '</div>';
+  document.body.appendChild(ov);
+
+  var steps = [
+    { label: 'Meal plan', fn: window.generateAIMealPlan },
+    { label: 'Supplement stack', fn: window.generateAISuppStack },
+    { label: 'Grocery list & shopping guide', fn: window.generateAIGroceryGuide },
+    { label: 'Coaching notes', fn: window.generateAICoachingNotes }
+  ];
+  var stepsEl = document.getElementById('nptBuildSteps');
+  function render(done, current, failed){
+    var h='';
+    steps.forEach(function(s,i){
+      var icon,color;
+      if(failed.indexOf(i)!==-1){ icon='⚠'; color='var(--gold)'; }
+      else if(i<done){ icon='✓'; color='var(--green)'; }
+      else if(i===current){ icon='⋯'; color='var(--gold)'; }
+      else { icon='○'; color='var(--text3)'; }
+      h+='<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:'+color+';margin-bottom:8px;"><span style="font-size:1.1rem;">'+icon+'</span>'+s.label+'</div>';
+    });
+    stepsEl.innerHTML=h;
+  }
+
+  var failed=[];
+  for(var i=0;i<steps.length;i++){
+    render(i,i,failed);
+    try{
+      await Promise.race([
+        steps[i].fn(),
+        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, 75000); })
+      ]);
+    }catch(e){ failed.push(i); }
+    await new Promise(function(r){ setTimeout(r,250); });
+  }
+  render(steps.length,-1,failed);
+
+  var done = document.getElementById('nptBuildDone');
+  if(btn){ btn.disabled=false; btn.textContent='⚡ BUILD COMPLETE PLAN'; }
+  var dlBtn = document.getElementById('nutPlanDownloadBtn'); if(dlBtn) dlBtn.style.display='inline-block';
+  done.style.display='block';
+  done.innerHTML =
+    (failed.length ? '<div style="font-size:0.78rem;color:var(--gold);margin-bottom:10px;">'+failed.length+' section(s) had an issue — you can retry those tabs, or download what built.</div>' : '<div style="font-size:0.82rem;color:var(--green);margin-bottom:10px;">✓ All sections built.</div>') +
+    '<button onclick="document.getElementById(\'nptBuildOverlay\').remove();downloadNutritionPlanPDF();" style="width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:8px;font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">⬇ DOWNLOAD COMPLETE PDF</button>' +
+    '<button onclick="document.getElementById(\'nptBuildOverlay\').remove();" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:0.8rem;cursor:pointer;">Review sections first</button>';
+};
+
+// ── HYBRID FLOW ORCHESTRATOR (macros-tab version, kept for that path) ──
 // Trainer approves macros, then this runs meal → supplements → grocery →
 // coaching in sequence (each saves its own content), with live progress,
 // then surfaces the complete PDF.
@@ -12055,8 +12127,12 @@ window.nptBuildFullPlan = async function() {
   for(var i=0; i<steps.length; i++){
     renderProgress(i, i, failed);
     try {
-      await steps[i].fn();
-      // brief pause so the user sees progress and to ease rate limits
+      // Guard each step: even if a generator hangs, this resolves after 75s
+      // so the build always finishes rather than freezing.
+      await Promise.race([
+        steps[i].fn(),
+        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('step timeout')); }, 75000); })
+      ]);
       await new Promise(function(r){ setTimeout(r, 300); });
     } catch(e){
       failed.push(i);
