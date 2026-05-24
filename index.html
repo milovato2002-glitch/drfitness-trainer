@@ -11560,10 +11560,17 @@ window.getFullClientContext = function(c) {
   var age = parseInt(c.age) || 30;
   var heightIn = parseInt(c.height) || 69;
   var heightCm = heightIn * 2.54;
-  var isMale = (c.sex === 'male');
+  // Robust sex detection: handle array, capitalization, and unset values.
+  var sexRaw = Array.isArray(c.sex) ? (c.sex[0]||'') : (c.sex||'');
+  sexRaw = String(sexRaw).toLowerCase().trim();
+  var sexKnown = (sexRaw === 'male' || sexRaw === 'm' || sexRaw === 'female' || sexRaw === 'f');
+  var isMale = (sexRaw === 'male' || sexRaw === 'm');
+  // If sex is unknown, use the male Mifflin constant (+5) as the neutral default
+  // rather than silently asserting female (−161), which mislabels the client.
+  var useMaleFormula = isMale || !sexKnown;
 
   // BMR — Mifflin St Jeor
-  var mifflinBMR = isMale
+  var mifflinBMR = useMaleFormula
     ? Math.round((10*kg) + (6.25*heightCm) - (5*age) + 5)
     : Math.round((10*kg) + (6.25*heightCm) - (5*age) - 161);
 
@@ -11622,7 +11629,8 @@ window.getFullClientContext = function(c) {
     fname: c.fname || 'Client',
     lname: c.lname || '',
     age: age,
-    sex: isMale ? 'Male' : 'Female',
+    sex: sexKnown ? (isMale ? 'Male' : 'Female') : 'Not specified',
+    sexKnown: sexKnown,
     weight: c.weight || 0,
     weightKg: Math.round(kg * 10) / 10,
     heightIn: heightIn,
@@ -12029,6 +12037,7 @@ window.nptBuildCompletePlan = async function() {
   document.body.appendChild(ov);
 
   var steps = [
+    { label: 'Recommended foods', fn: window.generateAIFoodPlan },
     { label: 'Meal plan', fn: window.generateAIMealPlan },
     { label: 'Supplement stack', fn: window.generateAISuppStack },
     { label: 'Grocery list & shopping guide', fn: window.generateAIGroceryGuide },
@@ -12349,9 +12358,9 @@ window.downloadNutritionPlanPDF = function() {
     'body{font-family:Georgia,"Times New Roman",serif;color:#1f2937;margin:0;padding:0;background:#fff;line-height:1.6;}' +
     '.page{max-width:760px;margin:0 auto;padding:2.5rem 3rem;}' +
     '.header{background:linear-gradient(135deg,#1a5c4a 0%,#0f3d31 100%);color:#fff;padding:1.75rem 2rem;border-radius:10px;margin-bottom:1.75rem;box-shadow:0 2px 8px rgba(26,92,74,0.2);}' +
-    '.header .brand{font-family:Arial,sans-serif;font-size:0.66rem;letter-spacing:0.22em;text-transform:uppercase;opacity:0.7;margin-bottom:8px;}' +
+    '.header .brand{font-family:Arial,sans-serif;font-size:0.66rem;letter-spacing:0.22em;text-transform:uppercase;color:#a8d5c5;margin-bottom:8px;}' +
     '.header h1{margin:0 0 6px;font-size:1.55rem;font-family:Arial,sans-serif;font-weight:800;letter-spacing:-0.01em;}' +
-    '.header p{margin:0;font-size:0.8rem;opacity:0.82;font-family:Arial,sans-serif;}' +
+    '.header p{margin:0;font-size:0.8rem;color:#cfe8df;font-family:Arial,sans-serif;}' +
     'h2{color:#1a5c4a;font-size:1.05rem;font-family:Arial,sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2.5px solid #1a5c4a;padding-bottom:6px;margin:1.75rem 0 0.9rem;}' +
     'h3{color:#0f3d31;font-size:0.92rem;font-family:Arial,sans-serif;font-weight:700;margin:1.1rem 0 0.45rem;}' +
     'h4{color:#1a5c4a;font-size:0.82rem;font-family:Arial,sans-serif;font-weight:700;margin:0.8rem 0 0.3rem;}' +
@@ -12396,7 +12405,7 @@ window.downloadNutritionPlanPDF = function() {
     '<h2>Calorie & Macro Calculation</h2>' +
     '<table><tr><th>Component</th><th>Method</th><th>Calculation</th><th>Result</th></tr>' +
     (ctx.cunninghamBMR ? '<tr><td>Cunningham BMR</td><td>LBM-based</td><td>500 + (22 × ' + ctx.lbmKg + ' kg)</td><td><strong>' + ctx.cunninghamBMR + ' kcal</strong></td></tr>' : '') +
-    '<tr><td>Mifflin-St Jeor BMR</td><td>' + ctx.sex + ' formula</td><td>Standard calculation</td><td><strong>' + ctx.mifflinBMR + ' kcal</strong></td></tr>' +
+    '<tr><td>Mifflin-St Jeor BMR</td><td>' + (ctx.sexKnown ? ctx.sex + ' formula' : 'Standard formula') + '</td><td>Standard calculation</td><td><strong>' + ctx.mifflinBMR + ' kcal</strong></td></tr>' +
     '<tr><td>TDEE</td><td>' + ctx.actLabel + '</td><td>' + ctx.bmr + ' × ' + ctx.actFactor + '</td><td><strong>' + ctx.tdee + ' kcal</strong></td></tr>' +
     '<tr><td><strong>Target Calories</strong></td><td>' + (ctx.isFatLoss ? 'Fat Loss deficit' : ctx.isMuscle ? 'Muscle gain surplus' : 'Maintenance/Recomp') + '</td><td>Adjusted from TDEE</td><td><strong>' + ctx.calTarget + ' kcal</strong></td></tr></table>' +
     '<table><tr><th>Macro</th><th>Grams</th><th>Calories</th><th>% of Total</th><th>g/kg Body Wt</th></tr>' +
@@ -12405,13 +12414,13 @@ window.downloadNutritionPlanPDF = function() {
     '<tr><td>Fat</td><td>' + ctx.fatG + 'g</td><td>' + ctx.fatKcal + ' kcal</td><td>' + Math.round(ctx.fatKcal/ctx.calTarget*100) + '%</td><td>' + ctx.fatGperKg + ' g/kg</td></tr>' +
     '<tr style="background:#f0f9f5;font-weight:700;"><td>TOTAL</td><td>—</td><td>' + ctx.calTarget + ' kcal</td><td>100%</td><td>—</td></tr></table>' +
 
-    '<div class="section-break"><div class="header"><h1>Recommended Foods & Sample Meal Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.mealsPerDay + ' Meals · ' + ctx.calTarget + ' kcal target</p></div>' + foodContent + '</div>' +
+    (window._nptFoodPlan ? '<div class="section-break"><div class="header"><h1>Recommended Foods & Sample Meal Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.mealsPerDay + ' Meals · ' + ctx.calTarget + ' kcal target</p></div>' + foodContent + '</div>' : '') +
 
     '<div class="section-break"><div class="header"><h1>Sample Training Day Meal Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.mealsPerDay + ' Meals · ' + ctx.calTarget + ' kcal target</p></div>' + mealContent + '</div>' +
 
     '<div class="section-break"><div class="header"><h1>Supplement Stack & Coaching Notes</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Best Fitness Gyms · ' + date + '</p></div><h2>Supplement Recommendations</h2>' + suppContent + '<h2>Coaching Notes & Guidelines</h2>' + coachContent + '</div>' +
 
-    (window._nptGrocery ? '<div class="section-break"><div class="header"><h1>Grocery List & Shopping Guide</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Weekly shopping · ' + date + '</p></div>' + window._nptGrocery.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>';}).replace(/<\/ul>\s*<ul>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2') + '</div>' : '') +
+    (window._nptGrocery ? '<div class="section-break"><div class="header"><h1>Grocery List & Shopping Guide</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Weekly shopping · ' + date + '</p></div>' + window.nptMdToHtml(window._nptGrocery) + '</div>' : '') +
 
     '<div class="footer"><span>Dr. Fitness · Dr. Michael Lovato EdD · Best Fitness Gyms</span><span>Confidential Client Document · ' + date + '</span></div>' +
     '</div></body></html>');
