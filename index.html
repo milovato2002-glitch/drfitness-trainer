@@ -11775,12 +11775,12 @@ window.openNutritionPlanGenerator = function(startSection) {
 
   // Section tabs
   '<div style="background:var(--navy2);border-bottom:1px solid var(--border2);padding:0 1.5rem;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;">' +
-    '<button class="npt-tab active" data-sec="profile" onclick="nptSwitch(this,\'profile\')">Profile & Targets</button>' +
-    '<button class="npt-tab" data-sec="macros" onclick="nptSwitch(this,\'macros\')">Macro Calculation</button>' +
-    '<button class="npt-tab" data-sec="foods" onclick="nptSwitch(this,\'foods\')">Meal Plan</button>' +
-    '<button class="npt-tab" data-sec="supplements" onclick="nptSwitch(this,\'supplements\')">Supplement Stack</button>' +
-    '<button class="npt-tab" data-sec="coaching" onclick="nptSwitch(this,\'coaching\')">Coaching Notes</button>' +
-    '<button class="npt-tab" data-sec="grocery" onclick="nptSwitch(this,\'grocery\')">Grocery & Shopping</button>' +
+    '<button class="npt-tab active" data-sec="profile" onclick="nptSwitch(this,\'profile\')">1 · Profile & Targets</button>' +
+    '<button class="npt-tab" data-sec="macros" onclick="nptSwitch(this,\'macros\')">2 · Macro Calculation</button>' +
+    '<button class="npt-tab" data-sec="foods" onclick="nptSwitch(this,\'foods\')">3 · Meal Plan</button>' +
+    '<button class="npt-tab" data-sec="supplements" onclick="nptSwitch(this,\'supplements\')">4 · Supplement Stack</button>' +
+    '<button class="npt-tab" data-sec="coaching" onclick="nptSwitch(this,\'coaching\')">5 · Coaching Notes</button>' +
+    '<button class="npt-tab" data-sec="grocery" onclick="nptSwitch(this,\'grocery\')">6 · Grocery & Shopping</button>' +
   '</div>' +
 
   '<style>' +
@@ -11972,6 +11972,27 @@ window.nptSwitch = function(btn, sec) {
 };
 
 /* ── AI: Meal Plan ── */
+// Shared markdown→HTML for all nutrition AI outputs (one source of truth so
+// parsers can't drift out of sync). Handles #/##/###, bold, tier badges
+// ![...], bullets, numbered lists, dividers, and paragraphs.
+window.nptMdToHtml = function(raw){
+  if(!raw) return '';
+  return raw
+    .replace(/!\[([^\]]+)\]/g, '<span style="display:inline-block;background:#1a5c4a;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.04em;">$1</span>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
+    .replace(/<\/ul>\s*<ul>/g, '')
+    .replace(/^[\-—_]{2,}$/gm, '<hr>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/([^>])\n([^<])/g, '$1<br>$2');
+};
+
 // ── HYBRID FLOW ORCHESTRATOR ──
 // Trainer approves macros, then this runs meal → supplements → grocery →
 // coaching in sequence (each saves its own content), with live progress,
@@ -12050,15 +12071,7 @@ window.generateAIMealPlan = async function() {
       messages:[{role:'user', content:prompt}]
     });
     if (rawPlan && rawPlan.trim()) {
-      var text = rawPlan
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^\- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
-        .replace(/<\/ul>\s*<ul>/g, '')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+      var text = window.nptMdToHtml(rawPlan);
       content.innerHTML = '<p>' + text + '</p>';
       btn.textContent = '✓ Meal Plan Generated — Regenerate';
       btn.disabled = false;
@@ -12096,14 +12109,7 @@ window.generateAIFoodPlan = async function() {
       messages:[{role:'user', content:prompt}]
     });
     if (rawFood && rawFood.trim()) {
-      var text = rawFood
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^\- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
-        .replace(/<\/ul>\s*<ul>/g, '')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+      var text = window.nptMdToHtml(rawFood);
       content.innerHTML = '<p>' + text + '</p>';
       btn.textContent = '✓ Food Plan Generated — Regenerate';
       btn.disabled = false;
@@ -12141,14 +12147,7 @@ window.generateAISuppStack = async function() {
       messages:[{role:'user', content:prompt}]
     });
     if (rawSupp && rawSupp.trim()) {
-      var text = rawSupp
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^\- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
-        .replace(/<\/ul>\s*<ul>/g, '')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+      var text = window.nptMdToHtml(rawSupp);
       content.innerHTML = '<p>' + text + '</p>';
       btn.textContent = '✓ Supplement Stack Generated — Regenerate';
       btn.disabled = false;
@@ -12184,16 +12183,7 @@ window.generateAICoachingNotes = async function() {
       messages:[{role:'user', content:prompt}]
     });
     if (rawNotes && rawNotes.trim()) {
-      var text = rawNotes
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-        .replace(/^\- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
-        .replace(/<\/ul>\s*<ul>/g, '')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+      var text = window.nptMdToHtml(rawNotes);
       content.innerHTML = '<p>' + text + '</p>';
       btn.textContent = '✓ Coaching Notes Generated — Regenerate';
       btn.disabled = false;
@@ -12233,15 +12223,7 @@ window.generateAIGroceryGuide = async function() {
       messages:[{role:'user', content:prompt}]
     });
     if (rawGrocery && rawGrocery.trim()) {
-      var text = rawGrocery
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^\- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
-        .replace(/<\/ul>\s*<ul>/g, '')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+      var text = window.nptMdToHtml(rawGrocery);
       content.innerHTML = '<p>' + text + '</p>';
       btn.textContent = '✓ Grocery List & Guide Generated — Regenerate';
       btn.disabled = false;
