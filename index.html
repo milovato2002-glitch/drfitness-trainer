@@ -11780,6 +11780,7 @@ window.openNutritionPlanGenerator = function(startSection) {
     '<button class="npt-tab" data-sec="foods" onclick="nptSwitch(this,\'foods\')">Meal Plan</button>' +
     '<button class="npt-tab" data-sec="supplements" onclick="nptSwitch(this,\'supplements\')">Supplement Stack</button>' +
     '<button class="npt-tab" data-sec="coaching" onclick="nptSwitch(this,\'coaching\')">Coaching Notes</button>' +
+    '<button class="npt-tab" data-sec="grocery" onclick="nptSwitch(this,\'grocery\')">Grocery & Shopping</button>' +
   '</div>' +
 
   '<style>' +
@@ -11887,6 +11888,13 @@ window.openNutritionPlanGenerator = function(startSection) {
       'Fat set at ' + ctx.fatGperKg + ' g/kg to support ' + (ctx.age >= 40 ? 'hormonal health, joint function, and cardiovascular health — particularly important for clients over 40.' : 'hormonal health and joint function.') + '</p>' +
     '</div>' +
 
+    '<div style="background:rgba(45,198,83,0.06);border:1px solid rgba(45,198,83,0.3);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;color:var(--green);letter-spacing:0.04em;margin-bottom:4px;">✓ Macros look right?</div>' +
+      '<div style="font-size:0.8rem;color:var(--text2);margin-bottom:12px;">Approve these targets and Dr. Fitness will build the full plan — meal plan, supplements, grocery list & shopping guide, and coaching notes — then assemble the complete PDF. Review the math above first; everything else builds on it.</div>' +
+      '<button onclick="nptBuildFullPlan()" id="nptBuildFullBtn" style="width:100%;padding:14px;background:var(--green);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">✓ APPROVE MACROS & BUILD FULL PLAN</button>' +
+      '<div id="nptBuildProgress" style="display:none;margin-top:12px;"></div>' +
+    '</div>' +
+
     '<button class="npt-gen-btn" id="nptGenMealBtn" onclick="generateAIMealPlan()">⚡ GENERATE PERSONALIZED MEAL PLAN WITH AI</button>' +
     '<div id="nptMealPlanOutput" style="display:none;">' +
       '<div class="npt-ai-output" id="nptMealPlanContent"></div>' +
@@ -11926,6 +11934,17 @@ window.openNutritionPlanGenerator = function(startSection) {
     '<div style="margin-top:1rem;text-align:center;">' +
       '<button onclick="downloadNutritionPlanPDF()" style="padding:14px 32px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">⬇ DOWNLOAD COMPLETE PDF</button>' +
     '</div>' +
+  '</div>' +
+
+  '<div class="npt-section" id="npt-grocery">' +
+    '<div class="npt-card">' +
+      '<div class="npt-h2">Grocery List & How-to-Shop Guide</div>' +
+      '<button class="npt-gen-btn" id="nptGenGroceryBtn" onclick="generateAIGroceryGuide()">⚡ GENERATE GROCERY LIST & SHOPPING GUIDE WITH AI</button>' +
+      '<div id="nptGroceryOutput" style="display:none;"><div class="npt-ai-output" id="nptGroceryContent"></div></div>' +
+    '</div>' +
+    '<div style="margin-top:1rem;text-align:center;">' +
+      '<button onclick="downloadNutritionPlanPDF()" style="padding:14px 32px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">⬇ DOWNLOAD COMPLETE PDF</button>' +
+    '</div>' +
   '</div>';
 
   document.body.appendChild(overlay);
@@ -11953,6 +11972,60 @@ window.nptSwitch = function(btn, sec) {
 };
 
 /* ── AI: Meal Plan ── */
+// ── HYBRID FLOW ORCHESTRATOR ──
+// Trainer approves macros, then this runs meal → supplements → grocery →
+// coaching in sequence (each saves its own content), with live progress,
+// then surfaces the complete PDF.
+window.nptBuildFullPlan = async function() {
+  var btn = document.getElementById('nptBuildFullBtn');
+  var prog = document.getElementById('nptBuildProgress');
+  if(btn){ btn.disabled = true; btn.textContent = 'BUILDING FULL PLAN…'; }
+  if(prog) prog.style.display = 'block';
+
+  var steps = [
+    { label: 'Meal plan', fn: window.generateAIMealPlan },
+    { label: 'Supplement stack', fn: window.generateAISuppStack },
+    { label: 'Grocery list & shopping guide', fn: window.generateAIGroceryGuide },
+    { label: 'Coaching notes', fn: window.generateAICoachingNotes }
+  ];
+
+  function renderProgress(done, current, failed){
+    if(!prog) return;
+    var html = '';
+    steps.forEach(function(s, i){
+      var icon, color;
+      if(failed && failed.indexOf(i)!==-1){ icon='⚠'; color='var(--gold)'; }
+      else if(i < done){ icon='✓'; color='var(--green)'; }
+      else if(i === current){ icon='⋯'; color='var(--gold)'; }
+      else { icon='○'; color='var(--text3)'; }
+      html += '<div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:'+color+';margin-bottom:3px;"><span>'+icon+'</span><span>'+s.label+'</span></div>';
+    });
+    prog.innerHTML = html;
+  }
+
+  var failed = [];
+  for(var i=0; i<steps.length; i++){
+    renderProgress(i, i, failed);
+    try {
+      await steps[i].fn();
+      // brief pause so the user sees progress and to ease rate limits
+      await new Promise(function(r){ setTimeout(r, 300); });
+    } catch(e){
+      failed.push(i);
+    }
+  }
+  renderProgress(steps.length, -1, failed);
+
+  if(btn){
+    btn.disabled = false;
+    btn.textContent = failed.length ? '⚠ BUILT WITH '+failed.length+' ISSUE(S) — RETRY' : '✓ FULL PLAN BUILT';
+  }
+  if(prog){
+    prog.innerHTML += '<button onclick="downloadNutritionPlanPDF()" style="width:100%;margin-top:10px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">⬇ DOWNLOAD COMPLETE PDF</button>' +
+      (failed.length ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:6px;">Some sections had errors — open their tabs to retry individually before downloading.</div>' : '');
+  }
+};
+
 window.generateAIMealPlan = async function() {
   var ctx = window._nptCtx;
   if (!ctx) return;
@@ -12133,6 +12206,54 @@ window.generateAICoachingNotes = async function() {
   }
 };
 
+window.generateAIGroceryGuide = async function() {
+  var ctx = window._nptCtx;
+  if (!ctx) return;
+  var btn = document.getElementById('nptGenGroceryBtn');
+  var out = document.getElementById('nptGroceryOutput');
+  var content = document.getElementById('nptGroceryContent');
+  btn.disabled = true;
+  btn.textContent = 'Generating grocery list & shopping guide...';
+  out.style.display = 'block';
+  content.innerHTML = '<div class="npt-loading">Building the weekly grocery list and shopping guide...</div>';
+
+  var mealRef = window._nptMealPlan ? ('\n\nBase the grocery list on this meal plan:\n' + window._nptMealPlan.substring(0, 2000)) : '';
+  var prompt = 'Create a weekly GROCERY LIST and HOW-TO-SHOP GUIDE for: ' + ctx.fname + ', goal: ' + ctx.goalLabel + ', ' + ctx.calTarget + ' kcal/day, ' + ctx.protG + 'g protein/day, ' + ctx.mealsPerDay + ' meals/day.' + mealRef + '\n\n' +
+    'Produce TWO clearly separated parts:\n\n' +
+    'PART 1 — GROCERY LIST (one week, for one person): Group items by store section with a ## header for each: ## Produce, ## Proteins, ## Dairy & Eggs, ## Grains & Starches, ## Pantry & Fats, ## Frozen, ## Other. Under each, list items as "- item — approx quantity for the week". Keep it realistic for the calorie/macro targets.\n\n' +
+    'PART 2 — HOW TO SHOP: Practical written guidance in these ## sections: ## Budget Tips (cost-saving swaps, buying in bulk, cheaper protein sources), ## Reading Labels (what to check for this client\u2019s goal), ## Smart Swaps (healthier or cheaper alternatives), ## Storage & Prep (keeping food fresh, batch prep). Write as short practical bullets.\n\n' +
+    (ctx.isGlp1 ? 'Note GLP-1 considerations: smaller portions, protein-dense easy-to-digest choices.\n' : '') +
+    (ctx.isOlder ? 'Note 55+ considerations: easy-open packaging, protein-dense convenient options.\n' : '') +
+    'Be specific and practical. Use ## for section headers and - for list items.';
+
+  try {
+    var rawGrocery = await streamChat({
+      max_tokens:1800,
+      system:'You are Dr. Fitness, an expert nutrition coach for certified personal trainers. Generate practical, client-specific grocery lists and shopping guidance. Be realistic and budget-aware. Format with ## headers and - bullets.',
+      messages:[{role:'user', content:prompt}]
+    });
+    if (rawGrocery && rawGrocery.trim()) {
+      var text = rawGrocery
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^\- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/g, function(m){return '<ul>'+m+'</ul>';})
+        .replace(/<\/ul>\s*<ul>/g, '')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+      content.innerHTML = '<p>' + text + '</p>';
+      btn.textContent = '✓ Grocery List & Guide Generated — Regenerate';
+      btn.disabled = false;
+      document.getElementById('nutPlanDownloadBtn').style.display = 'inline-block';
+      window._nptGrocery = rawGrocery;
+    } else { throw new Error('No response'); }
+  } catch(err) {
+    content.innerHTML = '<div style="color:var(--red);padding:1rem;">Failed to generate grocery guide. Try again.<br><small>' + err.message + '</small></div>';
+    btn.textContent = '⚡ RETRY'; btn.disabled = false;
+  }
+};
+
 /* ── PDF Download ── */
 window.downloadNutritionPlanPDF = function() {
   var ctx = window._nptCtx;
@@ -12207,6 +12328,8 @@ window.downloadNutritionPlanPDF = function() {
     '<div class="section-break"><div class="header"><h1>Sample Training Day Meal Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.mealsPerDay + ' Meals · ' + ctx.calTarget + ' kcal target</p></div>' + mealContent + '</div>' +
 
     '<div class="section-break"><div class="header"><h1>Supplement Stack & Coaching Notes</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Best Fitness Gyms · ' + date + '</p></div><h2>Supplement Recommendations</h2>' + suppContent + '<h2>Coaching Notes & Guidelines</h2>' + coachContent + '</div>' +
+
+    (window._nptGrocery ? '<div class="section-break"><div class="header"><h1>Grocery List & Shopping Guide</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Weekly shopping · ' + date + '</p></div>' + window._nptGrocery.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>';}).replace(/<\/ul>\s*<ul>/g,'').replace(/\n\n/g,'</p><p>').replace(/([^>])\n([^<])/g,'$1<br>$2') + '</div>' : '') +
 
     '<div class="footer"><span>Dr. Fitness · Dr. Michael Lovato EdD · Best Fitness Gyms</span><span>Confidential Client Document · ' + date + '</span></div>' +
     '</div></body></html>');
