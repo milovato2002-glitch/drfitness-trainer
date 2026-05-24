@@ -12033,7 +12033,58 @@ window.nptSafetyGate = function(c){
 // ![...], bullets, numbered lists, dividers, and paragraphs.
 window.nptMdToHtml = function(raw){
   if(!raw) return '';
-  return raw
+  var lines = raw.split('\n');
+  var out = [];
+  var i = 0;
+  function isTableRow(s){ return /^\s*\|.*\|\s*$/.test(s); }
+  function isDivider(s){ return /^\s*\|?[\s:|-]+\|?\s*$/.test(s) && s.indexOf('-')!==-1; }
+  function cells(s){
+    s = s.trim().replace(/^\|/,'').replace(/\|$/,'');
+    return s.split('|').map(function(c){ return c.trim(); });
+  }
+  while(i < lines.length){
+    var ln = lines[i];
+    // ── Markdown table block ──
+    if(isTableRow(ln) && i+1 < lines.length && isDivider(lines[i+1])){
+      var header = cells(ln);
+      i += 2; // skip header + divider
+      var rows = [];
+      while(i < lines.length && isTableRow(lines[i]) && !isDivider(lines[i])){
+        rows.push(cells(lines[i])); i++;
+      }
+      var t = '<table><tr>';
+      header.forEach(function(h){ t += '<th>'+h+'</th>'; });
+      t += '</tr>';
+      rows.forEach(function(r){
+        t += '<tr>';
+        for(var c=0;c<header.length;c++){ t += '<td>'+(r[c]||'')+'</td>'; }
+        t += '</tr>';
+      });
+      t += '</table>';
+      out.push(t);
+      continue;
+    }
+    // ── Blockquote: strip the > and render as a styled callout ──
+    if(/^\s*>\s?/.test(ln)){
+      var quote = [];
+      while(i < lines.length && /^\s*>\s?/.test(lines[i])){
+        quote.push(lines[i].replace(/^\s*>\s?/,'')); i++;
+      }
+      // skip nested-markdown inside the quote except bold/badges (handled later)
+      var inner = quote.join(' ').replace(/^#+\s*/,'').trim();
+      out.push('<div class="npt-callout">'+inner+'</div>');
+      continue;
+    }
+    out.push(ln); i++;
+  }
+  // Re-join non-table lines and run inline/line formatting on them.
+  // Protect already-built <table> and callout blocks from the line replacers.
+  var html = out.join('\n');
+  var blocks = [];
+  html = html.replace(/<table>[\s\S]*?<\/table>|<div class="npt-callout">[\s\S]*?<\/div>/g, function(m){
+    blocks.push(m); return '\u0000BLOCK'+(blocks.length-1)+'\u0000';
+  });
+  html = html
     .replace(/!\[([^\]]+)\]/g, '<span style="display:inline-block;background:#1a5c4a;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.04em;">$1</span>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
@@ -12047,6 +12098,9 @@ window.nptMdToHtml = function(raw){
     .replace(/^[\-—_]{2,}$/gm, '<hr>')
     .replace(/\n\n/g, '</p><p>')
     .replace(/([^>])\n([^<])/g, '$1<br>$2');
+  // restore protected blocks
+  html = html.replace(/\u0000BLOCK(\d+)\u0000/g, function(_,n){ return blocks[+n]; });
+  return html;
 };
 
 // ── COMPLETE DOCUMENT BUILD ──
@@ -12236,7 +12290,11 @@ window.generateAIFoodPlan = async function() {
   var prompt = 'Create a recommended foods list for: ' + ctx.fname + ', ' + ctx.age + ' y/o, goal: ' + ctx.goalLabel + ', ' + ctx.weight + ' lbs.\n\nProvide three tables:\n1. PROTEIN SOURCES — 8 best options (food name, serving size, protein grams, calories)\n2. CARBOHYDRATE SOURCES — 8 best options (food name, serving size, carb grams, calories)\n3. FAT SOURCES — 5 best options (food name, serving size, fat grams, calories)\n\nAfter the tables, list 8-10 unlimited vegetables the client should include 1-2 cups at each meal.\n\n' +
     (ctx.isGlp1 ? 'GLP-1 client: prioritize easy-to-digest, high-protein, small-portion foods.\n' : '') +
     (ctx.isOlder ? 'Age 55+: emphasize leucine-rich proteins, anti-inflammatory fats, joint-supporting foods.\n' : '') +
-    'Format with ### headers for each section. Be specific with serving sizes.';
+    'Format with ### headers for each section. Be specific with serving sizes.\n\n' +
+    'CRITICAL — DO NOT invent or state any calorie or macro targets. The daily targets are already calculated and shown elsewhere in this document (' + ctx.calTarget + ' kcal, ' + ctx.protG + 'g protein, ' + ctx.carbG + 'g carbs, ' + ctx.fatG + 'g fat). Do NOT add a "Daily Targets" or "Estimated Targets" table or any calorie/macro numbers of your own — it would contradict the calculated plan. Only list foods.\n\n' +
+    'After the vegetables, add two short sections:\n' +
+    '### Food Swaps & Flexibility\nExplain briefly that the listed foods are examples — the client may swap within the same category, but portions must be matched to keep macros equivalent (e.g. swapping a carb source requires matching the gram amount of carbohydrate, not the weight of food). 2-3 sentences.\n' +
+    '### No-Scale Portion Guide\nFor clients who will not weigh food, give the hand-portion reference as a short markdown table: Palm = one protein serving, Cupped hand = one carb serving, Thumb = one fat serving, Fist = one vegetable serving. Note it is an approximation.';
 
   try {
     var rawFood = await streamChat({
@@ -12416,6 +12474,7 @@ window.downloadNutritionPlanPDF = function() {
     'hr{border:none;border-top:1px solid #e5e7eb;margin:1rem 0;}' +
     '.footer{margin-top:2.5rem;padding-top:1rem;border-top:2px solid #1a5c4a;font-size:0.68rem;color:#9ca3af;display:flex;justify-content:space-between;font-family:Arial,sans-serif;}' +
     '.section-break{page-break-before:always;padding-top:1rem;}' +
+    '.npt-callout{background:#f6fbf9;border-left:3px solid #1a5c4a;border-radius:0 6px 6px 0;padding:10px 14px;margin:0.75rem 0;font-size:0.82rem;color:#374151;font-style:italic;}' +
     '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.section-break{page-break-before:always;}.header{box-shadow:none;}}' +
     '@media print{.section-break{page-break-before:always;}}' +
     '</style></head><body><div class="page">' +
