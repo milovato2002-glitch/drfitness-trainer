@@ -11682,10 +11682,35 @@ window.openNutritionPlanGenerator = function(startSection) {
     return;
   }
 
-  // Check minimum data
+  // Check minimum data — collect inline instead of dead-ending to the Clients tab.
   if (!c.weight || !c.age) {
-    alert('This client is missing weight or age data. Please complete their profile first (Clients tab → Edit).');
-    return;
+    var missing = [];
+    if(!c.weight) missing.push('weight');
+    if(!c.age) missing.push('age');
+    var msg = 'To build accurate nutrition targets, '+(c.fname||'this client')+'\u2019s '+missing.join(' and ')+' '+(missing.length>1?'are':'is')+' needed.';
+    if(!c.weight){
+      var wv = prompt(msg+'\n\nEnter weight in lbs:', '');
+      if(wv===null) return; // cancelled
+      var wn = parseFloat(wv);
+      if(!wn || wn < 50 || wn > 700){ alert('Please enter a valid weight in lbs (50–700).'); return; }
+      c.weight = wn;
+    }
+    if(!c.age){
+      var av = prompt('Enter '+(c.fname||'client')+'\u2019s age in years:', '');
+      if(av===null) return;
+      var an = parseInt(av,10);
+      if(!an || an < 13 || an > 100){ alert('Please enter a valid age (13–100).'); return; }
+      c.age = an;
+    }
+    // Persist to the client record so it's not asked again.
+    if(typeof cpLoadClients==='function') cpLoadClients();
+    if(typeof cpClients!=='undefined'){
+      var idx = cpClients.findIndex(function(x){return x.id===c.id;});
+      if(idx>=0){ cpClients[idx].weight=c.weight; cpClients[idx].age=c.age; if(typeof cpSaveClients==='function') cpSaveClients(); }
+    }
+    window.cpActiveClient = c;
+    if(typeof localStorage!=='undefined') localStorage.setItem('drfitness_active_client', JSON.stringify(c));
+    // continue — fall through to generation with the now-complete profile
   }
 
   var ctx = window.getFullClientContext(c);
