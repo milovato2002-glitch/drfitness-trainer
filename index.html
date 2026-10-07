@@ -862,7 +862,9 @@ function wccParseWorkout(text){
       for (var fi = 1; fi <= 4; fi++) if (/^([–—-]|n\/?a|none)$/i.test(p[fi]) || !p[fi]) p[fi] = '-';
       var cue = p[5], mod = '', mm = cue.match(/\[MOD:\s*(.+?)\]/i);
       if (mm) { mod = mm[1].trim(); cue = cue.replace(/\[MOD:.*?\]/i, '').trim(); }
-      cur[sec].push({ name:p[0], sr:p[1], tempo:p[2], rest:p[3], load:p[4], cue:cue, mod:mod });
+      var swap = '', sm = cue.match(/\[SWAP:\s*(.+?)\]/i);
+      if (sm) { swap = sm[1].trim(); cue = cue.replace(/\[SWAP:.*?\]/i, '').trim(); }
+      cur[sec].push({ name:p[0], sr:p[1], tempo:p[2], rest:p[3], load:p[4], cue:cue, mod:mod, swap:swap });
       return;
     }
     if (cur && sec === 'NOTES') { cur.NOTES.push(t.replace(/\*\*/g, '')); return; }
@@ -892,7 +894,7 @@ function wccSerializeDay(d, num){
   WCC_SECTIONS.forEach(function(k){
     L.push('##' + k);
     d[k].forEach(function(ex){
-      L.push(['EX', ex.name, ex.sr, ex.tempo, ex.rest, ex.load, ex.cue + (ex.mod ? ' [MOD: ' + ex.mod + ']' : '')].join('|'));
+      L.push(['EX', ex.name, ex.sr, ex.tempo, ex.rest, ex.load, ex.cue + (ex.mod ? ' [MOD: ' + ex.mod + ']' : '') + (ex.swap ? ' [SWAP: ' + ex.swap + ']' : '')].join('|'));
     });
   });
   if (d.NOTES.length) { L.push('##NOTES'); d.NOTES.forEach(function(n){ L.push(n); }); }
@@ -951,11 +953,11 @@ function buildQuickView(rawText, styleName){
       arr.forEach(function(ex){
         var emoji = (typeof getExerciseEmoji==='function') ? getExerciseEmoji(ex.name) : '•';
         var tut = (typeof getTutorialUrl==='function') ? getTutorialUrl(ex.name) : {url:'#',coach:''};
-        html += '<div class="qv-row" style="background:var(--navy2);border:1px solid ' + (ex.mod?'var(--gold)':'var(--border2)') + ';border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;">';
+        html += '<div class="qv-row" style="background:var(--navy2);border:1px solid ' + (ex.swap?'var(--teal)':ex.mod?'var(--gold)':'var(--border2)') + ';border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;">';
         html += '<div style="display:flex;align-items:center;gap:12px;">';
         html += '<div style="width:42px;height:42px;border-radius:8px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;">' + emoji + '</div>';
         html += '<div style="flex:1;min-width:0;">';
-        html += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.92rem;font-weight:700;color:var(--text);">' + (ex.mod?'⚠ ':'') + wccEsc(ex.name) + '</div>';
+        html += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.92rem;font-weight:700;color:var(--text);">' + (ex.mod?'⚠ ':'') + wccEsc(ex.name) + (ex.swap?' <span style="font-size:0.62rem;font-weight:700;letter-spacing:0.06em;color:var(--teal);border:1px solid var(--teal);border-radius:10px;padding:1px 6px;vertical-align:middle;">↺ INJURY SWAP</span>':'') + '</div>';
         html += '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
         if (ex.sr && ex.sr!=='-') html += '<span style="font-size:0.78rem;color:var(--gold);font-weight:600;">' + wccEsc(ex.sr) + '</span>';
         if (ex.tempo && ex.tempo!=='-') html += '<span style="font-size:0.72rem;color:var(--text3);">tempo ' + wccEsc(ex.tempo) + '</span>';
@@ -968,11 +970,12 @@ function buildQuickView(rawText, styleName){
         if (window._wccTrackMode) { html += '<label style="display:flex;align-items:center;cursor:pointer;"><input type="checkbox" class="qv-check" onchange="updateQvProgress()" style="width:20px;height:20px;accent-color:var(--green);cursor:pointer;"></label>'; }
         html += '</div>';
         html += '</div>';
-        if ((ex.cue && ex.cue!=='-') || ex.mod) {
-          html += '<details style="margin-top:6px;"><summary style="font-size:0.7rem;color:var(--text3);cursor:pointer;">Coaching cue' + (ex.mod?' + modification':'') + (tut.coach && tut.coach!=='YouTube'?' · video: '+wccEsc(tut.coach):'') + '</summary>';
+        if ((ex.cue && ex.cue!=='-') || ex.mod || ex.swap) {
+          html += '<details style="margin-top:6px;"><summary style="font-size:0.7rem;color:var(--text3);cursor:pointer;">Coaching cue' + (ex.mod?' + modification':'') + (ex.swap?' + injury swap':'') + (tut.coach && tut.coach!=='YouTube'?' · video: '+wccEsc(tut.coach):'') + '</summary>';
           html += '<div style="padding:6px 0 0 54px;font-size:0.78rem;color:var(--text2);line-height:1.5;">';
           if (ex.cue && ex.cue!=='-') html += '<div>' + wccEsc(ex.cue) + '</div>';
           if (ex.mod) html += '<div style="margin-top:4px;color:var(--gold);">⚠ Modification: ' + wccEsc(ex.mod) + '</div>';
+          if (ex.swap) html += '<div style="margin-top:4px;color:var(--teal);">↺ Auto-swap: ' + wccEsc(ex.swap) + '</div>';
           html += '</div></details>';
         }
         html += '</div>';
@@ -1013,7 +1016,7 @@ function buildDetailView(rawText){
         out += '<tr>' +
           '<td style="padding:5px 8px;border-bottom:1px solid var(--border2);color:var(--text);font-weight:600;">' + (ex.mod?'⚠ ':'') + wccEsc(ex.name) + '</td>' +
           cell(ex.sr) + cell(ex.tempo) + cell(ex.rest) + cell(ex.load) +
-          '<td style="padding:5px 8px;border-bottom:1px solid var(--border2);color:var(--text2);">' + ((ex.cue && ex.cue!=='-') ? wccEsc(ex.cue) : '—') + (ex.mod?'<br><span style="color:var(--gold);font-size:0.75rem;">⚠ Mod: ' + wccEsc(ex.mod) + '</span>':'') + '</td>' +
+          '<td style="padding:5px 8px;border-bottom:1px solid var(--border2);color:var(--text2);">' + ((ex.cue && ex.cue!=='-') ? wccEsc(ex.cue) : '—') + (ex.mod?'<br><span style="color:var(--gold);font-size:0.75rem;">⚠ Mod: ' + wccEsc(ex.mod) + '</span>':'') + (ex.swap?'<br><span style="color:var(--teal);font-size:0.75rem;">↺ Auto-swap: ' + wccEsc(ex.swap) + '</span>':'') + '</td>' +
           '</tr>';
       });
       out += '</tbody></table>';
@@ -1062,11 +1065,215 @@ window.wccToggleTrackMode = function(){
   }
 };
 
-/* Programs are built one day per request, then combined. Short requests
-   finish well inside the time and length limits, and a day that fails can
-   be retried on its own. Nothing is saved until every day is complete. */
+/* ══ INJURY CONTRAINDICATION RULES ══
+   Built from the Injury Modification Guide and the client injury chips.
+   Each rule: which injuries it covers (matched against the trainer's
+   injury text and the client's saved injury keys), the prompt text, and
+   banned patterns with ordered safe swaps. After generation every exercise
+   is checked; a banned one is swapped automatically and the swap is noted
+   in its cue as [SWAP: ...]. A swap must pass every active rule and must
+   not repeat an exercise already in that day. */
+var WCC_INJURY_RULES = [
+  { id:'knee', label:'patellofemoral (anterior) knee pain', keys:['knee'],
+    match:/knee|patell|kneecap|chondromalacia|runner'?s knee|jumper'?s knee|\bitb\b|it band/i,
+    prompt:'No kneeling or half-kneeling positions of any kind (including quadruped, bird dog, Child\'s Pose, kneeling stretches, knee push-ups, a knee on a bench). No deep loaded knee flexion: no squats below parallel, no lunges or split squats, no pistol or sissy squats, no high step-ups, no wall sits, no pigeon stretch. No jumping or plyometrics. Allowed: squats to a box set above parallel, leg press with feet high and limited depth, low step-ups, hip hinges, glute bridges, seated and standing upper-body work.',
+    banned:[
+      { reason:'kneeling puts load through the kneecap',
+        test:function(n, cue){ return /\b(half[- ]?kneel\w*|tall[- ]?kneel\w*|kneel\w*|quadruped|all[- ]fours|bird[- ]?dogs?|child'?s pose|hero pose|frog stretch|couch stretch|nordic\w*|knee push-?ups?)\b/i.test(n) || /\b(knee on (the )?bench|kneel(ing)? on)\b/i.test(cue); },
+        alts:[
+          { when:/row/i, name:'Chest-Supported Dumbbell Row (incline bench)', cue:'Chest on the pad, feet on the floor, drive the elbows to the hips' },
+          { when:/row/i, name:'Seated Cable Row (neutral grip)', cue:'Sit tall, drive the elbows back, squeeze the shoulder blades' },
+          { when:/press|push/i, name:'Seated Single-Arm Dumbbell Overhead Press', cue:'Sit tall with feet flat, brace and press without arching' },
+          { when:/pallof|chop|lift|rotat/i, name:'Standing Pallof Press', cue:'Feet hip-width, soft knees, press out and resist rotation' },
+          { when:/hip flexor|psoas|quad|couch|lunge/i, name:'Standing Split-Stance Hip Flexor Stretch', cue:'Back heel up, tuck the pelvis and shift forward gently, knees pain-free' },
+          { when:/child|lat|thoracic|reach|back/i, name:'Standing Lat Stretch at Rack', cue:'Hold the rack, sit the hips back and let the lats lengthen' },
+          { when:/child|lat|thoracic|reach|back/i, name:'Seated Thoracic Rotation', cue:'Sit tall, rotate through the upper back, breathe out as you turn' },
+          { when:/bird|quadruped|dog|fours/i, name:'Dead Bug', cue:'Low back pressed down, move opposite arm and leg slowly' },
+          { when:/push-?up/i, name:'Incline Push-Up (hands on bench)', cue:'Body in one straight line, lower the chest to the bench' }
+        ] },
+      { reason:'deep loaded knee flexion',
+        test:function(n){
+          if (/\b(lunges?|split squats?|bulgarian|pistol|sissy|cossack|wall sits?|pigeon)\b/i.test(n)) return true;
+          if (/\bsquats?\b/i.test(n) && !/\b(high box|above[- ]parallel|partial|quarter|mini|to (a )?(high )?box|to (a )?bench|box squat)\b/i.test(n)) return true;
+          if (/\bstep[- ]?ups?\b/i.test(n) && /\b(high|box|bench)\b/i.test(n) && !/\blow\b/i.test(n)) return true;
+          if (/\bleg press\b/i.test(n) && /\b(deep|full|narrow)\b/i.test(n)) return true;
+          return false; },
+        alts:[
+          { when:/lunge|split|bulgarian|step|cossack|pistol/i, name:'Dumbbell Romanian Deadlift', cue:'Hinge at the hips with soft knees, loads the hips without deep knee bend' },
+          { when:/squat|wall sit|leg press|sissy/i, name:'Goblet Squat to High Box (above parallel)', cue:'Box set above knee height, touch the box and stand, pain-free range only' },
+          { when:/lunge|split|bulgarian|step|cossack|pistol/i, name:'Cable Pull-Through', cue:'Hips back, then drive them forward to stand, knees stay soft' },
+          { when:/squat|wall sit|leg press|sissy|lunge|split|step/i, name:'Dumbbell Hip Thrust (shoulders on bench)', cue:'Chin tucked, drive through the heels, squeeze at the top' },
+          { when:/squat|wall sit|sissy/i, name:'Leg Press (feet high, limited depth)', cue:'Feet high on the platform, stop before the knees pass 90 degrees' },
+          { when:/pigeon/i, name:'Supine Figure-Four Stretch', cue:'On your back, ankle over the opposite knee, pull gently' }
+        ] },
+      { reason:'jumping and landing load the knee',
+        test:function(n){ return /\b(jump\w*|plyo\w*|bound\w*|hops?|hopping|burpees?|skaters?|depth drops?|skipping)\b/i.test(n); },
+        alts:[ { name:'Stationary Bike Intervals', cue:'Seat high so the knee never bends past 90 degrees, moderate resistance' },
+               { name:'Medicine Ball Chest Pass (standing)', cue:'Soft knees, explode through the arms, no jumping' } ] }
+    ] },
+  { id:'lower_back', label:'low back pain', keys:['lower_back'],
+    match:/low(er)? back|lumbar|\bdisc\b|sciatica|herniat|\bsi joint|back pain/i,
+    prompt:'No loaded spinal flexion (sit-ups, crunches, V-ups, Russian twists, toe touches, Jefferson curls). No heavy barbell deadlifts, good mornings, barbell back squats or unsupported bent-over rows. Use bird dog or dead bug, glute bridges, Pallof press, chest-supported rows, goblet squats.',
+    banned:[
+      { reason:'loaded spinal flexion',
+        test:function(n){ return /\b(sit-?ups?|crunch\w*|v-?ups?|toe touch\w*|jefferson curls?|russian twists?|toes[- ]to[- ]bar|knees[- ]to[- ]elbows?)\b/i.test(n); },
+        alts:[ { name:'Dead Bug', cue:'Low back pressed down, move opposite arm and leg slowly' },
+               { name:'Standing Pallof Press', cue:'Feet hip-width, press out and resist rotation' },
+               { name:'Bird Dog', cue:'Reach long through the hand and heel, keep the hips level' } ] },
+      { reason:'heavy spinal load',
+        test:function(n){ return /\b(barbell|conventional|sumo|deficit|stiff[- ]leg\w*)\s+(romanian\s+)?deadlifts?\b|\bgood[- ]mornings?\b|\bbarbell back squats?\b|\bback squats?\b|\b(barbell|bent[- ]over) rows?\b|\bpendlay\b/i.test(n); },
+        alts:[ { when:/row/i, name:'Chest-Supported Dumbbell Row (incline bench)', cue:'Chest on the pad, drive the elbows to the hips' },
+               { when:/squat/i, name:'Goblet Squat to High Box (above parallel)', cue:'Tall chest, sit to the box and stand' },
+               { name:'Dumbbell Glute Bridge', cue:'Drive through the heels, ribs down, squeeze at the top' } ] }
+    ] },
+  { id:'shoulder', label:'shoulder impingement', keys:['shoulder'],
+    match:/shoulder|impinge|rotator cuff|labrum|\bac joint|frozen/i,
+    prompt:'No overhead pressing (overhead, military, Arnold or push press, jerks, snatches, handstands, pike push-ups), no upright rows, nothing behind the neck, no dips, no overhead triceps extensions or pullovers. Use landmine press, neutral-grip dumbbell press, cable face pulls, band external rotation, rows.',
+    banned:[
+      { reason:'overhead or impingement-position loading',
+        test:function(n){ return /\b(overhead|military|shoulder|arnold|push)\s+press\w*|\bohp\b|\bjerks?\b|\bsnatch\w*|\bhandstand\w*|\bpike push-?ups?|\bupright rows?|\bbehind[- ]the[- ]neck|\bdips?\b|\bkipping\b|\boverhead (cable |dumbbell |rope )?(tricep|triceps) extensions?|\bpull-?overs?\b/i.test(n); },
+        alts:[ { when:/press|jerk|push|handstand|pike|snatch/i, name:'Landmine Press', cue:'Press up and forward along the bar path, ribs down' },
+               { when:/upright|neck/i, name:'Cable Face Pull', cue:'Pull to the eyes, elbows high, rotate the hands back' },
+               { when:/dip|tricep|extension/i, name:'Cable Triceps Pushdown', cue:'Elbows pinned at the sides, full lockout' },
+               { when:/pull-?over/i, name:'Seated Cable Row', cue:'Drive the elbows back, squeeze the shoulder blades' },
+               { name:'Band External Rotation', cue:'Elbow at the side on a towel roll, rotate out slowly' } ] }
+    ] },
+  { id:'ankle', label:'ankle sprain', keys:['ankle'],
+    match:/ankle|achilles/i,
+    prompt:'No jumping, hopping, bounding, sprinting, running, lateral shuffles, agility or ladder drills, jump rope, or balance work on unstable surfaces. Use the bike, rower or upper-body ergometer for conditioning and stable-surface strength work.',
+    banned:[
+      { reason:'impact, cutting or unstable landing',
+        test:function(n){ return /\b(jump\w*|hop\w*|bound\w*|skaters?|sprint\w*|run|runs|running|jog\w*|shuffles?|agility|ladder|cutting|bosu|wobble board)\b/i.test(n); },
+        alts:[ { name:'Stationary Bike Intervals', cue:'Moderate resistance, steady cadence' },
+               { name:'Rowing Machine (light)', cue:'Legs, hips, then arms, smooth strokes' } ] }
+    ] },
+  { id:'plantar', label:'plantar fasciitis', keys:['plantar'],
+    match:/plantar|fasciitis|heel pain/i,
+    prompt:'No running, jumping, jump rope, burpees, stair climbing or other high-impact cardio. Use the bike, swimming or seated and upper-body work.',
+    banned:[
+      { reason:'impact on the heel and arch',
+        test:function(n){ return /\b(run|runs|running|jog\w*|sprint\w*|jump\w*|hop\w*|burpees?|skipping|stair ?master|stair climb\w*)\b/i.test(n); },
+        alts:[ { name:'Stationary Bike Intervals', cue:'Moderate resistance, steady cadence' },
+               { name:'Upper Body Ergometer', cue:'Steady pace, tall posture' } ] }
+    ] },
+  { id:'elbow', label:'tennis or golfer\'s elbow / wrist pain', keys:['wrist_elbow'],
+    match:/elbow|epicondyl|tennis|golfer|wrist|carpal/i,
+    prompt:'No supinated barbell or EZ-bar curls, preacher curls, wrist curls, chin-ups, farmer carries or other heavy gripping. Use neutral-grip (hammer) curls, machine-based pulling, light loads.',
+    banned:[
+      { reason:'heavy gripping or supinated curling',
+        test:function(n){ return /\b(barbell curls?|ez[- ]bar curls?|preacher curls?|wrist curls?|reverse curls?|chin-?ups?|farmer'?s? (carry|carries|walk)|towel pull-?ups?)\b/i.test(n); },
+        alts:[ { when:/curl/i, name:'Dumbbell Hammer Curl (light)', cue:'Neutral grip, slow lowering' },
+               { when:/chin|pull/i, name:'Neutral-Grip Lat Pulldown', cue:'Pull the elbows to the ribs, relaxed grip' },
+               { name:'Standing Pallof Press', cue:'Press out and resist rotation' } ] }
+    ] },
+  { id:'hip', label:'hip flexor strain / hip pain', keys:['hip'],
+    match:/hip flexor|hip pain|hip impinge|\bfai\b|groin|hip (strain|injury|bursitis|labral)/i,
+    prompt:'No sprinting, high knees, hanging leg or knee raises, mountain climbers, V-ups, flutter kicks or deep Cossack squats. Use glute bridges, prone hip extension, side-lying clamshells, the bike at low resistance.',
+    banned:[
+      { reason:'loaded or fast hip flexion',
+        test:function(n){ return /\b(sprint\w*|high knees|hanging (leg|knee) raises?|leg raises?|mountain climbers?|v-?ups?|flutter kicks?|cossack)\b/i.test(n); },
+        alts:[ { name:'Glute Bridge', cue:'Drive through the heels, squeeze at the top' },
+               { name:'Side-Lying Clamshell', cue:'Hips stacked, open the knee slowly' } ] }
+    ] },
+  { id:'neck', label:'neck pain', keys:['neck'],
+    match:/neck|cervical|whiplash/i,
+    prompt:'Nothing behind the neck, no shrugs, no neck bridges or headstands. Use face pulls, band pull-aparts, supported rows.',
+    banned:[
+      { reason:'neck loading',
+        test:function(n){ return /\b(behind[- ]the[- ]neck|neck bridges?|wrestler'?s bridge|headstands?|shrugs?)\b/i.test(n); },
+        alts:[ { name:'Band Pull-Apart', cue:'Straight arms, squeeze the shoulder blades' },
+               { name:'Cable Face Pull', cue:'Pull to the eyes, elbows high' } ] }
+    ] }
+];
+// Safe fallbacks by section if no rule-specific swap fits.
+var WCC_SAFE_FALLBACK = {
+  WARMUP: [ { name:'Glute Bridge', cue:'Drive through the heels, squeeze at the top' }, { name:'Band Pull-Apart', cue:'Straight arms, squeeze the shoulder blades' }, { name:'Side-Lying Clamshell', cue:'Hips stacked, open the knee slowly' } ],
+  MAIN: [ { name:'Seated Cable Row', cue:'Drive the elbows back, squeeze the shoulder blades' }, { name:'Dumbbell Glute Bridge', cue:'Drive through the heels, squeeze at the top' }, { name:'Standing Pallof Press', cue:'Press out and resist rotation' } ],
+  COOLDOWN: [ { name:'Supine Hamstring Stretch with Strap', cue:'Soft knee, pull the leg up gently' }, { name:'Supine Figure-Four Stretch', cue:'Ankle over the opposite knee, pull gently' }, { name:'Supine Diaphragmatic Breathing', cue:'Slow breaths into the belly' } ]
+};
+
+// Rules that apply, from the trainer's injury text and the client's saved injuries.
+function wccActiveInjuryRules(injuryText, client){
+  var text = [injuryText || ''];
+  var keys = [];
+  if (client) {
+    text.push(client.injuryNotes || '', client.injuryList || '', client.painDetail || '', client.iwPainDetail || '');
+    keys = (client.injuries || []).filter(function(k){ return k && k !== 'no_injuries'; });
+  }
+  var t = text.join(' ');
+  return WCC_INJURY_RULES.filter(function(r){
+    return r.match.test(t) || r.keys.some(function(k){ return keys.indexOf(k) !== -1; });
+  });
+}
+
+function wccInjuryPromptBlock(rules){
+  if (!rules.length) return '';
+  return '\n\nCONTRAINDICATED EXERCISES FOR THIS CLIENT (hard rules; any exercise that breaks one is automatically replaced after generation):\n' +
+    rules.map(function(r){ return '• ' + r.label.toUpperCase() + ': ' + r.prompt; }).join('\n') + '\n';
+}
+
+function wccNormName(s){ return String(s || '').replace(/[‘’]/g, "'").trim(); }
+
+// First broken rule for an exercise, or null.
+function wccInjuryViolation(name, cue, rules){
+  var n = wccNormName(name), c = wccNormName(cue);
+  for (var i = 0; i < rules.length; i++) {
+    for (var j = 0; j < rules[i].banned.length; j++) {
+      if (rules[i].banned[j].test(n, c)) return { rule: rules[i], ban: rules[i].banned[j] };
+    }
+  }
+  return null;
+}
+
+// A safe replacement that passes every rule and is not already used.
+function wccPickSwap(name, section, v, rules, used){
+  var n = wccNormName(name);
+  var options = v.ban.alts.filter(function(a){ return !a.when || a.when.test(n); })
+    .concat(WCC_SAFE_FALLBACK[section] || WCC_SAFE_FALLBACK.MAIN);
+  for (var i = 0; i < options.length; i++) {
+    var o = options[i];
+    if (used.indexOf(o.name.toLowerCase()) !== -1) continue;
+    if (wccInjuryViolation(o.name, o.cue, rules)) continue;
+    return o;
+  }
+  return null;
+}
+
+// Checks every exercise in a parsed day and swaps the ones that break a rule.
+// Returns the list of swaps made.
+function wccApplyInjuryRules(day, rules){
+  var swaps = [];
+  if (!day || !rules.length) return swaps;
+  var used = [];
+  WCC_SECTIONS.forEach(function(k){ day[k].forEach(function(ex){ used.push(wccNormName(ex.name).toLowerCase()); }); });
+  WCC_SECTIONS.forEach(function(k){
+    day[k].forEach(function(ex){
+      var v = wccInjuryViolation(ex.name, ex.cue + ' ' + (ex.mod || ''), rules);
+      if (!v) return;
+      var alt = wccPickSwap(ex.name, k, v, rules, used);
+      if (!alt) return;
+      var note = 'replaced ' + wccNormName(ex.name) + ': ' + v.ban.reason + ' (' + v.rule.label + ')';
+      swaps.push({ day: day.num, section: k, from: ex.name, to: alt.name, reason: v.ban.reason, injury: v.rule.label });
+      used.push(alt.name.toLowerCase());
+      ex.name = alt.name; ex.cue = alt.cue; ex.mod = ''; ex.swap = note;
+    });
+  });
+  return swaps;
+}
+window.wccActiveInjuryRules = wccActiveInjuryRules;
+window.wccInjuryViolation = wccInjuryViolation;
+window.wccApplyInjuryRules = wccApplyInjuryRules;
+
+/* Multi-day programs: one short call plans the week (each day's focus and
+   main exercises, no repeats across days), then every day is written at the
+   same time from that plan and the days are combined. Each day has its own
+   cut-off detection, error message, 60 second timeout and Retry button.
+   Every exercise is checked against the client's injury rules and swapped
+   if it breaks one. Nothing is saved until every day is complete. */
 var WCC_DAY_TIMEOUT_MS = 60000;
 var WCC_DAY_MAX_TOKENS = 2500;
+var WCC_PLAN_TIMEOUT_MS = 30000;
+var WCC_PLAN_MAX_TOKENS = 800;
 
 window.wccGenerate = async function(){
   // SAFETY GATE: block workout generation for chest pain / dizziness red flags.
@@ -1089,16 +1296,34 @@ window.wccGenerate = async function(){
     goal: goal, dayCount: dayCount, injuries: injuries,
     sessionType: dayCount > 1 ? (dayCount + '-Day Program') : 'Session',
     system: ((typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.') + (window.langSuffix||''),
-    title: '', summary: '', days: [], running: false, saved: false
+    injuryRules: wccActiveInjuryRules(injuries, window.cpActiveClient),
+    title: '', summary: '', days: [], plan: null, planStatus: dayCount > 1 ? 'pending' : 'skipped', planError: '',
+    running: false, saved: false, startedAt: Date.now()
   };
   job.basePrompt = wccBasePrompt(job);
-  for (var i = 0; i < dayCount; i++) job.days.push({ num: i+1, status: 'pending', text: '', parsed: null, problems: [], error: '' });
+  for (var i = 0; i < dayCount; i++) job.days.push({ num: i+1, status: 'pending', text: '', parsed: null, problems: [], error: '', swaps: [] });
   window._wccJob = job;
   window._wccLastWorkout = null; // nothing to print, copy or save until the program is complete
   window._programTimeframe = null; // legacy reset; multi-day now driven by Q6
-  await wccRunDays(job, job.days.map(function(_, idx){ return idx; }));
+  await wccStart(job);
 };
 
+async function wccStart(job){
+  if (job.dayCount > 1 && job.planStatus !== 'done') {
+    job.running = true;
+    var ok = false;
+    try { ok = await wccMakePlan(job); } finally { job.running = false; }
+    if (window._wccJob !== job) return;
+    if (!ok) { wccRenderProgress(job); return; }
+  }
+  await wccRunDays(job, job.days.map(function(_, idx){ return idx; }));
+}
+
+window.wccRetryPlan = function(){
+  var job = window._wccJob;
+  if (!job || job.running || job.saved || job.planStatus === 'done') return;
+  wccStart(job);
+};
 // Retry one failed day. The days that already succeeded are kept.
 window.wccRetryDay = function(idx){
   var job = window._wccJob;
@@ -1112,20 +1337,88 @@ window.wccRetryFailedDays = function(){
   if (idxs.length) wccRunDays(job, idxs);
 };
 
+// All requested days run at the same time.
 async function wccRunDays(job, idxs){
   job.running = true;
-  try {
-    for (var k = 0; k < idxs.length; k++) {
-      if (window._wccJob !== job) return; // a newer generation replaced this one
-      await wccRunDay(job, idxs[k]);
-    }
-  } finally { job.running = false; }
+  try { await Promise.all(idxs.map(function(idx){ return wccRunDay(job, idx); })); }
+  finally { job.running = false; }
   if (window._wccJob === job) wccFinishJob(job);
+}
+
+async function wccMakePlan(job){
+  job.planStatus = 'running'; job.planError = '';
+  wccRenderProgress(job);
+  var t0 = Date.now();
+  try {
+    var r = await window.streamChatResult({
+      max_tokens: WCC_PLAN_MAX_TOKENS, timeoutMs: WCC_PLAN_TIMEOUT_MS, system: job.system,
+      messages: [{ role: 'user', content: job.basePrompt + wccPlanContract(job) }]
+    });
+    if (r.stopReason === 'max_tokens') throw new Error('The week plan was cut off at the length limit.');
+    if (!r.stopReason) throw new Error('The connection closed before the week plan finished.');
+    var plan = wccParsePlan(r.text, job.dayCount);
+    if (plan.error) throw new Error(plan.error);
+    plan.swaps = wccApplyInjuryRulesToPlan(plan, job.injuryRules);
+    job.plan = plan; job.title = plan.title; job.summary = plan.summary;
+    job.planStatus = 'done'; job.planSecs = Math.round((Date.now() - t0) / 1000);
+    return true;
+  } catch(err) {
+    job.planStatus = /^Timed out/.test(err.message) ? 'timeout' : 'error';
+    job.planError = err.message;
+    return false;
+  }
+}
+
+// Reads TITLE, SUMMARY and PLAN|n|focus|ex1; ex2; ... lines. An exercise
+// that already appears on an earlier day is dropped from the later day.
+function wccParsePlan(text, n){
+  var plan = { title:'', summary:'', days:[] }, seen = {};
+  (text || '').split('\n').forEach(function(line){
+    var t = line.trim(), m;
+    if ((m = t.match(/^TITLE:\s*(.+)$/i))) { plan.title = m[1].trim(); return; }
+    if ((m = t.match(/^SUMMARY:\s*(.+)$/i))) { plan.summary = m[1].trim(); return; }
+    if ((m = t.match(/^PLAN\|\s*(\d+)\s*\|([^|]*)\|(.+)$/i))) {
+      var num = parseInt(m[1], 10);
+      if (num < 1 || num > n || plan.days[num - 1]) return;
+      var ex = m[3].split(';').map(function(x){ return x.trim(); }).filter(Boolean);
+      plan.days[num - 1] = { num: num, focus: m[2].trim(), exercises: ex };
+    }
+  });
+  for (var i = 0; i < n; i++) {
+    if (!plan.days[i]) return { error: 'The week plan is missing day ' + (i + 1) + '.' };
+    plan.days[i].exercises = plan.days[i].exercises.filter(function(x){
+      var k = wccNormName(x).toLowerCase();
+      if (seen[k]) return false;
+      seen[k] = true; return true;
+    });
+    if (plan.days[i].exercises.length < 3) return { error: 'The week plan for day ' + (i + 1) + ' has too few main exercises.' };
+  }
+  return plan;
+}
+
+function wccApplyInjuryRulesToPlan(plan, rules){
+  var swaps = [];
+  if (!rules.length) return swaps;
+  var used = [];
+  plan.days.forEach(function(d){ d.exercises.forEach(function(x){ used.push(wccNormName(x).toLowerCase()); }); });
+  plan.days.forEach(function(d){
+    d.exercises = d.exercises.map(function(x){
+      var v = wccInjuryViolation(x, '', rules);
+      if (!v) return x;
+      var alt = wccPickSwap(x, 'MAIN', v, rules, used);
+      if (!alt) return x;
+      used.push(alt.name.toLowerCase());
+      swaps.push({ day: d.num, section: 'PLAN', from: x, to: alt.name, reason: v.ban.reason, injury: v.rule.label });
+      return alt.name;
+    });
+  });
+  return swaps;
 }
 
 async function wccRunDay(job, idx){
   var day = job.days[idx];
-  day.status = 'running'; day.text = ''; day.parsed = null; day.problems = []; day.error = '';
+  day.status = 'running'; day.text = ''; day.parsed = null; day.problems = []; day.error = ''; day.swaps = []; day.flagged = [];
+  var t0 = Date.now();
   wccRenderProgress(job);
   try {
     var r = await window.streamChatResult({
@@ -1134,8 +1427,8 @@ async function wccRunDay(job, idx){
     }, function(t){
       day.text = t;
       if (window._wccJob !== job) return;
-      var el = document.getElementById('wccStreamLive');
-      if (el) { el.textContent = t; el.scrollTop = el.scrollHeight; }
+      var el = document.getElementById('wccDayLive' + idx);
+      if (el) { var n = (t.match(/^EX\|/gm) || []).length; el.textContent = n + ' exercise' + (n === 1 ? '' : 's') + ' written'; }
     });
     day.text = r.text;
     var p = wccParseWorkout(r.text);
@@ -1147,20 +1440,27 @@ async function wccRunDay(job, idx){
       day.status = 'incomplete';
       day.problems = ['The connection closed before the AI finished this day.'];
     } else {
+      // Swap anything that breaks an injury rule before checking the day.
+      day.swaps = wccApplyInjuryRules(d, job.injuryRules);
       var problems = [];
       if (p.days.length > 1) problems.push('The AI wrote ' + p.days.length + ' days instead of one.');
       problems = problems.concat(wccValidateDay(d));
       var stray = p.flagged.length - (d ? d.flagged.length : 0);
       if (stray > 0) problems.push(stray + ' line' + (stray > 1 ? 's' : '') + ' before the day header could not be read.');
+      if (d) WCC_SECTIONS.forEach(function(k){ d[k].forEach(function(ex){
+        var v = wccInjuryViolation(ex.name, ex.cue, job.injuryRules);
+        if (v) problems.push(ex.name + ' breaks the ' + v.rule.label + ' rule and no safe swap was found.');
+      }); });
       day.problems = problems;
       day.status = problems.length ? 'invalid' : 'done';
     }
     day.parsed = d; day.flagged = p.flagged;
-    if (idx === 0 && day.status === 'done') { job.title = p.title || job.title; job.summary = p.summary || job.summary; }
+    if (job.dayCount === 1 && day.status === 'done') { job.title = p.title || job.title; job.summary = p.summary || job.summary; }
   } catch(err) {
     day.status = /^Timed out/.test(err.message) ? 'timeout' : 'error';
     day.error = err.message;
   }
+  day.secs = Math.round((Date.now() - t0) / 1000);
   if (window._wccJob === job) wccRenderProgress(job);
 }
 
@@ -1177,6 +1477,7 @@ function wccFinishJob(job){
     if (probs.length) { ok = false; job.days[idx].status = 'invalid'; job.days[idx].problems = probs; }
   });
   if (!ok) { wccRenderProgress(job); return; }
+  job.totalSecs = Math.round((Date.now() - job.startedAt) / 1000);
   wccRenderFinal(job, text);
 }
 
@@ -1189,20 +1490,39 @@ var WCC_DAY_STATUS = {
   timeout: { icon:'✗', color:'var(--red)', text:'Timed out' },
   error: { icon:'✗', color:'var(--red)', text:'Error' }
 };
+var WCC_RETRY_BTN = 'padding:4px 12px;background:transparent;border:1px solid var(--gold);border-radius:14px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;';
 
 function wccRenderProgress(job){
   var out = document.getElementById('wccOutputContent');
   if (!out) return;
-  var running = null, failed = 0;
-  job.days.forEach(function(d){ if (d.status === 'running') running = d; if (WCC_DAY_STATUS[d.status].color === 'var(--red)') failed++; });
+  var running = job.running, failed = 0;
+  job.days.forEach(function(d){ if (WCC_DAY_STATUS[d.status].color === 'var(--red)') failed++; });
+  var planFailed = job.planStatus === 'error' || job.planStatus === 'timeout';
+  var heading = running ? 'DR. FITNESS AI is ' + (job.planStatus === 'running' ? 'planning your ' : 'building your ') + (job.dayCount > 1 ? job.dayCount + '-day program' : 'session')
+    : (failed || planFailed ? 'Program not saved' : 'Checking program');
   var html = '<div style="text-align:center;padding:1.25rem 1rem 1rem;">' +
-    '<div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">' +
-    (running ? 'DR. FITNESS AI is building your ' + (job.dayCount > 1 ? job.dayCount + '-day program' : 'session') : (failed ? 'Program not saved' : 'Checking program')) + '</div>' +
-    '<div style="font-size:0.82rem;color:var(--text3);margin-top:0.5rem;">' + wccEsc(job.styleName + ' · ' + job.level + ' · ' + job.duration + ' · ' + job.goal) + '</div></div>';
-  if (failed && !running) {
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">' + heading + '</div>' +
+    '<div style="font-size:0.82rem;color:var(--text3);margin-top:0.5rem;">' + wccEsc(job.styleName + ' · ' + job.level + ' · ' + job.duration + ' · ' + job.goal) + '</div>' +
+    (job.injuryRules.length ? '<div style="font-size:0.75rem;color:var(--teal);margin-top:0.35rem;">Injury rules: ' + wccEsc(job.injuryRules.map(function(r){ return r.label; }).join(', ')) + '</div>' : '') +
+    '</div>';
+  if (!running && (failed || planFailed)) {
     html += '<div style="background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.35);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:0.75rem;font-size:0.8rem;color:var(--text2);line-height:1.5;">' +
-      'Every day must be complete before the program is saved. ' + (job.dayCount - failed) + ' of ' + job.dayCount + ' day' + (job.dayCount > 1 ? 's are' : ' is') + ' ready. Retry the ' + (failed > 1 ? failed + ' days' : 'day') + ' marked below.' +
-      (failed > 1 ? ' <button onclick="wccRetryFailedDays()" style="margin-left:6px;padding:4px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:14px;font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">RETRY ALL</button>' : '') +
+      (planFailed ? 'The week plan could not be made, so no days were written. Retry the plan below.'
+        : 'Every day must be complete before the program is saved. ' + (job.dayCount - failed) + ' of ' + job.dayCount + ' day' + (job.dayCount > 1 ? 's are' : ' is') + ' ready. Retry the ' + (failed > 1 ? failed + ' days' : 'day') + ' marked below.' +
+          (failed > 1 ? ' <button onclick="wccRetryFailedDays()" style="margin-left:6px;padding:4px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:14px;font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">RETRY ALL</button>' : '')) +
+      '</div>';
+  }
+  if (job.dayCount > 1) {
+    var ps = { pending: WCC_DAY_STATUS.pending, running: { icon:'⚡', color:'var(--gold)', text:'Planning…' }, done: WCC_DAY_STATUS.done, error: WCC_DAY_STATUS.error, timeout: WCC_DAY_STATUS.timeout }[job.planStatus];
+    var pDetail = job.planStatus === 'done' ? (job.planSecs + 's' + (job.plan.swaps.length ? ' · ' + job.plan.swaps.length + ' planned exercise' + (job.plan.swaps.length > 1 ? 's' : '') + ' swapped for injury rules' : '')) : '';
+    html += '<div style="background:var(--navy2);border:1px solid ' + (planFailed ? 'rgba(230,57,70,0.35)' : 'var(--border2)') + ';border-radius:var(--radius-sm);padding:9px 14px;margin-bottom:6px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<span style="color:' + ps.color + ';font-weight:700;width:1.2em;text-align:center;">' + ps.icon + '</span>' +
+      '<span style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:var(--text);">Week plan</span>' +
+      '<span style="flex:1;min-width:0;font-size:0.78rem;color:' + ps.color + ';">' + ps.text + (pDetail ? ' <span style="color:var(--text3);">· ' + wccEsc(pDetail) + '</span>' : '') + '</span>' +
+      (planFailed && !running ? '<button onclick="wccRetryPlan()" style="' + WCC_RETRY_BTN + '">RETRY PLAN</button>' : '') +
+      '</div>' +
+      (planFailed ? '<div style="font-size:0.75rem;color:var(--text2);margin:4px 0 0 2.2em;">' + wccEsc(job.planError) + '</div>' : '') +
       '</div>';
   }
   job.days.forEach(function(d, idx){
@@ -1210,27 +1530,43 @@ function wccRenderProgress(job){
     var detail = '';
     if (d.status === 'done' && d.parsed) {
       var n = d.parsed.WARMUP.length + d.parsed.MAIN.length + d.parsed.COOLDOWN.length;
-      detail = (d.parsed.focus ? d.parsed.focus + ' · ' : '') + n + ' exercises';
+      detail = (d.parsed.focus ? d.parsed.focus + ' · ' : '') + n + ' exercises · ' + d.secs + 's' + (d.swaps.length ? ' · ' + d.swaps.length + ' injury swap' + (d.swaps.length > 1 ? 's' : '') : '');
+    } else if (d.status === 'pending' && job.plan && job.plan.days[idx]) {
+      detail = job.plan.days[idx].focus;
     }
     var msgs = d.error ? [d.error] : (st.color === 'var(--red)' ? d.problems : []);
     html += '<div style="background:var(--navy2);border:1px solid ' + (st.color === 'var(--red)' ? 'rgba(230,57,70,0.35)' : 'var(--border2)') + ';border-radius:var(--radius-sm);padding:9px 14px;margin-bottom:6px;">' +
       '<div style="display:flex;align-items:center;gap:10px;">' +
       '<span style="color:' + st.color + ';font-weight:700;width:1.2em;text-align:center;">' + st.icon + '</span>' +
       '<span style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:var(--text);">Day ' + d.num + '</span>' +
-      '<span style="flex:1;min-width:0;font-size:0.78rem;color:' + st.color + ';">' + st.text + (detail ? ' <span style="color:var(--text3);">· ' + wccEsc(detail) + '</span>' : '') + '</span>' +
-      (st.color === 'var(--red)' && !running ? '<button onclick="wccRetryDay(' + idx + ')" style="padding:4px 12px;background:transparent;border:1px solid var(--gold);border-radius:14px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">RETRY DAY ' + d.num + '</button>' : '') +
+      '<span style="flex:1;min-width:0;font-size:0.78rem;color:' + st.color + ';">' + st.text +
+        (d.status === 'running' ? ' <span id="wccDayLive' + idx + '" style="color:var(--text3);"></span>' : '') +
+        (detail ? ' <span style="color:var(--text3);">· ' + wccEsc(detail) + '</span>' : '') + '</span>' +
+      (st.color === 'var(--red)' && !running ? '<button onclick="wccRetryDay(' + idx + ')" style="' + WCC_RETRY_BTN + '">RETRY DAY ' + d.num + '</button>' : '') +
       '</div>' +
       (msgs.length ? '<div style="font-size:0.75rem;color:var(--text2);margin:4px 0 0 2.2em;line-height:1.5;">' + msgs.map(wccEsc).join('<br>') + '</div>' : '') +
       (st.color === 'var(--red)' && d.flagged && d.flagged.length ? '<div style="margin:6px 0 0 2.2em;">' + wccFlaggedHtml(d.flagged) + '</div>' : '') +
       '</div>';
   });
-  if (running) {
-    html += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:0.75rem 0 0.4rem;">Day ' + running.num + ' live</div>' +
-      '<div id="wccStreamLive" style="font-size:0.82rem;color:var(--text2);line-height:1.6;white-space:pre-wrap;max-height:40vh;overflow:auto;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 14px;"></div>';
-  }
   out.innerHTML = html;
-  var live = document.getElementById('wccStreamLive');
-  if (live && running) live.textContent = running.text;
+  job.days.forEach(function(d, idx){
+    var el = document.getElementById('wccDayLive' + idx);
+    if (el && d.text) { var n = (d.text.match(/^EX\|/gm) || []).length; el.textContent = n + ' exercise' + (n === 1 ? '' : 's') + ' written'; }
+  });
+}
+
+// Lists every exercise the injury rules replaced, in the plan and in the days.
+function wccSwapSummaryHtml(job){
+  if (!job.injuryRules.length) return '';
+  var all = (job.plan ? job.plan.swaps : []).slice();
+  job.days.forEach(function(d){ all = all.concat(d.swaps || []); });
+  return '<div style="background:rgba(45,212,191,0.06);border:1px solid var(--teal);border-radius:var(--radius);padding:0.85rem 1.1rem;margin-bottom:1rem;font-size:0.8rem;color:var(--text2);line-height:1.55;">' +
+    '<strong style="color:var(--teal);font-family:Barlow Condensed,sans-serif;letter-spacing:0.08em;text-transform:uppercase;font-size:0.78rem;">Injury rules checked</strong>' +
+    '<div style="margin-top:2px;">' + wccEsc(job.injuryRules.map(function(r){ return r.label; }).join(', ')) + '. Every exercise was checked after generation. ' +
+    (all.length ? all.length + ' exercise' + (all.length > 1 ? 's were' : ' was') + ' swapped:' : 'No exercise broke a rule.') + '</div>' +
+    (all.length ? '<ul style="margin:4px 0 0 1.1rem;">' + all.map(function(s){
+      return '<li>Day ' + s.day + (s.section === 'PLAN' ? ' (plan)' : '') + ': ' + wccEsc(s.from) + ' → <strong>' + wccEsc(s.to) + '</strong> <span style="color:var(--text3);">(' + wccEsc(s.reason) + ')</span></li>';
+    }).join('') + '</ul>' : '') + '</div>';
 }
 
 function wccRenderFinal(job, text){
@@ -1243,6 +1579,7 @@ function wccRenderFinal(job, text){
   if(injuries){
     banner = '<div style="background:rgba(240,165,0,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start;"><span style="font-size:1.1rem;flex-shrink:0;">⚠️</span><div><strong style="color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;">INJURY PROTOCOL ACTIVE</strong><p style="font-size:0.82rem;color:var(--text2);margin-top:4px;">Modifications applied for '+wccEsc(injuries)+'. Exercises marked with ⚠ include alternative options.</p></div></div>';
   }
+  var swapHtml = wccSwapSummaryHtml(job);
 
   // Coaches reference
   var coaches = WCC_COACHES[job.styleId] || '';
@@ -1272,7 +1609,7 @@ function wccRenderFinal(job, text){
   var saveStatus;
   if (activeC && activeC.id && typeof autoSaveSession === 'function') {
     autoSaveSession(
-      banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>' + coachHtml,
+      banner + swapHtml + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>' + coachHtml,
       styleName,
       {level:job.level,duration:job.duration,equipment:job.equipment,goal:job.goal,injuries:injuries},
       job.sessionType
@@ -1285,10 +1622,10 @@ function wccRenderFinal(job, text){
   job.saved = true;
   var libBtn = '<button onclick="wccSaveToLibrary()" style="padding:7px 14px;background:transparent;border:1px solid var(--gold);border-radius:20px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;">+ SAVE TO LIBRARY</button>';
   var actionRow = '<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;"><div style="flex:1;min-width:200px;">'+saveStatus+'</div>'+libBtn+'</div>';
-  document.getElementById('wccOutputContent').innerHTML = actionRow + banner + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
+  document.getElementById('wccOutputContent').innerHTML = actionRow + banner + swapHtml + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
 }
 
-// Shared part of every day's prompt: style, client profile and profile rules.
+// Shared part of every prompt: style, client profile, injury rules and profile rules.
 function wccBasePrompt(job){
   var injuries = job.injuries, goal = job.goal, dayCount = job.dayCount;
   var clientCtx = '';
@@ -1332,36 +1669,50 @@ function wccBasePrompt(job){
     (goal.indexOf(',') !== -1 ? 'NOTE: Two goals are selected. If they are complementary (e.g. Strength + Hypertrophy), integrate them. If they are in tension (e.g. Recovery + Power, Fat Loss + Power), briefly state the tradeoff in the SUMMARY line and bias the programming toward the first-listed goal.\n' : '') +
     (dayCount > 1 ? 'PROGRAM LENGTH: ' + dayCount + ' days (vary the focus across days)\n' : '') +
     (injuries ? 'INJURIES/LIMITATIONS: ' + injuries + '\n' : '') +
-    clientCtx + injuryInstructions + applicationRules;
+    clientCtx + injuryInstructions + wccInjuryPromptBlock(job.injuryRules) + applicationRules;
 }
 
-// Per-day part of the prompt: which day to write, what the other days
-// already cover, and the strict output format.
+// The planning call: focus and main exercises for every day, nothing else.
+function wccPlanContract(job){
+  var N = job.dayCount;
+  return '\n\nTHIS REQUEST: Plan the ' + N + '-day program only. Do not write the workouts yet.\n' +
+    'For each day choose its focus and its 5 or 6 main-block exercises. No exercise may appear on more than one day. ' +
+    (N >= 5 ? 'Make one day a lighter recovery day. ' : '') +
+    'Every exercise must respect the contraindications above.\n' +
+    'OUTPUT FORMAT, FOLLOW EXACTLY, and write nothing else:\n' +
+    'TITLE: <short program title>\n' +
+    'SUMMARY: <one sentence on the program focus>\n' +
+    'Then one line per day:\n' +
+    'PLAN|<day number>|<day focus>|<exercise 1>; <exercise 2>; <exercise 3>; <exercise 4>; <exercise 5>\n' +
+    'Example: PLAN|1|Lower Body Strength|Goblet Squat to High Box; Dumbbell Romanian Deadlift; Seated Leg Curl; Glute Bridge; Pallof Press';
+}
+
+// Per-day part of the prompt: which day to write, its planned exercises,
+// what the other days use, length limits and the strict output format.
 function wccDayContract(job, idx){
   var n = idx + 1, N = job.dayCount;
-  var others = [], recoveryWritten = false;
-  job.days.forEach(function(d, j){
-    if (j === idx || d.status !== 'done' || !d.parsed) return;
-    others.push('Day ' + d.num + (d.parsed.focus ? ' (' + d.parsed.focus + ')' : '') + ': ' + d.parsed.MAIN.map(function(e){ return e.name; }).join(', '));
-    if (/recover|light|mobility|restor|deload|active rest/i.test(d.parsed.focus)) recoveryWritten = true;
-  });
-  var recovery = '';
-  if (N >= 5) recovery = (n === N && !recoveryWritten) ? 'No lighter recovery day has been written yet, so make this day a lighter recovery day.\n' : 'Across the program include at least one lighter recovery day.\n';
+  var plan = job.plan && job.plan.days[idx];
+  var others = [];
+  if (job.plan) job.plan.days.forEach(function(d, j){ if (j !== idx) others.push('Day ' + d.num + ' (' + d.focus + '): ' + d.exercises.join('; ')); });
+  var finalDay = n === N;
   return '\n\nTHIS REQUEST: ' + (N > 1 ? 'Write DAY ' + n + ' of the ' + N + '-day program. Write only this one day.' : 'Write one complete training session.') + '\n' +
-    (others.length ? 'Days already written (vary the focus and do not repeat the same main exercises):\n' + others.join('\n') + '\n' : '') +
-    recovery +
+    (plan ? 'DAY ' + n + ' FOCUS: ' + plan.focus + '\n' +
+      'MAIN BLOCK: use exactly these exercises, in this order: ' + plan.exercises.join('; ') + '\n' +
+      (others.length ? 'Other days in the program (do not use their exercises on this day):\n' + others.join('\n') + '\n' : '') : '') +
+    'LENGTH: warm-up 3 to 4 exercises, ' + (plan ? 'main block as planned' : 'main block 5 to 6 exercises') + ', cool-down 2 to 3 exercises. Each coaching cue 15 words or fewer. ##NOTES at most 3 short lines' +
+      (finalDay ? ', plus up to 4 short lines for any mindset and habit items' : '') + '.\n' +
     '\nOUTPUT FORMAT, FOLLOW EXACTLY. This format overrides every other formatting instruction above, including bold headers, bullet points, MODIFICATIONS / AVOID / ALTERNATIVES lists, extra sections and closing reminders.\n' +
-    (n === 1 ? '1. First line: TITLE: <short ' + (N > 1 ? 'program' : 'session') + ' title>\n2. Second line: SUMMARY: <one sentence on the ' + (N > 1 ? 'program' : 'session') + ' focus>\n' : '1-2. Do not write TITLE or SUMMARY lines.\n') +
+    (N === 1 ? '1. First line: TITLE: <short session title>\n2. Second line: SUMMARY: <one sentence on the session focus>\n' : '1. Do not write TITLE or SUMMARY lines.\n') +
     '3. Then the day header on its own line: ===DAY ' + n + '=== <day focus>\n' +
     '4. Then these four section headers in this order, each on its own line: ##WARMUP, ##MAIN, ##COOLDOWN, ##NOTES. WARMUP, MAIN and COOLDOWN each need at least one exercise.\n' +
     '5. Under ##WARMUP, ##MAIN and ##COOLDOWN, every line is one exercise in exactly this format, with exactly 6 fields after EX|:\n' +
     '   EX|<name>|<sets>x<reps>|<tempo>|<rest>|<load guidance>|<one coaching cue>\n' +
-    '   Example: EX|Goblet Box Squat|3x10|3-1-1|60s|RPE 5-6|Sit back to the box [MOD: raise the box if the knee aches]\n' +
+    '   Example: EX|Goblet Squat to High Box|3x10|3-1-1|60s|RPE 5-6|Sit back to the box, stand tall [MOD: raise the box if the knee aches]\n' +
     '   Use a single dash (-) for a field that does not apply. Never use the | character inside a field. No markdown, no bold, no numbering, no blank sub-headings.\n' +
     '6. Under ##NOTES write plain prose lines only, no EX| lines.\n' +
     '7. Last line: COUNT|<number of warm-up exercises>|<number of main exercises>|<number of cool-down exercises>\n' +
     'WHERE OTHER REQUESTED TEXT GOES: An exercise modification goes at the end of that exercise’s cue field as [MOD: ...]. A short reason, pain-free range of motion reminder or form note for one exercise also goes in its cue field. Everything else, including profile-driven decisions, volume adjustments, physician or physical therapist reminders, the consult-a-physician reminder, breathing cues, and any mindset, habit or accountability section, goes as plain prose lines under ##NOTES. ' +
-    (N > 1 && n < N ? 'Put mindset and habit items only on the final day; skip them on this day. ' : '') +
+    (N > 1 && !finalDay ? 'Put mindset and habit items only on the final day; skip them on this day. ' : '') +
     'Write nothing outside this structure.\n' +
     'Apply the NASM OPT phase appropriate to the client level. Warm-up should follow Inhibit > Lengthen > Activate > Integrate. Be specific, evidence-based, and use professional trainer language.';
 }
@@ -1563,6 +1914,7 @@ window.wccDownloadPDF = function(){
         doc.text(specs, W-M, y, {align:'right'}); y+=13;
         if(ex.cue){ var cl=doc.splitTextToSize(ex.cue, W-2*M-20); checkPage(cl.length*11); doc.setTextColor(130,130,130); doc.setFontSize(8); doc.text(cl,M+12,y); y+=cl.length*11; }
         if(ex.mod){ checkPage(12); doc.setTextColor(200,140,0); doc.setFontSize(8); doc.text('Modification: '+ex.mod, M+12, y); y+=12; }
+        if(ex.swap){ var swl=doc.splitTextToSize('Injury-safe swap: '+ex.swap, W-2*M-20); checkPage(swl.length*11); doc.setTextColor(20,140,130); doc.setFontSize(8); doc.text(swl, M+12, y); y+=swl.length*11; }
         y+=3;
       });
       y+=6;
