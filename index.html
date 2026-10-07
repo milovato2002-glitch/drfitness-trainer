@@ -1216,7 +1216,8 @@ function wccNormName(s){ return String(s || '').replace(/[‘’]/g, "'").trim()
 
 // First broken rule for an exercise, or null.
 function wccInjuryViolation(name, cue, rules){
-  var n = wccNormName(name), c = wccNormName(cue);
+  // Cues often say what NOT to do ("no knee on the bench"); drop those phrases before checking.
+  var n = wccNormName(name), c = wccNormName(cue).replace(/\b(no|not|without|avoid\w*|never|instead of|rather than|eliminat\w*|remov\w*)\b[^.;,:]*/gi, '');
   for (var i = 0; i < rules.length; i++) {
     for (var j = 0; j < rules[i].banned.length; j++) {
       if (rules[i].banned[j].test(n, c)) return { rule: rules[i], ban: rules[i].banned[j] };
@@ -1834,6 +1835,10 @@ window.streamChatResult = async function(opts, onChunk){
       var idle = new Promise(function(_, rej){ idleTimer = setTimeout(function(){ rej(new Error('The AI service stopped responding.')); }, idleMs); });
       var ch;
       try { ch = await Promise.race([reader.read(), timeout, idle]); }
+      catch(readErr) {
+        if (timedOut || /stopped responding/.test(readErr.message)) throw readErr;
+        throw new Error('The connection to the AI service dropped before the answer finished.');
+      }
       finally { clearTimeout(idleTimer); }
       if (ch.done) break;
       buf += dec.decode(ch.value, {stream:true});
