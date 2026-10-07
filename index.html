@@ -7717,6 +7717,8 @@ const CP_TOTAL_STEPS = 6;
 
 function cpLoadClients() {
   try { cpClients = JSON.parse(localStorage.getItem(CP_STORAGE_KEY) || '[]'); } catch(e) { cpClients = []; }
+  // Older wizard and fast track clients were saved with labels.
+  cpClients.forEach(cpNormalizeClient);
 }
 function cpSaveClients() {
   try { localStorage.setItem(CP_STORAGE_KEY, JSON.stringify(cpClients)); } catch(e) { console.warn('Storage full'); }
@@ -7768,6 +7770,84 @@ function cpConditionKey(v) {
 }
 function cpConditionKeys(list) {
   return (Array.isArray(list) ? list : (list ? [list] : [])).map(cpConditionKey).filter(function(k){ return k && k !== 'none_hx'; });
+}
+
+// Wizard, fast track and depth questions save display labels. All client
+// logic expects the full form chip keys, so labels are converted on save and
+// on load. A label can map to several keys. Unknown values pass through.
+var CP_CHIP_LABELS = {
+  conditions: CP_CONDITION_LABELS,
+  mentalHealth: {
+    'none':'none_mh','anxiety':'anxiety','depression':'depression','ptsd military':'ptsd_military',
+    'ptsd from military service':'ptsd_military','ptsd other':'ptsd_other','eating disorder history':'eating_disorder',
+    'body image concerns':'body_dysmorphia','body dysmorphia':'body_dysmorphia','chronic stress':'stress_burnout',
+    'stress and burnout':'stress_burnout','grief or loss':'grief','addiction recovery':'addiction_recovery',
+    'prefer not to say':'prefer_not_say'
+  },
+  special: {
+    'glp-1 or aom client':'glp1','glp-1 / aom client':'glp1','gip next-gen aom':'gip_aom','gip / next-gen aom':'gip_aom',
+    'older adult 55+':'older_adult','post-rehab':'post_rehab','prenatal':'prenatal','postpartum':'postpartum',
+    'youth athlete':'youth','bariatric post-op':'bariatric','cardiac rehab':'cardiac_rehab','diabetic':'diabetic',
+    'osteoporosis':'osteoporosis','neurological':'neurological','veteran':'veteran','wheelchair':'wheelchair',
+    'chronic pain':'chronic_pain','obesity':'obesity','beginner':'beginner_decond','competition athlete':'competition','none':'none'
+  },
+  injuries: {
+    'none':'no_injuries','no injuries':'no_injuries','neck and spine':['neck','lower_back'],'shoulders':'shoulder',
+    'elbows and wrists':'wrist_elbow','hips':'hip','knees':'knee','ankles and feet':'ankle',
+    'core and abdomen':'core_abdomen','other':'other_injury'
+  },
+  equipment: {
+    'barbell and rack':'barbells','dumbbells':'dumbbells','cables and machines':['cables','machines'],
+    'kettlebells':'kettlebells','bands':'bands','pull-up bar':'pull_up_bar','cardio machines':'cardio_machines',
+    'specialty equipment':'specialty_equipment','bodyweight only':'bodyweight_only'
+  },
+  primaryMotivation: {
+    'look better and feel more attractive':'look_better','feel stronger and more capable':'feel_better',
+    'improve health and live longer':'health_longevity','perform better in a sport':'athletic_perf',
+    'doctor recommended exercise':'doctor_rec','manage stress or mental health':'stress_relief',
+    'prove something to myself':'prove_myself','support a medical condition':'medical_support',
+    'doing this for someone i love':'other_motiv'
+  }
+};
+// "None" entries are dropped when a real selection is also present.
+var CP_CHIP_NONE = { conditions:'none_hx', mentalHealth:'none_mh', special:'none', injuries:'no_injuries' };
+function cpChipKeys(field, list) {
+  var map = CP_CHIP_LABELS[field] || {};
+  var out = [];
+  (Array.isArray(list) ? list : (list ? [list] : [])).forEach(function(v) {
+    var mapped = map[String(v || '').trim().toLowerCase()];
+    [].concat(mapped !== undefined ? mapped : v).forEach(function(k) { if (k && out.indexOf(k) === -1) out.push(k); });
+  });
+  var none = CP_CHIP_NONE[field];
+  if (none && out.length > 1) out = out.filter(function(k) { return k !== none; });
+  return out;
+}
+function cpGlp1MedKey(v) {
+  var s = String(v || '').toLowerCase();
+  if (!s || s === 'no') return s;
+  if (s.indexOf('semaglutide') !== -1 || s.indexOf('ozempic') !== -1 || s.indexOf('wegovy') !== -1) return 'semaglutide';
+  if (s.indexOf('tirzepatide') !== -1 || s.indexOf('mounjaro') !== -1 || s.indexOf('zepbound') !== -1) return 'tirzepatide';
+  if (s.indexOf('liraglutide') !== -1) return 'liraglutide';
+  return ['semaglutide','tirzepatide','liraglutide','other_glp1'].indexOf(s) !== -1 ? s : 'other_glp1';
+}
+// Converts a client record to keys in place. Safe to run repeatedly.
+function cpNormalizeClient(c) {
+  if (!c) return c;
+  Object.keys(CP_CHIP_LABELS).forEach(function(f) { if (c[f] !== undefined) c[f] = cpChipKeys(f, c[f]); });
+  if (c.glp1Med) {
+    var medKey = cpGlp1MedKey(c.glp1Med);
+    // Keep the brand the wizard collected, for example "Tirzepatide Zepbound".
+    if (medKey !== c.glp1Med && !c.glp1MedName) c.glp1MedName = c.glp1Med;
+    c.glp1Med = medKey;
+  }
+  // A client on a GLP-1 medication gets the GLP-1 special population flag so
+  // the GLP-1 programming and nutrition logic applies.
+  if (c.glp1Med && c.glp1Med !== 'no') {
+    var sp = (c.special || []).filter(function(s) { return s !== 'none'; });
+    if (sp.indexOf('glp1') === -1 && sp.indexOf('gip_aom') === -1) sp.push('glp1');
+    c.special = sp;
+  }
+  return c;
 }
 function cpInitials(fname, lname) {
   return ((fname||'?')[0] + ((lname||'')[0]||'')).toUpperCase().substring(0,2) || '?';
@@ -9046,7 +9126,7 @@ function cpBuildClientContext(c) {
   var meds = c.currentMeds || c.medications || 'none listed';
   var clearance = c.physClearanceObtained || c.iwPhysClearance === 'Yes' ? 'yes' : 'not confirmed';
   var confidence = c.confidence || '5';
-  var mentalHealth = (c.mentalHealth||[]).filter(function(x){return x&&x!=='none_mh'&&x!=='None'&&x!=='Prefer not to say';}).join(', ')||'none';
+  var mentalHealth = (c.mentalHealth||[]).filter(function(x){return x&&x!=='none_mh'&&x!=='None'&&x!=='Prefer not to say'&&x!=='prefer_not_say';}).join(', ')||'none';
   var barriers = (c.barriersChips||[]).join(', ')||'none noted';
   var motivation = (c.primaryMotivation||[]).join(', ')||'not specified';
   // Enhanced intake fields
@@ -9662,7 +9742,7 @@ function saveFastTrackAsClient(buildSession) {
   };
 
   cpLoadClients();
-  cpClients.push(client);
+  cpClients.push(cpNormalizeClient(client));
   cpSaveClients();
 
   var overlay = document.getElementById('fastTrackOverlay');
@@ -9788,6 +9868,7 @@ function saveDepthData(clientId, phase) {
   }
   else if (phase === 5) { c.diet = val || ''; }
 
+  cpNormalizeClient(c);
   c.depthPhase = phase;
   if (phase >= 5) c.profileComplete = true;
   c.updatedAt = new Date().toISOString();
@@ -10210,7 +10291,7 @@ function saveIntakeAsClient(buildProgram) {
   }
   // Save to client list
   cpLoadClients();
-  cpClients.push(client);
+  cpClients.push(cpNormalizeClient(client));
   cpSaveClients();
   // Save intake code mapping if applicable
   if(iwCode) {
