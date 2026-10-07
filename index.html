@@ -111,8 +111,8 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
 .input-area{padding:0.875rem 1.5rem 1rem;border-top:1px solid var(--border2);background:rgba(10,22,40,0.92);}
 .mode-row{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
-.mode-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.12s;}
-.mode-chip:hover,.mode-chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim2);}
+.mode-chip,.qp-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.12s;}
+.mode-chip:hover,.qp-chip:hover,.mode-chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim2);}
 .input-row{display:flex;gap:8px;align-items:flex-end;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 9px 9px 14px;transition:border-color 0.15s;}
 .input-row:focus-within{border-color:var(--border);}
 #qi{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.9rem;font-weight:300;resize:none;max-height:120px;min-height:22px;line-height:1.5;}
@@ -385,44 +385,44 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
           <div style="margin-bottom:10px;">
             <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Situation</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="mode-chip" onclick="qpSend('Client has a knee injury. What exercises should I modify or avoid, and what safe alternatives can I use?')">Knee Injury</button>
-              <button class="mode-chip" onclick="qpSend('Client has shoulder pain or impingement. What modifications, substitutions, and corrective exercises should I program?')">Shoulder Mod</button>
-              <button class="mode-chip" onclick="qpSend('Client is on GLP-1 medication. Build a muscle-preserving, protein-first training and nutrition session protocol.')">GLP-1 Session</button>
-              <button class="mode-chip" onclick="qpSend('Client is returning from surgery. What are the post-surgical training guidelines, contraindications, and progression protocols?')">Post-Surgical</button>
-              <button class="mode-chip" onclick="qpSend('Client is pregnant. What are the prenatal exercise guidelines, contraindicated movements, and safe training modifications by trimester?')">Prenatal</button>
-              <button class="mode-chip" onclick="qpSend('Client is 55 plus. What are the senior training priorities for strength, balance, bone density, and fall prevention?')">55 Plus</button>
+              <button class="qp-chip" onclick="qpSend('Client has a knee injury. What exercises should I modify or avoid, and what safe alternatives can I use?')">Knee Injury</button>
+              <button class="qp-chip" onclick="qpSend('Client has shoulder pain or impingement. What modifications, substitutions, and corrective exercises should I program?')">Shoulder Mod</button>
+              <button class="qp-chip" onclick="qpSend('Client is on GLP-1 medication. Build a muscle-preserving, protein-first training and nutrition session protocol.')">GLP-1 Session</button>
+              <button class="qp-chip" onclick="qpSend('Client is returning from surgery. What are the post-surgical training guidelines, contraindications, and progression protocols?')">Post-Surgical</button>
+              <button class="qp-chip" onclick="qpSend('Client is pregnant. What are the prenatal exercise guidelines, contraindicated movements, and safe training modifications by trimester?')">Prenatal</button>
+              <button class="qp-chip" onclick="qpSend('Client is 55 plus. What are the senior training priorities for strength, balance, bone density, and fall prevention?')">55 Plus</button>
             </div>
           </div>
           <div style="margin-bottom:10px;">
             <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Goal</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="mode-chip" onclick="qpSend('Build a fat loss training session. Include HIIT structure, metabolic conditioning, calorie targets, and cardio recommendations.')">Burn Fat</button>
-              <button class="mode-chip" onclick="qpSend('Build a hypertrophy session focused on muscle growth. Include volume, tempo, rest periods, and progressive overload plan.')">Build Muscle</button>
-              <button class="mode-chip" onclick="qpSend('Build an athletic power and explosiveness session. Include plyometrics, power cleans, and sport-specific conditioning.')">Athletic Power</button>
-              <button class="mode-chip" onclick="qpSend('Build a corrective exercise session for a client with movement dysfunction. Include assessment cues and activation exercises.')">Corrective</button>
-              <button class="mode-chip" onclick="qpSend('Build a competition prep session for bodybuilding or physique competition. Include posing practice, peak week considerations.')">Competition Prep</button>
+              <button class="qp-chip" onclick="qpSend('Build a fat loss training session. Include HIIT structure, metabolic conditioning, calorie targets, and cardio recommendations.')">Burn Fat</button>
+              <button class="qp-chip" onclick="qpSend('Build a hypertrophy session focused on muscle growth. Include volume, tempo, rest periods, and progressive overload plan.')">Build Muscle</button>
+              <button class="qp-chip" onclick="qpSend('Build an athletic power and explosiveness session. Include plyometrics, power cleans, and sport-specific conditioning.')">Athletic Power</button>
+              <button class="qp-chip" onclick="qpSend('Build a corrective exercise session for a client with movement dysfunction. Include assessment cues and activation exercises.')">Corrective</button>
+              <button class="qp-chip" onclick="qpSend('Build a competition prep session for bodybuilding or physique competition. Include posing practice, peak week considerations.')">Competition Prep</button>
             </div>
           </div>
           <div style="margin-bottom:10px;">
             <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Body Part</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="mode-chip" onclick="qpSend('Build a complete chest training session with exercises, sets, reps, tempo, and coaching cues.')">Chest</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete back training session with exercises, sets, reps, tempo, and coaching cues.')">Back</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete shoulder training session with exercises, sets, reps, tempo, and coaching cues.')">Shoulders</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete arms session covering biceps and triceps with exercises, sets, reps, tempo, and coaching cues.')">Arms</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete leg training session including quads, hamstrings, and calves with exercises, sets, reps, and cues.')">Legs</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete core training session with anti-extension, anti-rotation, and anti-lateral flexion exercises.')">Core</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete glute-focused training session with activation, strength, and hypertrophy exercises.')">Glutes</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete full body training session balancing push, pull, squat, hinge, and carry movements.')">Full Body</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete chest training session with exercises, sets, reps, tempo, and coaching cues.')">Chest</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete back training session with exercises, sets, reps, tempo, and coaching cues.')">Back</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete shoulder training session with exercises, sets, reps, tempo, and coaching cues.')">Shoulders</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete arms session covering biceps and triceps with exercises, sets, reps, tempo, and coaching cues.')">Arms</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete leg training session including quads, hamstrings, and calves with exercises, sets, reps, and cues.')">Legs</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete core training session with anti-extension, anti-rotation, and anti-lateral flexion exercises.')">Core</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete glute-focused training session with activation, strength, and hypertrophy exercises.')">Glutes</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete full body training session balancing push, pull, squat, hinge, and carry movements.')">Full Body</button>
             </div>
           </div>
           <div style="margin-bottom:10px;">
             <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px;">By Time</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 20 minutes including warm-up. Focus on compound supersets.')">20 Min</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 30 minutes including warm-up. Maximize efficiency.')">30 Min</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 45 minutes including warm-up and cool-down.')">45 Min</button>
-              <button class="mode-chip" onclick="qpSend('Build a complete training session that fits in exactly 60 minutes including warm-up, main work, and cool-down.')">60 Min</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete training session that fits in exactly 20 minutes including warm-up. Focus on compound supersets.')">20 Min</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete training session that fits in exactly 30 minutes including warm-up. Maximize efficiency.')">30 Min</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete training session that fits in exactly 45 minutes including warm-up and cool-down.')">45 Min</button>
+              <button class="qp-chip" onclick="qpSend('Build a complete training session that fits in exactly 60 minutes including warm-up, main work, and cool-down.')">60 Min</button>
             </div>
           </div>
         </div>
@@ -5723,10 +5723,10 @@ function filterPeptides() {
       <div id="msgChatMessages" style="flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:8px;"></div>
       <div id="msgChatInput" style="display:none;padding:10px 1.25rem;border-top:1px solid var(--border2);background:var(--navy2);">
         <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;" id="msgQuickReplies">
-          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">Great work today</button>
-          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">See you next session</button>
-          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">Your program is updated</button>
-          <button class="mode-chip" onclick="document.getElementById('msgText').value=this.textContent">Great progress this week</button>
+          <button class="qp-chip" onclick="document.getElementById('msgText').value=this.textContent">Great work today</button>
+          <button class="qp-chip" onclick="document.getElementById('msgText').value=this.textContent">See you next session</button>
+          <button class="qp-chip" onclick="document.getElementById('msgText').value=this.textContent">Your program is updated</button>
+          <button class="qp-chip" onclick="document.getElementById('msgText').value=this.textContent">Great progress this week</button>
         </div>
         <div style="display:flex;gap:8px;"><textarea id="msgText" placeholder="Type a message..." rows="1" style="flex:1;padding:10px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;resize:none;outline:none;"></textarea><button onclick="sendMsg()" style="padding:0 18px;background:var(--gold);border:none;border-radius:var(--radius-sm);cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
       </div>
@@ -5946,8 +5946,8 @@ try {
 
 /* MODE CHIPS */
 try {
-  document.querySelectorAll('.mode-chip').forEach(c=>c.addEventListener('click',()=>{
-    document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.mode-chip[data-m]').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-chip[data-m]').forEach(x=>x.classList.remove('active'));
     c.classList.add('active');
     activeMode=c.dataset.m;
   }));
@@ -6202,7 +6202,8 @@ function addMsg(role,content){
   const el=document.createElement('div');
   el.className='msg '+role;
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  const ml=activeMode.charAt(0).toUpperCase()+activeMode.slice(1);
+  const mode=activeMode||'general';
+  const ml=mode.charAt(0).toUpperCase()+mode.slice(1);
   if(role==='user'){el.innerHTML=`<div class="msg-avatar">TR</div><div class="msg-body"><div class="msg-label">${t}</div><div class="msg-bubble">${content}</div></div>`;}
   else{el.innerHTML=`<div class="msg-avatar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f0a500" stroke-width="2"><path d="M12 2L3 7v10l9 5 9-5V7L12 2z"/></svg></div><div class="msg-body"><div class="msg-label">Dr. Fitness · ${ml} · ${t}</div><div class="msg-bubble">${fmt(content)}</div></div>`;}
   msgsEl.appendChild(el);msgsEl.scrollTop=msgsEl.scrollHeight;
@@ -10595,10 +10596,10 @@ console.log('init: main script complete');
   </div>
   <div class="fc-input-area">
     <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
-      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What injury modifications should I make for my active client?')">Injury Mod</button>
-      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What are the GLP-1 training and nutrition protocols for my active client?')">GLP-1 Protocol</button>
-      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Give me nutrition recommendations for my active client based on their goals.')">Nutrition</button>
-      <button class="mode-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Build an evidence-based supplement stack for my active client.')">Supplement Stack</button>
+      <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What injury modifications should I make for my active client?')">Injury Mod</button>
+      <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What are the GLP-1 training and nutrition protocols for my active client?')">GLP-1 Protocol</button>
+      <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Give me nutrition recommendations for my active client based on their goals.')">Nutrition</button>
+      <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Build an evidence-based supplement stack for my active client.')">Supplement Stack</button>
     </div>
     <div class="fc-input-row">
       <textarea id="fcQi" placeholder="Ask Dr. Fitness..." rows="1"></textarea>
@@ -10763,12 +10764,12 @@ console.log('init: floating-chat complete');
     <button onclick="document.getElementById('mobileMoreMenu').style.display=document.getElementById('mobileMoreMenu').style.display==='flex'?'none':'flex'" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">☰</span>More</button>
   </div>
   <div id="mobileMoreMenu" style="display:none;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--border2);justify-content:center;">
-    <button onclick="mobileNavTo('nutrition')" class="mode-chip">Nutrition</button>
-    <button onclick="mobileNavTo('supplements')" class="mode-chip">Supplements</button>
-    <button onclick="mobileNavTo('calcs')" class="mode-chip">Calculators</button>
-    <button onclick="mobileNavTo('reflib')" class="mode-chip">Reference</button>
-    <button onclick="mobileNavTo('quickref')" class="mode-chip">Quick Ref</button>
-    <button onclick="openPricingModal()" class="mode-chip" style="color:var(--gold);border-color:var(--gold);">Pricing</button>
+    <button onclick="mobileNavTo('nutrition')" class="qp-chip">Nutrition</button>
+    <button onclick="mobileNavTo('supplements')" class="qp-chip">Supplements</button>
+    <button onclick="mobileNavTo('calcs')" class="qp-chip">Calculators</button>
+    <button onclick="mobileNavTo('reflib')" class="qp-chip">Reference</button>
+    <button onclick="mobileNavTo('quickref')" class="qp-chip">Quick Ref</button>
+    <button onclick="openPricingModal()" class="qp-chip" style="color:var(--gold);border-color:var(--gold);">Pricing</button>
   </div>
 </nav>
 
