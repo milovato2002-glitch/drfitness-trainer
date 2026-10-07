@@ -1249,47 +1249,104 @@ window.wccPrintWorkout = function(){
 
 // Parse the EX| contract text into a structured object (shared by PDF + share text).
 
-/* Reusable streaming helper — calls chat with stream:true, accumulates the
-   full text, and fires onChunk(progressiveText) as it arrives. Returns the
-   complete text. Used by nutrition/supplement/coaching generators so they
-   don't hit the 10s Netlify timeout (same fix as workouts). */
-window.streamChat = async function(opts, onChunk){
-  var res = await fetch('/.netlify/functions/chat',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      stream:true,
-      model: opts.model || 'claude-sonnet-4-6',
-      max_tokens: opts.max_tokens || 2000,
-      system: opts.system || '',
-      messages: opts.messages || []
-    })
-  });
-  if(!res.ok || !res.body){
-    var e=''; try{ e=(await res.json()).error||''; }catch(x){}
-    throw new Error(e || ('Server error '+res.status));
+/* Reusable streaming helper. Calls chat with stream:true and accumulates the
+   text, firing onChunk(progressiveText) as it arrives. streamChatResult
+   returns {text, stopReason}; stopReason is Anthropic's stop_reason
+   ('end_turn', 'max_tokens', ...) or null if the stream ended early.
+   Errors are thrown with a message a trainer can act on.
+   opts.timeoutMs     — hard limit for the whole request (optional).
+   opts.idleTimeoutMs — limit between chunks (default 60s). */
+function chatErrorMessage(status, detail){
+  var d = String(detail || '');
+  // The function passes Anthropic errors through as JSON text; pull out the message.
+  try { var j = JSON.parse(d); d = (j.error && (j.error.message || j.error)) || j.message || d; } catch(e) {}
+  d = String(d).slice(0, 200);
+  if (status === 403) return 'This site is not allowed to use the AI service. ' + d;
+  if (status === 401) return 'The AI service rejected the API key. Check the ANTHROPIC_API_KEY setting in Netlify.';
+  if (status === 429) return 'Too many requests. Wait a minute and try again.';
+  if (status === 529 || /overloaded/i.test(d)) return 'The AI service is overloaded right now. Try again in a minute.';
+  if (status === 400) return 'The AI service could not process the request: ' + d;
+  if (status >= 500) return 'The AI service had an error (status ' + status + '). Try again in a minute.' + (d ? ' ' + d : '');
+  return d || ('The AI service returned status ' + status + '.');
+}
+
+window.streamChatResult = async function(opts, onChunk){
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timer = null, timedOut = false, rejectTimeout = null;
+  var timeout = new Promise(function(_, rej){ rejectTimeout = rej; });
+  timeout.catch(function(){});
+  function fireTimeout(msg){ timedOut = true; if (ctrl) { try { ctrl.abort(); } catch(e) {} } rejectTimeout(new Error(msg)); }
+  if (opts.timeoutMs) {
+    timer = setTimeout(function(){ fireTimeout('Timed out after ' + Math.round(opts.timeoutMs / 1000) + ' seconds.'); }, opts.timeoutMs);
   }
-  var reader=res.body.getReader(), dec=new TextDecoder(), buf='', text='';
-  var TIMEOUT_MS = opts.timeoutMs || 60000;
-  while(true){
-    // Race each read against a timeout so a stalled stream can't hang forever.
-    var ch = await Promise.race([
-      reader.read(),
-      new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('Stream timed out')); }, TIMEOUT_MS); })
-    ]).catch(function(err){ try{ reader.cancel(); }catch(x){} throw err; });
-    if(ch.done) break;
-    buf += dec.decode(ch.value,{stream:true});
-    var lines=buf.split('\n'); buf=lines.pop();
-    for(var i=0;i<lines.length;i++){
-      var ln=lines[i]; if(ln.indexOf('data:')!==0) continue;
-      var pl=ln.slice(5).trim(); if(!pl||pl==='[DONE]') continue;
-      try{ var ev=JSON.parse(pl);
-        if(ev.type==='content_block_delta' && ev.delta && typeof ev.delta.text==='string'){
-          text += ev.delta.text; if(typeof onChunk==='function') onChunk(text);
-        } else if(ev.type==='error'){ throw new Error((ev.error&&ev.error.message)||'Stream error'); }
-      }catch(e){}
+  var idleMs = opts.idleTimeoutMs || 60000;
+  var reader = null;
+  try {
+    var res;
+    try {
+      res = await Promise.race([fetch('/.netlify/functions/chat', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        signal: ctrl ? ctrl.signal : undefined,
+        body: JSON.stringify({
+          stream: true,
+          model: opts.model || 'claude-sonnet-4-6',
+          max_tokens: opts.max_tokens || 2000,
+          system: opts.system || '',
+          messages: opts.messages || []
+        })
+      }), timeout]);
+    } catch(err) {
+      if (timedOut) throw err;
+      throw new Error('Could not reach the AI service. Check your internet connection.');
     }
+    if (!res.ok || !res.body) {
+      var detail = '';
+      try { var body = await res.text(); try { detail = JSON.parse(body).error || body; } catch(e) { detail = body; } } catch(e) {}
+      throw new Error(chatErrorMessage(res.status, detail));
+    }
+    reader = res.body.getReader();
+    var dec = new TextDecoder(), buf = '', text = '', stopReason = null;
+    while (true) {
+      var idleTimer;
+      var idle = new Promise(function(_, rej){ idleTimer = setTimeout(function(){ rej(new Error('The AI service stopped responding.')); }, idleMs); });
+      var ch;
+      try { ch = await Promise.race([reader.read(), timeout, idle]); }
+      finally { clearTimeout(idleTimer); }
+      if (ch.done) break;
+      buf += dec.decode(ch.value, {stream:true});
+      var lines = buf.split('\n'); buf = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var ln = lines[i]; if (ln.indexOf('data:') !== 0) continue;
+        var pl = ln.slice(5).trim(); if (!pl || pl === '[DONE]') continue;
+        var ev;
+        try { ev = JSON.parse(pl); } catch(e) { continue; } // not JSON: keepalive, skip
+        if (ev.type === 'content_block_delta' && ev.delta && typeof ev.delta.text === 'string') {
+          text += ev.delta.text; if (typeof onChunk === 'function') onChunk(text);
+        } else if (ev.type === 'message_delta' && ev.delta && ev.delta.stop_reason) {
+          stopReason = ev.delta.stop_reason;
+        } else if (ev.type === 'error') {
+          var e2 = ev.error || {};
+          throw new Error(chatErrorMessage(e2.type === 'overloaded_error' ? 529 : 500, e2.message || 'Stream error'));
+        }
+      }
+    }
+    return { text: text, stopReason: stopReason };
+  } catch(err) {
+    if (reader) { try { reader.cancel(); } catch(e) {} }
+    if (timedOut && !/^Timed out/.test(err.message)) throw new Error('Timed out after ' + Math.round(opts.timeoutMs / 1000) + ' seconds.');
+    throw err;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-  return text;
+};
+
+// Text-only wrapper kept for the nutrition, supplement and coaching generators.
+window.streamChat = async function(opts, onChunk){
+  var r = await window.streamChatResult({
+    model: opts.model, max_tokens: opts.max_tokens, system: opts.system, messages: opts.messages,
+    idleTimeoutMs: opts.timeoutMs || 60000
+  }, onChunk);
+  return r.text;
 };
 
 function wccParseWorkout(text){
