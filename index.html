@@ -7709,6 +7709,8 @@ document.querySelectorAll('.plbb-tab').forEach(tab => {
 const CP_STORAGE_KEY = 'drfitness_clients_v1';
 let cpClients = [];
 let cpEditingId = null;
+let cpEditBaseline = null; // form values as loaded for edit, before any changes
+let cpEditUnshown = {};    // saved chip values with no matching chip, by field
 let cpCurrentStep = 0;
 let cpViewingClient = null;
 const CP_TOTAL_STEPS = 6;
@@ -7777,10 +7779,18 @@ function cpGetInitials(c) {
 function cpGetChecked(groupId) {
   return Array.from(document.querySelectorAll('#'+groupId+' .cp-check.checked')).map(el=>el.dataset.val);
 }
+// Checks the chips whose key or visible label matches a saved value (older
+// intake paths saved labels). Returns the saved values no chip could show.
 function cpSetChecked(groupId, vals) {
+  const list = Array.isArray(vals) ? vals : (vals ? [vals] : []);
+  const shown = new Set();
   document.querySelectorAll('#'+groupId+' .cp-check').forEach(el=>{
-    el.classList.toggle('checked', vals && vals.includes(el.dataset.val));
+    const label = el.textContent.trim().toLowerCase();
+    const hit = list.find(v => v === el.dataset.val || String(v).trim().toLowerCase() === label);
+    el.classList.toggle('checked', hit !== undefined);
+    if (hit !== undefined) shown.add(hit);
   });
+  return list.filter(v => !shown.has(v));
 }
 
 function cpCollectForm() {
@@ -7927,6 +7937,8 @@ function cpCollectForm() {
 }
 
 function cpPopulateForm(c) {
+  cpEditUnshown = {};
+  const chips = (gid, key) => { const miss = cpSetChecked(gid, c[key]); if (miss.length) cpEditUnshown[key] = miss; };
   document.getElementById('cf-fname').value = c.fname||'';
   document.getElementById('cf-lname').value = c.lname||'';
   document.getElementById('cf-age').value = c.age||'';
@@ -7939,8 +7951,8 @@ function cpPopulateForm(c) {
   document.getElementById('cf-sleep').value = c.sleep||'';
   document.getElementById('cf-stress').value = c.stress||'';
   document.getElementById('cf-smoking').value = c.smoking||'';
-  cpSetChecked('cf-goals', c.goals);
-  cpSetChecked('cf-special', c.special);
+  chips('cf-goals', 'goals');
+  chips('cf-special', 'special');
   document.getElementById('cf-sport').value = c.sport||'';
   document.getElementById('cf-success').value = c.success||'';
   document.getElementById('cf-timeline').value = c.timeline||'';
@@ -7951,13 +7963,13 @@ function cpPopulateForm(c) {
   document.getElementById('cf-frequency').value = c.frequency||'';
   document.getElementById('cf-opt-phase').value = c.optPhase||'';
   document.getElementById('cf-style').value = c.style||'';
-  cpSetChecked('cf-equipment', c.equipment);
+  chips('cf-equipment', 'equipment');
   document.getElementById('cf-diet').value = c.diet||'';
   document.getElementById('cf-protein').value = c.protein||'';
   document.getElementById('cf-hydration').value = c.hydration||'';
   document.getElementById('cf-alcohol').value = c.alcohol||'';
   document.getElementById('cf-supplements').value = c.supplements||'';
-  cpSetChecked('cf-conditions', c.conditions);
+  chips('cf-conditions', 'conditions');
   document.getElementById('cf-rhr').value = c.rhr||'';
   document.getElementById('cf-bp').value = c.bp||'';
   document.getElementById('cf-glucose').value = c.glucose||'';
@@ -7966,16 +7978,16 @@ function cpPopulateForm(c) {
   document.getElementById('cf-glp1-dose').value = c.glp1Dose||'';
   document.getElementById('cf-glp1-start').value = c.glp1Start||'';
   document.getElementById('cf-current-supps').value = c.currentSupps||'';
-  cpSetChecked('cf-injuries', c.injuries);
+  chips('cf-injuries', 'injuries');
   document.getElementById('cf-injury-notes').value = c.injuryNotes||'';
   document.getElementById('cf-injury-list').value = c.injuryList||'';
   document.getElementById('cf-phys-clearance-date').value = c.physClearanceDate||'';
   document.getElementById('cf-reassess-sched').value = c.reassessSched||'';
   document.getElementById('cf-medications').value = c.medications||'';
-  cpSetChecked('cf-ohsa-foot', c.ohsaFoot);
-  cpSetChecked('cf-ohsa-knee', c.ohsaKnee);
-  cpSetChecked('cf-ohsa-lphc', c.ohsaLphc);
-  cpSetChecked('cf-ohsa-shoulder', c.ohsaShoulder);
+  chips('cf-ohsa-foot', 'ohsaFoot');
+  chips('cf-ohsa-knee', 'ohsaKnee');
+  chips('cf-ohsa-lphc', 'ohsaLphc');
+  chips('cf-ohsa-shoulder', 'ohsaShoulder');
   document.getElementById('cf-postural-pattern').value = c.posturalPattern||'';
   document.getElementById('cf-movement-quality').value = c.movementQuality||'';
   document.getElementById('cf-ohsa-notes').value = c.ohsaNotes||'';
@@ -8002,11 +8014,12 @@ function cpPopulateForm(c) {
   const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
   setVal('cf-language', c.language);
   setVal('cf-emerg-name', c.emergName); setVal('cf-emerg-phone', c.emergPhone); setVal('cf-email', c.email);
-  if (c.underPhysician) { document.getElementById('cf-under-physician').checked = true; document.getElementById('cf-physician-name-row').style.display='block'; }
+  document.getElementById('cf-under-physician').checked = !!c.underPhysician;
+  document.getElementById('cf-physician-name-row').style.display = c.underPhysician ? 'block' : 'none';
   setVal('cf-physician-name', c.physicianName);
-  if (c.physClearanceObtained) document.getElementById('cf-phys-clearance-obtained').checked = true;
+  document.getElementById('cf-phys-clearance-obtained').checked = !!c.physClearanceObtained;
   setVal('cf-current-meds', c.currentMeds);
-  cpSetChecked('cf-train-location', c.trainLocation);
+  chips('cf-train-location', 'trainLocation');
   setVal('cf-glp1-med-name', c.glp1MedName); setVal('cf-glp1-dose-new', c.glp1DoseNew); setVal('cf-glp1-weeks', c.glp1Weeks);
   // Show GLP-1 conditional if applicable
   var sp = c.special || [];
@@ -8017,7 +8030,7 @@ function cpPopulateForm(c) {
   setVal('cf-goal-rank1', c.goalRank1); setVal('cf-goal-rank2', c.goalRank2); setVal('cf-goal-rank3', c.goalRank3);
   setVal('cf-calories', c.calorieAwareness); setVal('cf-meals', c.mealFrequency);
   setVal('cf-breakfast', c.breakfast); setVal('cf-nutrition-challenge', c.nutritionChallenge);
-  cpSetChecked('cf-allergies', c.allergies); cpSetChecked('cf-recovery-habits', c.recoveryHabits);
+  chips('cf-allergies', 'allergies'); chips('cf-recovery-habits', 'recoveryHabits');
   setVal('cf-clearance', c.clearance); setVal('cf-clearance-date', c.clearanceDate);
   setVal('cf-current-pain', c.currentPain); setVal('cf-pain-detail', c.painDetail);
   setVal('cf-family-cvd', c.familyCvd); setVal('cf-family-diabetes', c.familyDiabetes);
@@ -8034,6 +8047,14 @@ function cpPopulateForm(c) {
   const setCb = (id, val) => { const el=document.getElementById(id); if(el) el.checked=!!val; };
   setCb('cf-consent-parq', c.consentParq); setCb('cf-consent-informed', c.consentInformed);
   setCb('cf-consent-waiver', c.consentWaiver); setCb('cf-consent-confirm', c.consentConfirm);
+  // Confidence and mindset
+  const conf = document.getElementById('cf-confidence');
+  if (conf) { conf.value = c.confidence || 5; const cl = document.getElementById('cfConfLabel'); if (cl) cl.textContent = conf.value; }
+  chips('cf-exercise-exp', 'exerciseExp');
+  chips('cf-barriers-chips', 'barriersChips');
+  chips('cf-mental-health', 'mentalHealth');
+  setVal('cf-supp-use', c.suppUse);
+  chips('cf-primary-motivation', 'primaryMotivation');
 }
 
 function cpResetForm() {
@@ -8050,7 +8071,10 @@ function cpResetForm() {
   ['cf-goals','cf-special','cf-equipment','cf-conditions','cf-injuries',
    'cf-ohsa-foot','cf-ohsa-knee','cf-ohsa-lphc','cf-ohsa-shoulder'
   ].forEach(id => cpSetChecked(id, []));
-  ['cf-allergies','cf-recovery-habits','cf-train-location'].forEach(id => cpSetChecked(id, []));
+  ['cf-allergies','cf-recovery-habits','cf-train-location',
+   'cf-exercise-exp','cf-barriers-chips','cf-mental-health','cf-primary-motivation'].forEach(id => cpSetChecked(id, []));
+  var confEl=document.getElementById('cf-confidence'); if(confEl){ confEl.value=5; var confLbl=document.getElementById('cfConfLabel'); if(confLbl) confLbl.textContent='5'; }
+  var suppEl=document.getElementById('cf-supp-use'); if(suppEl) suppEl.value='';
   ['cf-under-physician','cf-phys-clearance-obtained'].forEach(id => { var el=document.getElementById(id); if(el) el.checked=false; });
   var pnr=document.getElementById('cf-physician-name-row'); if(pnr) pnr.style.display='none';
   var glpC=document.getElementById('cf-glp1-conditional'); if(glpC) glpC.style.display='none';
@@ -8074,9 +8098,18 @@ function cpResetForm() {
 function openClientForm(editId) {
   cpEditingId = editId || null;
   cpCurrentStep = 0;
+  cpEditBaseline = null;
+  cpEditUnshown = {};
   if (editId) {
     const c = cpClients.find(x=>x.id===editId);
-    if (c) { cpPopulateForm(c); document.getElementById('cpFormTitle').textContent = 'Edit Client — ' + c.fname; }
+    if (c) {
+      // Clear first so nothing from the previous client carries over, then
+      // snapshot what the form shows so save can tell which fields changed.
+      cpResetForm();
+      cpPopulateForm(c);
+      cpEditBaseline = cpCollectForm();
+      document.getElementById('cpFormTitle').textContent = 'Edit Client — ' + c.fname;
+    }
   } else {
     cpResetForm();
     document.getElementById('cpFormTitle').textContent = 'New Client Assessment';
@@ -8138,7 +8171,20 @@ function cpSaveClient() {
   if (!data.fname) { alert('Please enter at least a first name.'); cpCurrentStep=0; cpUpdateStepUI(); return; }
   if (cpEditingId) {
     const idx = cpClients.findIndex(c=>c.id===cpEditingId);
-    if (idx >= 0) { cpClients[idx] = {...cpClients[idx], ...data}; }
+    if (idx >= 0) {
+      const orig = cpClients[idx];
+      const merged = {...orig};
+      Object.keys(data).forEach(k => {
+        // A field the trainer did not touch keeps its saved value, so values
+        // the form cannot display (old labels, retired options) survive.
+        if (cpEditBaseline && orig[k] !== undefined && JSON.stringify(data[k]) === JSON.stringify(cpEditBaseline[k])) return;
+        let v = data[k];
+        // Changed chip group: keep saved entries that had no chip to show them.
+        if (Array.isArray(v) && cpEditUnshown[k]) v = v.concat(cpEditUnshown[k].filter(x => !v.includes(x)));
+        merged[k] = v;
+      });
+      cpClients[idx] = merged;
+    }
   } else {
     cpClients.push({...data, id: cpGenId()});
   }
