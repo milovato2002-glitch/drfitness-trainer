@@ -11747,13 +11747,11 @@ window.autoSaveSession = function(content, style, questionnaire, type) {
   if (c && c.id) {
     cpLoadClients();
     var client = cpClients.find(function(x){return x.id===c.id;});
-    // Check waiver
+    // Check waiver. The session is saved either way; OK also opens the waiver.
     if (client && !client.waiverSigned) {
-      if (!confirm('This client has not signed a waiver yet. Do you want to complete the waiver now?\n\nClick OK to open the waiver, or Cancel to log the session anyway.')) {
-        _origAutoSaveSession(content, style, questionnaire, type);
-        return;
-      }
-      openWaiverModal(c.id);
+      var openWaiver = confirm('This client has not signed a waiver yet. Do you want to complete the waiver now?\n\nThe session is saved either way. Click OK to save it and open the waiver, or Cancel to just save the session.');
+      _origAutoSaveSession(content, style, questionnaire, type);
+      if (openWaiver) openWaiverModal(c.id);
       return;
     }
   }
