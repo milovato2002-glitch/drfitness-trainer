@@ -858,6 +858,8 @@ function wccParseWorkout(text){
       if (p.length < 6) { flag(t, 'Expected 6 fields after EX|, found ' + p.length); return; }
       if (p.length > 6) p = p.slice(0, 5).concat([p.slice(5).join(' / ')]); // stray | in the cue
       if (!p[0]) { flag(t, 'Exercise has no name'); return; }
+      // The model sometimes writes an en dash or N/A for a field that does not apply.
+      for (var fi = 1; fi <= 4; fi++) if (/^([–—-]|n\/?a|none)$/i.test(p[fi]) || !p[fi]) p[fi] = '-';
       var cue = p[5], mod = '', mm = cue.match(/\[MOD:\s*(.+?)\]/i);
       if (mm) { mod = mm[1].trim(); cue = cue.replace(/\[MOD:.*?\]/i, '').trim(); }
       cur[sec].push({ name:p[0], sr:p[1], tempo:p[2], rest:p[3], load:p[4], cue:cue, mod:mod });
