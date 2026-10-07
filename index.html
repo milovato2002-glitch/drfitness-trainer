@@ -1060,6 +1060,12 @@ window.wccToggleTrackMode = function(){
   }
 };
 
+/* Programs are built one day per request, then combined. Short requests
+   finish well inside the time and length limits, and a day that fails can
+   be retried on its own. Nothing is saved until every day is complete. */
+var WCC_DAY_TIMEOUT_MS = 60000;
+var WCC_DAY_MAX_TOKENS = 2500;
+
 window.wccGenerate = async function(){
   // SAFETY GATE: block workout generation for chest pain / dizziness red flags.
   if(window.cpActiveClient && typeof window.nptSafetyGate==='function' && !window.nptSafetyGate(window.cpActiveClient)) return;
@@ -1075,8 +1081,214 @@ window.wccGenerate = async function(){
 
   closeWccModal('wccQuestionModal');
   showModal('wccOutputModal');
-  document.getElementById('wccOutputContent').innerHTML = '<div style="text-align:center;padding:3rem 2rem;"><div style="font-size:2rem;margin-bottom:1rem;animation:tdot 1.2s infinite;">⚡</div><div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">DR. FITNESS AI is building your session</div><div style="font-size:0.82rem;color:var(--text3);margin-top:0.5rem;">'+styleName+' · '+level+' · '+duration+' · '+goal+'</div></div>';
 
+  var job = {
+    styleName: styleName, styleId: styleId, level: level, duration: duration, equipment: equipment,
+    goal: goal, dayCount: dayCount, injuries: injuries,
+    sessionType: dayCount > 1 ? (dayCount + '-Day Program') : 'Session',
+    system: ((typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.') + (window.langSuffix||''),
+    title: '', summary: '', days: [], running: false, saved: false
+  };
+  job.basePrompt = wccBasePrompt(job);
+  for (var i = 0; i < dayCount; i++) job.days.push({ num: i+1, status: 'pending', text: '', parsed: null, problems: [], error: '' });
+  window._wccJob = job;
+  window._wccLastWorkout = null; // nothing to print, copy or save until the program is complete
+  window._programTimeframe = null; // legacy reset; multi-day now driven by Q6
+  await wccRunDays(job, job.days.map(function(_, idx){ return idx; }));
+};
+
+// Retry one failed day. The days that already succeeded are kept.
+window.wccRetryDay = function(idx){
+  var job = window._wccJob;
+  if (!job || job.running || job.saved || !job.days[idx] || job.days[idx].status === 'done') return;
+  wccRunDays(job, [idx]);
+};
+window.wccRetryFailedDays = function(){
+  var job = window._wccJob;
+  if (!job || job.running || job.saved) return;
+  var idxs = []; job.days.forEach(function(d, idx){ if (d.status !== 'done') idxs.push(idx); });
+  if (idxs.length) wccRunDays(job, idxs);
+};
+
+async function wccRunDays(job, idxs){
+  job.running = true;
+  try {
+    for (var k = 0; k < idxs.length; k++) {
+      if (window._wccJob !== job) return; // a newer generation replaced this one
+      await wccRunDay(job, idxs[k]);
+    }
+  } finally { job.running = false; }
+  if (window._wccJob === job) wccFinishJob(job);
+}
+
+async function wccRunDay(job, idx){
+  var day = job.days[idx];
+  day.status = 'running'; day.text = ''; day.parsed = null; day.problems = []; day.error = '';
+  wccRenderProgress(job);
+  try {
+    var r = await window.streamChatResult({
+      max_tokens: WCC_DAY_MAX_TOKENS, timeoutMs: WCC_DAY_TIMEOUT_MS, system: job.system,
+      messages: [{ role: 'user', content: job.basePrompt + wccDayContract(job, idx) }]
+    }, function(t){
+      day.text = t;
+      if (window._wccJob !== job) return;
+      var el = document.getElementById('wccStreamLive');
+      if (el) { el.textContent = t; el.scrollTop = el.scrollHeight; }
+    });
+    day.text = r.text;
+    var p = wccParseWorkout(r.text);
+    var d = p.days[0] || null;
+    if (r.stopReason === 'max_tokens') {
+      day.status = 'incomplete';
+      day.problems = ['The AI hit its length limit and this day was cut off.'];
+    } else if (!r.stopReason) {
+      day.status = 'incomplete';
+      day.problems = ['The connection closed before the AI finished this day.'];
+    } else {
+      var problems = [];
+      if (p.days.length > 1) problems.push('The AI wrote ' + p.days.length + ' days instead of one.');
+      problems = problems.concat(wccValidateDay(d));
+      var stray = p.flagged.length - (d ? d.flagged.length : 0);
+      if (stray > 0) problems.push(stray + ' line' + (stray > 1 ? 's' : '') + ' before the day header could not be read.');
+      day.problems = problems;
+      day.status = problems.length ? 'invalid' : 'done';
+    }
+    day.parsed = d; day.flagged = p.flagged;
+    if (idx === 0 && day.status === 'done') { job.title = p.title || job.title; job.summary = p.summary || job.summary; }
+  } catch(err) {
+    day.status = /^Timed out/.test(err.message) ? 'timeout' : 'error';
+    day.error = err.message;
+  }
+  if (window._wccJob === job) wccRenderProgress(job);
+}
+
+function wccFinishJob(job){
+  if (!job.days.every(function(d){ return d.status === 'done'; })) { wccRenderProgress(job); return; }
+  var text = 'TITLE: ' + (job.title || (job.styleName + (job.dayCount > 1 ? ' ' + job.dayCount + '-Day Program' : ' Session'))) + '\n' +
+    (job.summary ? 'SUMMARY: ' + job.summary + '\n' : '') +
+    job.days.map(function(d, idx){ return wccSerializeDay(d.parsed, idx + 1); }).join('\n');
+  // Check the combined program once more before anything is saved.
+  var combined = wccParseWorkout(text);
+  var ok = combined.days.length === job.dayCount && combined.flagged.length === 0;
+  combined.days.forEach(function(d, idx){
+    var probs = wccValidateDay(d);
+    if (probs.length) { ok = false; job.days[idx].status = 'invalid'; job.days[idx].problems = probs; }
+  });
+  if (!ok) { wccRenderProgress(job); return; }
+  wccRenderFinal(job, text);
+}
+
+var WCC_DAY_STATUS = {
+  pending: { icon:'○', color:'var(--text3)', text:'Waiting' },
+  running: { icon:'⚡', color:'var(--gold)', text:'Writing…' },
+  done: { icon:'✓', color:'var(--green)', text:'Complete' },
+  incomplete: { icon:'✗', color:'var(--red)', text:'Incomplete' },
+  invalid: { icon:'✗', color:'var(--red)', text:'Incomplete' },
+  timeout: { icon:'✗', color:'var(--red)', text:'Timed out' },
+  error: { icon:'✗', color:'var(--red)', text:'Error' }
+};
+
+function wccRenderProgress(job){
+  var out = document.getElementById('wccOutputContent');
+  if (!out) return;
+  var running = null, failed = 0;
+  job.days.forEach(function(d){ if (d.status === 'running') running = d; if (WCC_DAY_STATUS[d.status].color === 'var(--red)') failed++; });
+  var html = '<div style="text-align:center;padding:1.25rem 1rem 1rem;">' +
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:1rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;">' +
+    (running ? 'DR. FITNESS AI is building your ' + (job.dayCount > 1 ? job.dayCount + '-day program' : 'session') : (failed ? 'Program not saved' : 'Checking program')) + '</div>' +
+    '<div style="font-size:0.82rem;color:var(--text3);margin-top:0.5rem;">' + wccEsc(job.styleName + ' · ' + job.level + ' · ' + job.duration + ' · ' + job.goal) + '</div></div>';
+  if (failed && !running) {
+    html += '<div style="background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.35);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:0.75rem;font-size:0.8rem;color:var(--text2);line-height:1.5;">' +
+      'Every day must be complete before the program is saved. ' + (job.dayCount - failed) + ' of ' + job.dayCount + ' day' + (job.dayCount > 1 ? 's are' : ' is') + ' ready. Retry the ' + (failed > 1 ? failed + ' days' : 'day') + ' marked below.' +
+      (failed > 1 ? ' <button onclick="wccRetryFailedDays()" style="margin-left:6px;padding:4px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:14px;font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">RETRY ALL</button>' : '') +
+      '</div>';
+  }
+  job.days.forEach(function(d, idx){
+    var st = WCC_DAY_STATUS[d.status];
+    var detail = '';
+    if (d.status === 'done' && d.parsed) {
+      var n = d.parsed.WARMUP.length + d.parsed.MAIN.length + d.parsed.COOLDOWN.length;
+      detail = (d.parsed.focus ? d.parsed.focus + ' · ' : '') + n + ' exercises';
+    }
+    var msgs = d.error ? [d.error] : (st.color === 'var(--red)' ? d.problems : []);
+    html += '<div style="background:var(--navy2);border:1px solid ' + (st.color === 'var(--red)' ? 'rgba(230,57,70,0.35)' : 'var(--border2)') + ';border-radius:var(--radius-sm);padding:9px 14px;margin-bottom:6px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<span style="color:' + st.color + ';font-weight:700;width:1.2em;text-align:center;">' + st.icon + '</span>' +
+      '<span style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:var(--text);">Day ' + d.num + '</span>' +
+      '<span style="flex:1;min-width:0;font-size:0.78rem;color:' + st.color + ';">' + st.text + (detail ? ' <span style="color:var(--text3);">· ' + wccEsc(detail) + '</span>' : '') + '</span>' +
+      (st.color === 'var(--red)' && !running ? '<button onclick="wccRetryDay(' + idx + ')" style="padding:4px 12px;background:transparent;border:1px solid var(--gold);border-radius:14px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">RETRY DAY ' + d.num + '</button>' : '') +
+      '</div>' +
+      (msgs.length ? '<div style="font-size:0.75rem;color:var(--text2);margin:4px 0 0 2.2em;line-height:1.5;">' + msgs.map(wccEsc).join('<br>') + '</div>' : '') +
+      (st.color === 'var(--red)' && d.flagged && d.flagged.length ? '<div style="margin:6px 0 0 2.2em;">' + wccFlaggedHtml(d.flagged) + '</div>' : '') +
+      '</div>';
+  });
+  if (running) {
+    html += '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:0.75rem 0 0.4rem;">Day ' + running.num + ' live</div>' +
+      '<div id="wccStreamLive" style="font-size:0.82rem;color:var(--text2);line-height:1.6;white-space:pre-wrap;max-height:40vh;overflow:auto;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 14px;"></div>';
+  }
+  out.innerHTML = html;
+  var live = document.getElementById('wccStreamLive');
+  if (live && running) live.textContent = running.text;
+}
+
+function wccRenderFinal(job, text){
+  var styleName = job.styleName, injuries = job.injuries;
+  window._wccTrackMode = false; // fresh workout starts as clean reference, not tracker
+  window._wccLastWorkout = { text: text, styleName: styleName, level: job.level, duration: job.duration, goal: job.goal, days: job.dayCount, injuries: injuries };
+
+  // Injury warning banner
+  var banner = '';
+  if(injuries){
+    banner = '<div style="background:rgba(240,165,0,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start;"><span style="font-size:1.1rem;flex-shrink:0;">⚠️</span><div><strong style="color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;">INJURY PROTOCOL ACTIVE</strong><p style="font-size:0.82rem;color:var(--text2);margin-top:4px;">Modifications applied for '+wccEsc(injuries)+'. Exercises marked with ⚠ include alternative options.</p></div></div>';
+  }
+
+  // Coaches reference
+  var coaches = WCC_COACHES[job.styleId] || '';
+  var coachHtml = '';
+  if(coaches){
+    var coachList = coaches.split('|').map(function(c){
+      var parts = c.trim();
+      var urlMatch = parts.match(/(youtube\.com\/\S+|[\w]+\.com\S*|[\w]+\.org\S*|[\w]+\.co\S*)/);
+      var url = urlMatch ? 'https://www.'+urlMatch[1] : '#';
+      var name = parts.replace(/(https?:\/\/)?[\w]+\.(com|org|co)\S*/g,'').trim();
+      return '<li style="margin-bottom:4px;"><a href="'+url+'" target="_blank" style="color:var(--gold);text-decoration:none;">'+name+'</a></li>';
+    }).join('');
+    coachHtml = '<div style="margin-top:1.5rem;border-top:1px solid var(--border2);padding-top:1rem;">' +
+      '<details><summary style="font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);cursor:pointer;">REFERENCE COACHES AND ATHLETES FOR '+wccEsc(styleName)+'</summary>' +
+      '<ul style="margin:0.75rem 0 0 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;">'+coachList+'</ul></details></div>';
+  }
+
+  // Build Quick View + Detail View toggle
+  var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
+  var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
+  var detailHtml = buildDetailView(text);
+  var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>';
+  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(text, styleName) + '</div>';
+  var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(wccExerciseNames(text)) : '';
+  // Save status + actions row (prepended to output)
+  var activeC = window.cpActiveClient;
+  var saveStatus;
+  if (activeC && activeC.id && typeof autoSaveSession === 'function') {
+    autoSaveSession(
+      banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>' + coachHtml,
+      styleName,
+      {level:job.level,duration:job.duration,equipment:job.equipment,goal:job.goal,injuries:injuries},
+      job.sessionType
+    );
+    var cName = (activeC.fname + ' ' + (activeC.lname||'')).trim();
+    saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--green);"><span>✓</span><span>Saved to <strong>'+wccEsc(cName)+'</strong>’s session history</span></div>';
+  } else {
+    saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--gold);"><span>⚠</span><span>No active client — not saved to a profile. Select a client to auto-save, or add to your Library below.</span></div>';
+  }
+  job.saved = true;
+  var libBtn = '<button onclick="wccSaveToLibrary()" style="padding:7px 14px;background:transparent;border:1px solid var(--gold);border-radius:20px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;">+ SAVE TO LIBRARY</button>';
+  var actionRow = '<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;"><div style="flex:1;min-width:200px;">'+saveStatus+'</div>'+libBtn+'</div>';
+  document.getElementById('wccOutputContent').innerHTML = actionRow + banner + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
+}
+
+// Shared part of every day's prompt: style, client profile and profile rules.
+function wccBasePrompt(job){
+  var injuries = job.injuries, goal = job.goal, dayCount = job.dayCount;
   var clientCtx = '';
   if(window.cpActiveClient && window.cpActiveClient.fname){
     clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(window.cpActiveClient) : '';
@@ -1084,180 +1296,73 @@ window.wccGenerate = async function(){
 
   var injuryInstructions = '';
   if(injuries){
-    injuryInstructions = '\n\nINJURY INTELLIGENCE: The client has the following injuries or limitations: '+injuries+'. For EVERY exercise in the workout, check if it conflicts with these injuries. If it does, add a clearly labeled modification section below that exercise: "Modification for [injury]: [alternative exercise or technique change]". Format these so they can be collapsed/expanded.';
+    injuryInstructions = '\n\nINJURY INTELLIGENCE: The client has the following injuries or limitations: '+injuries+'. For EVERY exercise, check if it conflicts with these injuries. If it does, either replace it with a safe alternative, or keep it and append " [MOD: <alternative exercise or technique change>]" to the end of its coaching-cue field. Do not write a separate modification section.';
   }
-
-  var sessionType = dayCount > 1 ? (dayCount + '-Day Program') : 'Session';
-  window._programTimeframe = null; // legacy reset; multi-day now driven by Q6
 
   // ── MANDATORY PROFILE APPLICATION ──
   // Forces the AI to ACT on the client profile, not just acknowledge it.
-  // Rigor is full on single/short sessions; concise (but still enforced) on
-  // long multi-day programs so generation stays within time/length limits.
-  var concise = dayCount > 2;
+  // Each rule says which field of the EX| format the adjustment goes in.
   var applicationRules =
     '\n\nMANDATORY PROFILE APPLICATION — these are not optional, and the output must SHOW the adjustment, not just mention the data:\n' +
-    '• INJURIES/LIMITATIONS: For every exercise that is contraindicated or risky given the client\u2019s injuries/limitations, you MUST substitute or modify it. ' +
-      (concise
-        ? 'Append " [MOD: <safe alternative>]" to that exercise\u2019s cue. Do not prescribe any movement that aggravates a listed injury.\n'
-        : 'Either replace it outright with a safe alternative, or append " [MOD: <safe alternative>]" to its cue, and in the cue state briefly WHY (e.g. reduces axial load). Do not prescribe any movement that aggravates a listed injury.\n') +
-    '• AGE + SLEEP + STRESS: Adjust total volume, intensity, and rest accordingly. Older age, poor sleep, or high stress \u2192 reduce volume, extend rest, expand warm-up, favor lower-risk loading. State the adjustment in ##NOTES.\n' +
+    '• INJURIES/LIMITATIONS: For every exercise that is contraindicated or risky given the client’s injuries/limitations, you MUST substitute or modify it. ' +
+      'Either replace it outright with a safe alternative, or append " [MOD: <safe alternative>]" to its cue, and in the cue state briefly WHY (e.g. reduces axial load). Do not prescribe any movement that aggravates a listed injury.\n' +
+    '• AGE + SLEEP + STRESS: Adjust total volume, intensity, and rest accordingly. Older age, poor sleep, or high stress → reduce volume, extend rest, expand warm-up, favor lower-risk loading. State the adjustment in ##NOTES.\n' +
     (function(){
       var pc = window.cpActiveClient ? window.cpActiveClient.currentPain : '';
       pc = Array.isArray(pc) ? (pc[0]||'') : (pc||''); pc = String(pc).toLowerCase();
-      if(pc==='mild') return '• CURRENT PAIN (MILD): Client reports occasional minor discomfort during exercise. Stay in pain-free range of motion, avoid loaded end-range, prioritize controlled tempo, and note "work in a pain-free ROM" on affected movements.\n';
-      if(pc==='moderate') return '• CURRENT PAIN (MODERATE): Client reports pain that limits some activities. Significantly reduce loading on affected patterns, substitute high-risk movements for low-impact alternatives, keep all work strictly pain-free, and add a note recommending physician/PT clearance if pain persists.\n';
-      if(pc==='severe') return '• CURRENT PAIN (SEVERE): Client reports pain preventing normal exercise. Program only gentle, restorative, pain-free movement (mobility, light activation). Avoid all loading of affected areas. Strongly recommend medical clearance before progressing.\n';
+      if(pc==='mild') return '• CURRENT PAIN (MILD): Client reports occasional minor discomfort during exercise. Stay in pain-free range of motion, avoid loaded end-range, prioritize controlled tempo, and add "work in a pain-free ROM" to the coaching-cue field of affected exercises.\n';
+      if(pc==='moderate') return '• CURRENT PAIN (MODERATE): Client reports pain that limits some activities. Significantly reduce loading on affected patterns, substitute high-risk movements for low-impact alternatives, keep all work strictly pain-free, and add a ##NOTES line recommending physician/PT clearance if pain persists.\n';
+      if(pc==='severe') return '• CURRENT PAIN (SEVERE): Client reports pain preventing normal exercise. Program only gentle, restorative, pain-free movement (mobility, light activation). Avoid all loading of affected areas. Add a ##NOTES line strongly recommending medical clearance before progressing.\n';
       return '';
     })() +
     '• MEDICATIONS / GLP-1: If on a GLP-1 or weight-loss medication, prioritize lean-mass preservation (adequate resistance stimulus), account for reduced energy/fatigue tolerance and hydration needs, and avoid excessive metabolic volume. Reflect this in loading and rest.\n' +
     '• EQUIPMENT/LOCATION: Hard constraint. Never prescribe equipment the client does not have. Every exercise must be performable with the listed equipment.\n' +
     '• GOALS: The primary (first-listed) goal must drive the loading scheme (sets/reps/rest/intensity). Secondary goal is accessory.\n' +
     '• CONFIDENCE / MENTAL-HEALTH FLAGS: Honor the tone and language rules already specified in the client profile block exactly.\n' +
-    (concise ? '' : '• For a single session, briefly note in ##NOTES the 2\u20133 most important profile-driven decisions you made and why.\n');
+    '• In ##NOTES, briefly note the 2–3 most important profile-driven decisions you made for this day and why.\n';
 
-  // ── STRICT OUTPUT CONTRACT ──
-  var contract =
-    '\n\nOUTPUT FORMAT — FOLLOW EXACTLY:\n' +
-    '1. Start with one line: TITLE: <short session/program title>\n' +
-    '2. Then one line: SUMMARY: <one sentence on the focus>\n' +
-    (dayCount > 1
-      ? '3. Produce EXACTLY ' + dayCount + ' days. Begin each day with its own line: ===DAY N=== <day focus> (e.g. ===DAY 1=== Push).\n'
-      : '3. Produce a single session (no day markers).\n') +
-    '4. Within each day, group with section headers on their own line, one of: ##WARMUP, ##MAIN, ##COOLDOWN, ##NOTES\n' +
-    '5. Every exercise is ONE line in EXACTLY this pipe format, nothing else on the line:\n' +
-    '   EX|<name>|<sets>x<reps>|<tempo>|<rest>|<load guidance>|<one coaching cue>\n' +
-    '   Example: EX|Barbell Back Squat|4x8|3-1-1|90s|RPE 7-8 / ~75% 1RM|Brace the core before each descent\n' +
-    '   If a field does not apply, put a single dash (-). Do NOT use markdown tables. Do NOT bold inside EX lines.\n' +
-    '6. Warm-up and cool-down items also use the EX| format (use - for sets/reps/tempo/load where not applicable).\n' +
-    '7. Under ##NOTES, write normal prose lines (progressive overload, coaching guidance). No EX| lines there.\n' +
-    (injuries ? '8. For any exercise that conflicts with the injuries, append to its coaching-cue field: " [MOD: <safe alternative>]".\n' : '') +
-    'Apply the NASM OPT phase appropriate to the client level. Warm-up should follow Inhibit > Lengthen > Activate > Integrate. Be specific, evidence-based, and use professional trainer language. Do not add any text outside this structure.';
-
-  var prompt = 'Generate a complete professional ' + styleName + (dayCount > 1 ? ' ' + dayCount + '-day training program' : ' training session') + '.\n\n' +
-    'TRAINING STYLE: ' + styleName + '\n' +
-    'CLIENT LEVEL: ' + level + '\n' +
-    'SESSION DURATION (per day): ' + duration + '\n' +
-    'EQUIPMENT: ' + equipment + '\n' +
+  return 'Generate a complete professional ' + job.styleName + (dayCount > 1 ? ' ' + dayCount + '-day training program' : ' training session') + '.\n\n' +
+    'TRAINING STYLE: ' + job.styleName + '\n' +
+    'CLIENT LEVEL: ' + job.level + '\n' +
+    'SESSION DURATION (per day): ' + job.duration + '\n' +
+    'EQUIPMENT: ' + job.equipment + '\n' +
     'PRIMARY GOAL: ' + goal + '\n' +
     (goal.indexOf(',') !== -1 ? 'NOTE: Two goals are selected. If they are complementary (e.g. Strength + Hypertrophy), integrate them. If they are in tension (e.g. Recovery + Power, Fat Loss + Power), briefly state the tradeoff in the SUMMARY line and bias the programming toward the first-listed goal.\n' : '') +
-    (dayCount > 1 ? 'PROGRAM LENGTH: ' + dayCount + ' days (vary the focus across days; include at least one lighter/recovery day if 5+ days)\n' : '') +
+    (dayCount > 1 ? 'PROGRAM LENGTH: ' + dayCount + ' days (vary the focus across days)\n' : '') +
     (injuries ? 'INJURIES/LIMITATIONS: ' + injuries + '\n' : '') +
-    clientCtx + injuryInstructions + applicationRules + contract;
+    clientCtx + injuryInstructions + applicationRules;
+}
 
-  try{
-    var sysPrompt = (typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.';
-    // STREAMING: keeps the Netlify function alive past the 10s sync limit and
-    // shows the session building live. We accumulate the full text, then run
-    // the existing post-processing (QuickView, diagram, auto-save) on completion.
-    var res = await fetch('/.netlify/functions/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({stream:true,model:'claude-sonnet-4-6',max_tokens:4000,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
-    });
-    if(!res.ok || !res.body){
-      var errPayload = '';
-      try{ errPayload = (await res.json()).error || ''; }catch(e){}
-      throw new Error(errPayload || ('Server error '+res.status));
-    }
-    // Live streaming container — text appears here as it generates.
-    document.getElementById('wccOutputContent').innerHTML =
-      '<div style="display:flex;gap:6px;margin-bottom:0.75rem;align-items:center;"><span style="font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);animation:tdot 1.2s infinite;">⚡ Building live…</span></div>' +
-      '<div id="wccStreamLive" style="font-size:0.88rem;color:var(--text2);line-height:1.7;white-space:pre-wrap;"></div>';
-    var liveEl = document.getElementById('wccStreamLive');
-    var reader = res.body.getReader();
-    var decoder = new TextDecoder();
-    var sseBuffer = '';
-    var text = '';
-    while(true){
-      var chunk = await reader.read();
-      if(chunk.done) break;
-      sseBuffer += decoder.decode(chunk.value, {stream:true});
-      var lines = sseBuffer.split('\n');
-      sseBuffer = lines.pop(); // keep incomplete trailing line
-      for(var li=0; li<lines.length; li++){
-        var line = lines[li];
-        if(line.indexOf('data:') !== 0) continue;
-        var payload = line.slice(5).trim();
-        if(!payload || payload === '[DONE]') continue;
-        try{
-          var evt = JSON.parse(payload);
-          if(evt.type === 'content_block_delta' && evt.delta && typeof evt.delta.text === 'string'){
-            text += evt.delta.text;
-            if(liveEl){ liveEl.textContent = text; liveEl.scrollTop = liveEl.scrollHeight; }
-          } else if(evt.type === 'error'){
-            throw new Error((evt.error && evt.error.message) || 'Stream error');
-          }
-        }catch(e){ /* ignore non-JSON keepalive lines */ }
-      }
-    }
-    if(text){
-      // ── from here down, identical to the original non-streaming path ──
-      window._wccTrackMode = false; // fresh workout starts as clean reference, not tracker
-      window._wccLastWorkout = { text: text, styleName: styleName, level: level, duration: duration, goal: goal, days: dayCount, injuries: injuries };
-      var formatted = text
-        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-        .replace(/^#{1,4} (.+)$/gm,'<h3 style="font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;text-transform:uppercase;margin:1.25rem 0 0.4rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">$1</h3>')
-        .replace(/^\- (.+)$/gm,'<li>$1</li>')
-        .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul style="margin:0.3rem 0 0.3rem 1rem;display:flex;flex-direction:column;gap:3px;">'+m+'</ul>';})
-        .replace(/<\/ul>\s*<ul[^>]*>/g,'')
-        .replace(/\n\n/g,'</p><p style="margin-bottom:0.4rem;">')
-        .replace(/([^>])\n([^<])/g,'$1<br>$2');
-
-      // Injury warning banner
-      var banner = '';
-      if(injuries){
-        banner = '<div style="background:rgba(240,165,0,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start;"><span style="font-size:1.1rem;flex-shrink:0;">⚠️</span><div><strong style="color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;">INJURY PROTOCOL ACTIVE</strong><p style="font-size:0.82rem;color:var(--text2);margin-top:4px;">Modifications applied for '+injuries+'. Exercises marked with ⚠ include alternative options.</p></div></div>';
-      }
-
-      // Coaches reference
-      var coaches = WCC_COACHES[styleId] || '';
-      var coachHtml = '';
-      if(coaches){
-        var coachList = coaches.split('|').map(function(c){
-          var parts = c.trim();
-          var urlMatch = parts.match(/(youtube\.com\/\S+|[\w]+\.com\S*|[\w]+\.org\S*|[\w]+\.co\S*)/);
-          var url = urlMatch ? 'https://www.'+urlMatch[1] : '#';
-          var name = parts.replace(/(https?:\/\/)?[\w]+\.(com|org|co)\S*/g,'').trim();
-          return '<li style="margin-bottom:4px;"><a href="'+url+'" target="_blank" style="color:var(--gold);text-decoration:none;">'+name+'</a></li>';
-        }).join('');
-        coachHtml = '<div style="margin-top:1.5rem;border-top:1px solid var(--border2);padding-top:1rem;">' +
-          '<details><summary style="font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);cursor:pointer;">REFERENCE COACHES AND ATHLETES FOR '+styleName+'</summary>' +
-          '<ul style="margin:0.75rem 0 0 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;">'+coachList+'</ul></details></div>';
-      }
-
-      // Build Quick View + Detail View toggle
-      var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
-      var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
-      var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+buildDetailView(text)+'</div>';
-      var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(text, styleName) + '</div>';
-      var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(text) : '';
-      // Save status + actions row (prepended to output)
-      var activeC = window.cpActiveClient;
-      var saveStatus;
-      if (activeC && activeC.id && typeof autoSaveSession === 'function') {
-        autoSaveSession(
-          banner + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;"><p>'+formatted+'</p></div>' + coachHtml,
-          styleName,
-          {level:level,duration:duration,equipment:equipment,goal:goal,injuries:injuries},
-          sessionType
-        );
-        var cName = (activeC.fname + ' ' + (activeC.lname||'')).trim();
-        saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--green);"><span>\u2713</span><span>Saved to <strong>'+cName+'</strong>\u2019s session history</span></div>';
-      } else {
-        saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--gold);"><span>\u26a0</span><span>No active client \u2014 not saved to a profile. Select a client to auto-save, or add to your Library below.</span></div>';
-      }
-      var libBtn = '<button onclick="wccSaveToLibrary()" style="padding:7px 14px;background:transparent;border:1px solid var(--gold);border-radius:20px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;">+ SAVE TO LIBRARY</button>';
-      var actionRow = '<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;"><div style="flex:1;min-width:200px;">'+saveStatus+'</div>'+libBtn+'</div>';
-      document.getElementById('wccOutputContent').innerHTML = actionRow + banner + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
-    } else {
-      throw new Error('No response from AI');
-    }
-  }catch(err){
-    document.getElementById('wccOutputContent').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red);">Could not generate workout. Check your connection and try again.<br><small>'+err.message+'</small></div>';
-  }
-};
+// Per-day part of the prompt: which day to write, what the other days
+// already cover, and the strict output format.
+function wccDayContract(job, idx){
+  var n = idx + 1, N = job.dayCount;
+  var others = [], recoveryWritten = false;
+  job.days.forEach(function(d, j){
+    if (j === idx || d.status !== 'done' || !d.parsed) return;
+    others.push('Day ' + d.num + (d.parsed.focus ? ' (' + d.parsed.focus + ')' : '') + ': ' + d.parsed.MAIN.map(function(e){ return e.name; }).join(', '));
+    if (/recover|light|mobility|restor|deload|active rest/i.test(d.parsed.focus)) recoveryWritten = true;
+  });
+  var recovery = '';
+  if (N >= 5) recovery = (n === N && !recoveryWritten) ? 'No lighter recovery day has been written yet, so make this day a lighter recovery day.\n' : 'Across the program include at least one lighter recovery day.\n';
+  return '\n\nTHIS REQUEST: ' + (N > 1 ? 'Write DAY ' + n + ' of the ' + N + '-day program. Write only this one day.' : 'Write one complete training session.') + '\n' +
+    (others.length ? 'Days already written (vary the focus and do not repeat the same main exercises):\n' + others.join('\n') + '\n' : '') +
+    recovery +
+    '\nOUTPUT FORMAT, FOLLOW EXACTLY. This format overrides every other formatting instruction above, including bold headers, bullet points, MODIFICATIONS / AVOID / ALTERNATIVES lists, extra sections and closing reminders.\n' +
+    (n === 1 ? '1. First line: TITLE: <short ' + (N > 1 ? 'program' : 'session') + ' title>\n2. Second line: SUMMARY: <one sentence on the ' + (N > 1 ? 'program' : 'session') + ' focus>\n' : '1-2. Do not write TITLE or SUMMARY lines.\n') +
+    '3. Then the day header on its own line: ===DAY ' + n + '=== <day focus>\n' +
+    '4. Then these four section headers in this order, each on its own line: ##WARMUP, ##MAIN, ##COOLDOWN, ##NOTES. WARMUP, MAIN and COOLDOWN each need at least one exercise.\n' +
+    '5. Under ##WARMUP, ##MAIN and ##COOLDOWN, every line is one exercise in exactly this format, with exactly 6 fields after EX|:\n' +
+    '   EX|<name>|<sets>x<reps>|<tempo>|<rest>|<load guidance>|<one coaching cue>\n' +
+    '   Example: EX|Goblet Box Squat|3x10|3-1-1|60s|RPE 5-6|Sit back to the box [MOD: raise the box if the knee aches]\n' +
+    '   Use a single dash (-) for a field that does not apply. Never use the | character inside a field. No markdown, no bold, no numbering, no blank sub-headings.\n' +
+    '6. Under ##NOTES write plain prose lines only, no EX| lines.\n' +
+    '7. Last line: COUNT|<number of warm-up exercises>|<number of main exercises>|<number of cool-down exercises>\n' +
+    'WHERE OTHER REQUESTED TEXT GOES: An exercise modification goes at the end of that exercise’s cue field as [MOD: ...]. A short reason, pain-free range of motion reminder or form note for one exercise also goes in its cue field. Everything else, including profile-driven decisions, volume adjustments, physician or physical therapist reminders, the consult-a-physician reminder, breathing cues, and any mindset, habit or accountability section, goes as plain prose lines under ##NOTES. ' +
+    (N > 1 && n < N ? 'Put mindset and habit items only on the final day; skip them on this day. ' : '') +
+    'Write nothing outside this structure.\n' +
+    'Apply the NASM OPT phase appropriate to the client level. Warm-up should follow Inhibit > Lengthen > Activate > Integrate. Be specific, evidence-based, and use professional trainer language.';
+}
 
 window.wccCopyWorkout = function(){
   var el = document.getElementById('wccOutputContent');
