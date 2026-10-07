@@ -15,18 +15,74 @@ const MAX_TOKENS_CAP = 4000;
 const DEFAULT_MAX_TOKENS = 1000;
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-};
+// Only the production site may call this function. Browsers always send an
+// Origin header on POST (same-origin included), so a missing or foreign
+// Origin is rejected. ALLOWED_ORIGINS (comma-separated Netlify env var) can
+// override the list, e.g. to add a custom domain or http://localhost:8888.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://drfitness-trainer.netlify.app')
+  .split(',').map(s => s.trim()).filter(Boolean);
 
-export default async (request) => {
+// Basic per-IP rate limit (sliding window). State lives in this function
+// instance's memory, so it resets on cold start and is not shared between
+// instances. It stops casual abuse, not a determined attacker.
+const RATE_LIMIT = 30;           // requests
+const RATE_WINDOW_MS = 60 * 1000; // per minute
+const hits = new Map();          // ip -> array of request timestamps
+
+function rateLimited(ip) {
+  const now = Date.now();
+  const recent = (hits.get(ip) || []).filter(t => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) {
+    hits.set(ip, recent);
+    return Math.ceil((RATE_WINDOW_MS - (now - recent[0])) / 1000);
+  }
+  recent.push(now);
+  hits.set(ip, recent);
+  if (hits.size > 5000) {
+    for (const [key, times] of hits) {
+      if (!times.length || now - times[times.length - 1] >= RATE_WINDOW_MS) hits.delete(key);
+    }
+  }
+  return 0;
+}
+
+function clientIp(request, context) {
+  if (context && context.ip) return context.ip;
+  const nf = request.headers.get('x-nf-client-connection-ip');
+  if (nf) return nf;
+  const xff = request.headers.get('x-forwarded-for');
+  return xff ? xff.split(',')[0].trim() : 'unknown';
+}
+
+export default async (request, context) => {
+  const origin = request.headers.get('origin') || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin);
+  const CORS = {
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  };
+  if (allowed) CORS['Access-Control-Allow-Origin'] = origin;
+
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: 'Forbidden origin.' }), {
+      status: 403,
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
   if (request.method === 'OPTIONS') {
-    return new Response('', { status: 200, headers: CORS });
+    return new Response(null, { status: 204, headers: CORS });
   }
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405, headers: CORS });
+  }
+
+  const retryAfter = rateLimited(clientIp(request, context));
+  if (retryAfter) {
+    return new Response(JSON.stringify({ error: 'Too many requests. Please wait a minute and try again.' }), {
+      status: 429,
+      headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(retryAfter) }
+    });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
