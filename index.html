@@ -10905,7 +10905,22 @@ setTimeout(renderMsgList,500);
 
 /* ══ SCHEDULE SYSTEM ══ */
 var SCHED_KEY='drfitness_schedule';
-function getSchedule(){try{return JSON.parse(localStorage.getItem(SCHED_KEY)||'[]');}catch(e){return[];}}
+function getSchedule(){
+  var s;try{s=JSON.parse(localStorage.getItem(SCHED_KEY)||'[]');}catch(e){return[];}
+  // Sessions saved before IDs existed get one now, so actions target the right session.
+  var added=false;
+  s.forEach(function(x){if(x&&!x.id){x.id=newSchedId();added=true;}});
+  if(added)saveSchedule(s);
+  return s;
+}
+function newSchedId(){return 'sch_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);}
+function setScheduleStatus(id,status){
+  var s=getSchedule();
+  var ses=s.find(function(x){return x.id===id;});
+  if(!ses)return null;
+  ses.status=status;saveSchedule(s);renderSchedule();
+  return ses;
+}
 function saveSchedule(s){localStorage.setItem(SCHED_KEY,JSON.stringify(s));}
 function renderSchedule(){
   var sessions=getSchedule().sort(function(a,b){return new Date(a.date+' '+a.time)-new Date(b.date+' '+b.time);});
@@ -10913,10 +10928,10 @@ function renderSchedule(){
   if(!list)return;
   if(sessions.length===0){list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);">No sessions scheduled. Add your first session.</div>';return;}
   var statusColors={confirmed:'var(--gold)',pending:'#60a5fa',completed:'var(--green)',cancelled:'var(--red)'};
-  list.innerHTML=sessions.map(function(s,i){
+  list.innerHTML=sessions.map(function(s){
     return '<div style="background:var(--navy2);border:1px solid var(--border2);border-left:3px solid '+(statusColors[s.status]||'var(--gold)')+';border-radius:var(--radius);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
       '<div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);">'+s.clientName+'</div><div style="font-size:0.78rem;color:var(--text2);">'+s.date+' at '+s.time+' · '+s.duration+' · '+s.type+'</div></div>' +
-      '<div style="display:flex;gap:6px;"><button onclick="completeSession('+i+')" style="padding:5px 10px;background:var(--green-dim);border:1px solid rgba(45,198,83,0.3);border-radius:var(--radius-sm);color:var(--green);font-size:0.7rem;cursor:pointer;">Complete</button><button onclick="cancelSession('+i+')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.7rem;cursor:pointer;">Cancel</button></div>' +
+      '<div style="display:flex;gap:6px;"><button onclick="completeSession(\''+s.id+'\')"style="padding:5px 10px;background:var(--green-dim);border:1px solid rgba(45,198,83,0.3);border-radius:var(--radius-sm);color:var(--green);font-size:0.7rem;cursor:pointer;">Complete</button><button onclick="cancelSession(\''+s.id+'\')"style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.7rem;cursor:pointer;">Cancel</button></div>' +
     '</div>';
   }).join('');
 }
@@ -10937,13 +10952,13 @@ window.saveNewSession=function(){
   if(!clientId){alert('Select a client.');return;}
   cpLoadClients();var c=cpClients.find(function(x){return x.id===clientId;});
   var sessions=getSchedule();
-  sessions.push({clientId:clientId,clientName:c?(c.fname+' '+(c.lname||'')):'Client',date:document.getElementById('schedDate').value,time:document.getElementById('schedTime').value,duration:document.getElementById('schedDur').value,type:document.getElementById('schedType').value,status:'confirmed'});
+  sessions.push({id:newSchedId(),clientId:clientId,clientName:c?(c.fname+' '+(c.lname||'')):'Client',date:document.getElementById('schedDate').value,time:document.getElementById('schedTime').value,duration:document.getElementById('schedDur').value,type:document.getElementById('schedType').value,status:'confirmed'});
   saveSchedule(sessions);
   document.getElementById('schedModal').remove();
   renderSchedule();
 };
-window.completeSession=function(i){var s=getSchedule();s[i].status='completed';saveSchedule(s);renderSchedule();};
-window.cancelSession=function(i){var s=getSchedule();s[i].status='cancelled';saveSchedule(s);renderSchedule();};
+window.completeSession=function(id){return setScheduleStatus(id,'completed');};
+window.cancelSession=function(id){return setScheduleStatus(id,'cancelled');};
 window.toggleScheduleView=function(){};
 setTimeout(renderSchedule,500);
 
@@ -11748,16 +11763,15 @@ window.autoSaveSession = function(content, style, questionnaire, type) {
 /* ══ MILESTONE PHOTO PROMPT ══ */
 var _origCompleteSession = window.completeSession;
 if (typeof _origCompleteSession === 'function') {
-  window.completeSession = function(i) {
-    _origCompleteSession(i);
+  window.completeSession = function(id) {
+    var done = _origCompleteSession(id);
     // Check if any client just achieved a milestone
-    var sched = getSchedule();
-    if (sched[i] && sched[i].clientId) {
-      var cSessions = getClientSessions(sched[i].clientId);
+    if (done && done.clientId) {
+      var cSessions = getClientSessions(done.clientId);
       // Milestone at every 10 sessions
       if (cSessions.length > 0 && cSessions.length % 10 === 0) {
         cpLoadClients();
-        var mc = cpClients.find(function(x){return x.id===sched[i].clientId;});
+        var mc = cpClients.find(function(x){return x.id===done.clientId;});
         if (mc && mc.photoConsent && confirm('Milestone reached! ' + (mc.fname||'Client') + ' has completed ' + cSessions.length + ' sessions. Would you like to take a milestone photo?')) {
           triggerPhotoUpload(mc.id);
         }
