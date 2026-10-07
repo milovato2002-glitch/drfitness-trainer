@@ -7707,6 +7707,32 @@ function cpSaveClients() {
   try { localStorage.setItem(CP_STORAGE_KEY, JSON.stringify(cpClients)); } catch(e) { console.warn('Storage full'); }
 }
 function cpGenId() { return 'cp_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); }
+
+// Pain during exercise: one canonical key per answer no matter which intake
+// path collected it. Keys match the full form cf-current-pain options.
+var CP_PAIN_KEYS = ['no','mild','moderate','severe','dizziness','chest_pain'];
+function cpPainKey(v) {
+  if (Array.isArray(v)) v = v[0];
+  var s = String(v || '').toLowerCase().trim();
+  if (!s) return '';
+  if (CP_PAIN_KEYS.indexOf(s) !== -1) return s;
+  if (s.indexOf('chest') !== -1) return 'chest_pain';
+  if (s.indexOf('dizz') !== -1 || s.indexOf('lighthead') !== -1 || s.indexOf('faint') !== -1) return 'dizziness';
+  if (s.indexOf('severe') !== -1) return 'severe';
+  if (s.indexOf('moderate') !== -1) return 'moderate';
+  if (s.indexOf('mild') !== -1 || s === 'yes') return 'mild';
+  if (s === 'none' || s === 'no pain' || s.indexOf('no ') === 0) return 'no';
+  return s;
+}
+function cpIsRedFlagPain(v) { var k = cpPainKey(v); return k === 'chest_pain' || k === 'dizziness'; }
+// Free-text scan for red-flag symptoms (intake conversation, pain notes).
+function cpRedFlagInText(text) {
+  var s = String(text || '').toLowerCase();
+  if (/chest\s*(pain|pressure|tightness|discomfort)|pain in (his|her|their|the|my) chest|angina/.test(s)) return 'chest_pain';
+  if (/dizz|light-?headed|faint|passed out|blacked out|vertigo/.test(s)) return 'dizziness';
+  return '';
+}
+function cpRedFlagLabel(key) { return key === 'chest_pain' ? 'chest pain or pressure' : 'dizziness or lightheadedness'; }
 function cpInitials(fname, lname) {
   return ((fname||'?')[0] + ((lname||'')[0]||'')).toUpperCase().substring(0,2) || '?';
 }
@@ -8996,6 +9022,7 @@ function buildSessionNow(clientId) {
   if (typeof closeCpModal === 'function') closeCpModal();
   var c = window.cpActiveClient;
   if (!c) return;
+  if (typeof window.nptSafetyGate === 'function' && !window.nptSafetyGate(c)) return;
 
   // Check intake completion — enforce 70% minimum
   var filled = 0;
@@ -9469,6 +9496,8 @@ function openFastTrackIntake() {
   html += '<div class="cp-check" data-val="Yes" onclick="this.parentElement.querySelectorAll(\'.cp-check\').forEach(function(c){c.classList.remove(\'checked\')});this.classList.add(\'checked\');document.getElementById(\'ftInjuryNoteWrap\').style.display=\'block\'" style="padding:12px;text-align:center;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;">Yes — I will note them</div>';
   html += '</div>';
   html += '<div id="ftInjuryNoteWrap" style="display:none;margin-top:8px;"><textarea data-iw="ftInjuryNotes" placeholder="Describe injuries or pain areas..." style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.9rem;resize:vertical;min-height:60px;outline:none;"></textarea></div></div>';
+  // Field 4b: Pain or red-flag symptoms during exercise (feeds the safety gate)
+  html += iwField('ftPain','Pain or symptoms during exercise','cards','',true,['No','Mild','Moderate','Severe','Dizziness or lightheadedness during exercise','Chest pain or pressure during exercise']);
   // Field 5: Training Days
   html += iwField('ftDays','Training days per week','cards','',false,['2','3','4','5','6','7']);
   // Field 6: Equipment
@@ -9497,6 +9526,12 @@ function saveFastTrackAsClient(buildSession) {
   if (!ftData.ftName || !ftData.ftName.trim()) { alert('Please enter the client name.'); return; }
   if (!ftData.ftGoals || ftData.ftGoals.length === 0) { alert('Please select at least one goal.'); return; }
   if (!ftData.ftLevel) { alert('Please select a fitness level.'); return; }
+  if (!ftData.ftPain || ftData.ftPain.length === 0) { alert('Please answer the pain or symptoms question.'); return; }
+  var ftPain = cpPainKey(ftData.ftPain);
+  if (!cpIsRedFlagPain(ftPain)) {
+    var ftFlag = cpRedFlagInText(ftData.ftInjuryNotes);
+    if (ftFlag && confirm('The injury notes mention ' + cpRedFlagLabel(ftFlag) + '.\n\nRecord this as a medical red flag? Programs stay blocked until a physician clears the client.\n\nOK = record red flag. Cancel = keep the current answer.')) ftPain = ftFlag;
+  }
 
   // Apply mappings
   var levelMap = {'Beginner':'none','Intermediate':'1to2yr','Advanced':'5to10yr'};
@@ -9529,6 +9564,7 @@ function saveFastTrackAsClient(buildSession) {
     optPhase: ftData.ftLevel === 'Beginner' ? '1' : ftData.ftLevel === 'Intermediate' ? '2' : '3',
     injuries: injuries,
     injuryNotes: injuryNotes,
+    currentPain: ftPain,
     iwTrainingDays: ftData.ftDays || '3',
     iwSessionLength: '45 min',
     equipment: equipment,
@@ -9775,11 +9811,18 @@ window.convoRespond = async function(text) {
     var summary = window._convoHistory.map(function(m){return m.content;}).join('. ');
     iwData.conversationIntake = summary;
     iwData.conversationDone = true;
+    // Red-flag symptoms mentioned in conversation pre-select the pain answer
+    // in the wizard so the trainer must actively confirm or change it.
+    var convoFlag = cpRedFlagInText(summary);
+    if (convoFlag && !cpIsRedFlagPain(iwData.currentPain)) {
+      iwData.currentPain = [convoFlag === 'chest_pain' ? 'Chest pain or pressure during exercise' : 'Dizziness or lightheadedness during exercise'];
+    }
     saveIntakeDraft();
     var summaryDiv = document.createElement('div');
     summaryDiv.style.cssText = 'background:rgba(240,165,0,0.06);border:2px solid var(--gold);border-radius:var(--radius);padding:16px 20px;max-width:88%;font-size:0.88rem;color:var(--text2);line-height:1.65;';
     summaryDiv.innerHTML = '<strong style="color:var(--gold);">Here is what I understand about '+name+':</strong><br>'+
       window._convoHistory.map(function(m){return '• '+m.content;}).join('<br>')+
+      (convoFlag ? '<br><br><strong style="color:var(--red);">⚠ You mentioned ' + cpRedFlagLabel(convoFlag) + '. This is a medical red flag. It has been pre-selected in the pain question; confirm it on the next screens.</strong>' : '')+
       '<br><br><em style="color:var(--text3);">Let me grab the clinical details to complete the picture.</em>';
     chat.appendChild(summaryDiv);
     chat.scrollTop = chat.scrollHeight;
@@ -9898,7 +9941,7 @@ function buildStepContent(step) {
   } else if(step === 1) {
     h += iwField('fitnessLevel','Current Fitness Level','cards','',false,['Complete Beginner','Some Experience','Intermediate','Advanced','Athlete']);
     h += iwField('moveExp','Movement Experience','chips','',false,['Weight training','Cardio machines','Group fitness','Running','Swimming','Sports','Yoga or Pilates','Martial arts','CrossFit','Olympic lifting','Never exercised']);
-    h += iwField('currentPain','Current pain or discomfort','cards','',false,['No','Yes']);
+    h += iwField('currentPain','Current pain or symptoms during exercise','cards','',false,['No','Mild','Moderate','Severe','Dizziness or lightheadedness during exercise','Chest pain or pressure during exercise']);
     h += iwField('painDetail','If yes — location and description','textarea','Where, pain level 1-10, when it occurs');
     h += iwField('injuryRegions','Injury History — select affected regions','chips','',false,['Neck and Spine','Shoulders','Elbows and Wrists','Hips','Knees','Ankles and Feet','Core and Abdomen','None']);
     h += iwField('injuryDetail','Injury details — what happened and when','textarea','e.g. Right knee meniscus 2022, Left shoulder impingement 2023');
@@ -10049,6 +10092,9 @@ function saveIntakeAsClient(buildProgram) {
     primaryMotivation: iwData.motivation?[iwData.motivation]:[],
     success: iwData.successVision||'',
     timeline: iwData.eventDeadline||'',
+    currentPain: cpPainKey(iwData.currentPain),
+    painDetail: iwData.painDetail||'',
+    conversationIntake: iwData.conversationIntake||'',
     // Intake-specific fields stored raw
     iwFitnessLevel: iwData.fitnessLevel||'',
     iwMoveExp: iwData.moveExp||[],
@@ -10073,6 +10119,14 @@ function saveIntakeAsClient(buildProgram) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
+  // Free-text answers can mention red-flag symptoms the structured answer
+  // missed. Ask the trainer to confirm before saving.
+  if(!cpIsRedFlagPain(client.currentPain)){
+    var textFlag = cpRedFlagInText([iwData.painDetail, iwData.conversationIntake, iwData.injuryDetail, iwData.moveLimitations].join(' '));
+    if(textFlag && confirm('The intake notes mention ' + cpRedFlagLabel(textFlag) + '.\n\nRecord this as a medical red flag for ' + (client.fname||'this client') + '? Programs stay blocked until a physician clears the client.\n\nOK = record red flag. Cancel = keep the current answer.')){
+      client.currentPain = textFlag;
+    }
+  }
   // Save to client list
   cpLoadClients();
   cpClients.push(client);
@@ -12016,11 +12070,14 @@ window.nptRenderMealTables = function(raw){
 // and shows a referral message. Returns true if safe to proceed.
 window.nptSafetyGate = function(c){
   if(!c) return true;
-  var pain = Array.isArray(c.currentPain) ? (c.currentPain[0]||'') : (c.currentPain||'');
-  pain = String(pain).toLowerCase();
-  if(pain === 'chest_pain' || pain === 'dizziness' || pain.indexOf('chest')!==-1 || pain.indexOf('dizz')!==-1){
+  // Check the saved record, not a possibly stale copy of the active client.
+  if(c.id && typeof cpLoadClients==='function'){
+    try { cpLoadClients(); var fresh = cpClients.find(function(x){ return x.id===c.id; }); if(fresh) c = fresh; } catch(e){}
+  }
+  var pain = cpPainKey(c.currentPain);
+  if(pain === 'chest_pain' || pain === 'dizziness'){
     alert('⚠ MEDICAL REFERRAL REQUIRED\n\n' + (c.fname||'This client') + ' reported ' +
-      (pain.indexOf('chest')!==-1 ? 'chest pain or pressure' : 'dizziness or lightheadedness') +
+      cpRedFlagLabel(pain) +
       ' during exercise. These are medical red-flag symptoms that fall outside personal-training scope of practice.\n\n' +
       'Do not generate or prescribe a program. Refer the client to a physician for clearance before any exercise programming.');
     return false;
