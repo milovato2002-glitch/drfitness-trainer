@@ -4879,6 +4879,7 @@ function filterPeptides() {
           <span class="cp-check" data-val="type1_diabetes">Type 1 Diabetes</span>
           <span class="cp-check" data-val="type2_diabetes">Type 2 Diabetes</span>
           <span class="cp-check" data-val="prediabetes">Pre-Diabetes</span>
+          <span class="cp-check" data-val="kidney_disease">Kidney / Renal Disease</span>
           <span class="cp-check" data-val="obesity">Obesity (BMI 30+)</span>
           <span class="cp-check" data-val="asthma">Asthma / Respiratory</span>
           <span class="cp-check" data-val="osteoporosis">Osteoporosis / Low bone density</span>
@@ -7580,25 +7581,37 @@ function buildRiskStratification(c) {
   let riskPoints = 0;
   const riskFactors = [];
   const age = parseInt(c.age) || 0;
+  const conds = cpConditionKeys(c.conditions);
   if (c.sex === 'male' && age >= 45) { riskPoints++; riskFactors.push('Male age ≥45'); }
   if (c.sex === 'female' && age >= 55) { riskPoints++; riskFactors.push('Female age ≥55'); }
-  if ((c.conditions||[]).includes('hypertension')) { riskPoints++; riskFactors.push('Hypertension'); }
-  if ((c.conditions||[]).includes('high_cholesterol')) { riskPoints++; riskFactors.push('High cholesterol'); }
-  if ((c.conditions||[]).includes('type2_diabetes') || (c.conditions||[]).includes('prediabetes')) { riskPoints++; riskFactors.push('Diabetes / pre-diabetes'); }
+  if (conds.includes('hypertension')) { riskPoints++; riskFactors.push('Hypertension'); }
+  if (conds.includes('high_cholesterol')) { riskPoints++; riskFactors.push('High cholesterol'); }
+  if (conds.includes('prediabetes')) { riskPoints++; riskFactors.push('Pre-diabetes'); }
   if (c.smoking === 'yes') { riskPoints++; riskFactors.push('Current smoker'); }
   if (c.familyCvd && c.familyCvd !== 'no' && c.familyCvd !== '') { riskPoints++; riskFactors.push('Family history of CVD'); }
   if (c.activity === 'sedentary') { riskPoints++; riskFactors.push('Sedentary lifestyle'); }
   const bmi = c.weight && c.height ? ((c.weight / (c.height * c.height)) * 703) : 0;
-  if (bmi >= 30) { riskPoints++; riskFactors.push('BMI ≥30'); }
-  const hasCardioCondition = (c.conditions||[]).some(x => ['heart_disease'].includes(x));
-  const hasCurrentChestPain = c.currentPain && (c.currentPain === 'chest_pain' || c.currentPain === 'dizziness');
+  if (bmi >= 30 || conds.includes('obesity')) { riskPoints++; riskFactors.push(bmi >= 30 ? 'BMI ≥30' : 'Obesity'); }
+  // Known cardiovascular, metabolic (type 1 or type 2 diabetes) or renal
+  // disease, or red-flag symptoms, are HIGH regardless of risk-factor count.
+  const HIGH_CONDITIONS = { heart_disease:'Heart disease / CVD', type1_diabetes:'Type 1 diabetes', type2_diabetes:'Type 2 diabetes', kidney_disease:'Kidney / renal disease' };
+  const highConds = conds.filter(x => HIGH_CONDITIONS[x]).map(x => HIGH_CONDITIONS[x]);
+  const special = (c.special||[]).map(s => String(s).toLowerCase());
+  if (special.includes('cardiac_rehab') || special.includes('cardiac rehab')) highConds.push('Cardiac rehab');
+  const painKey = cpPainKey(c.currentPain);
+  const hasRedFlagSymptoms = painKey === 'chest_pain' || painKey === 'dizziness';
   let riskLevel, riskColor, riskNote;
-  if (hasCardioCondition || hasCurrentChestPain) {
+  if (highConds.length || hasRedFlagSymptoms) {
     riskLevel = 'HIGH'; riskColor = 'var(--red)';
-    riskNote = 'Known cardiovascular/metabolic/renal disease or symptoms present. Medical clearance REQUIRED before any moderate or vigorous exercise. Physician must specify exercise restrictions.';
+    riskNote = 'Known cardiovascular/metabolic/renal disease or symptoms present (' +
+      highConds.concat(hasRedFlagSymptoms ? ['Reported ' + cpRedFlagLabel(painKey) + ' during exercise'] : []).join(', ') +
+      '). Medical clearance REQUIRED before any moderate or vigorous exercise. Physician must specify exercise restrictions.';
   } else if (riskPoints >= 2) {
     riskLevel = 'MODERATE'; riskColor = '#f59e0b';
     riskNote = '2+ cardiovascular risk factors present. Medical clearance recommended before vigorous exercise. Can begin moderate exercise. Monitor vitals closely.';
+  } else if (conds.length) {
+    riskLevel = 'LOW'; riskColor = 'var(--green)';
+    riskNote = '0–1 cardiovascular risk factors, but the client has listed medical conditions. Confirm with the client physician what exercise is appropriate for these conditions before progressing to vigorous exercise. Standard trainer supervision applies.';
   } else {
     riskLevel = 'LOW'; riskColor = 'var(--green)';
     riskNote = 'No known disease, 0–1 risk factors. No medical clearance required. Can begin moderate to vigorous exercise. Standard trainer supervision applies.';
@@ -7733,6 +7746,27 @@ function cpRedFlagInText(text) {
   return '';
 }
 function cpRedFlagLabel(key) { return key === 'chest_pain' ? 'chest pain or pressure' : 'dizziness or lightheadedness'; }
+
+// Diagnosed conditions: canonical keys match the full form cf-conditions
+// chips. Accepts keys or the display labels older intake paths stored.
+var CP_CONDITION_LABELS = {
+  'none':'none_hx','none of the above':'none_hx',
+  'heart disease':'heart_disease','heart disease / cvd':'heart_disease',
+  'high blood pressure':'hypertension','high cholesterol':'high_cholesterol',
+  'type 1 diabetes':'type1_diabetes','type 2 diabetes':'type2_diabetes',
+  'pre-diabetes':'prediabetes','kidney disease':'kidney_disease','kidney / renal disease':'kidney_disease',
+  'obesity':'obesity','obesity (bmi 30+)':'obesity','asthma':'asthma','asthma / respiratory':'asthma',
+  'osteoporosis':'osteoporosis','osteoporosis / low bone density':'osteoporosis','arthritis':'arthritis',
+  'thyroid disorder':'thyroid','cancer history':'cancer_hx','cancer (history)':'cancer_hx',
+  'anxiety / depression':'anxiety_depression','pcos':'pcos','autoimmune':'autoimmune','other':'other_condition'
+};
+function cpConditionKey(v) {
+  var s = String(v || '').trim();
+  return CP_CONDITION_LABELS[s.toLowerCase()] || s;
+}
+function cpConditionKeys(list) {
+  return (Array.isArray(list) ? list : (list ? [list] : [])).map(cpConditionKey).filter(function(k){ return k && k !== 'none_hx'; });
+}
 function cpInitials(fname, lname) {
   return ((fname||'?')[0] + ((lname||'')[0]||'')).toUpperCase().substring(0,2) || '?';
 }
@@ -8235,7 +8269,6 @@ function viewClient(id) {
   const riskBox = document.createElement('div');
   riskBox.style.cssText = 'background:'+riskBgs[risk.riskLevel]+';border:1px solid '+riskBorders[risk.riskLevel]+';border-radius:var(--radius-sm);padding:0.75rem 1rem;margin-bottom:1rem;';
   riskBox.innerHTML = '<div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+riskColors[risk.riskLevel]+';margin-bottom:4px;">ACSM Risk Classification: '+risk.riskLevel+'</div><div style="font-size:0.78rem;color:var(--text2);line-height:1.5;">'+risk.riskNote+'</div>'+(risk.riskFactors.length?'<div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Risk factors: '+risk.riskFactors.join(', ')+'</div>':'');
-  document.getElementById('cpModalContent').prepend(riskBox);
 
   // Build detail sections
   const sections = [];
@@ -8348,6 +8381,8 @@ function viewClient(id) {
   html_sections += buildCommunicationLog(c.id);
 
   document.getElementById('cpModalContent').innerHTML = html_sections;
+  // Prepend after the content is written, or the innerHTML above erases it.
+  document.getElementById('cpModalContent').prepend(riskBox);
   document.getElementById('cpAiText').textContent = 'Analyzing client profile...';
   var aiTxt = document.getElementById('cpAiText'); if (aiTxt) aiTxt.style.fontStyle = 'italic';
   var cpM = document.getElementById('cpModal'); if (cpM) cpM.classList.add('open');
