@@ -778,6 +778,15 @@ function openQuestionModal(){
     note.textContent = 'Pre-filled from ' + c.fname + ' ' + (c.lname||'') + ' profile — adjust as needed';
     var lvlMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Elite'};
     if(c.trainingAge) selectChip('wccLevel', lvlMap[c.trainingAge]||'Intermediate');
+    // Goal comes from the profile instead of always defaulting to Strength (up to 2).
+    var goalChip = {fat_loss:'Fat Loss',weight_management:'Fat Loss',muscle_gain:'Hypertrophy',competition:'Hypertrophy',strength:'Strength',functional:'Strength',endurance:'Endurance',athletic:'Power',flexibility:'Recovery'};
+    var profileGoals = [];
+    (c.goals||[]).forEach(function(g){ var chip = goalChip[g]; if(chip && profileGoals.indexOf(chip)===-1) profileGoals.push(chip); });
+    if(!profileGoals.length && (c.special||[]).indexOf('post_rehab')!==-1) profileGoals.push('Rehab');
+    if(profileGoals.length){
+      document.querySelectorAll('#wccGoal .wcc-chip').forEach(function(ch){ ch.classList.remove('active'); });
+      profileGoals.slice(0,2).forEach(function(g){ selectChipAdd('wccGoal', g); });
+    }
     if(c.injuryNotes) document.getElementById('wccInjuries').value = c.injuryNotes;
     var inj = (c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';});
     if(inj.length && !c.injuryNotes) document.getElementById('wccInjuries').value = inj.join(', ').replace(/_/g,' ');
