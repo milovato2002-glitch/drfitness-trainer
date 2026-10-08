@@ -3835,6 +3835,7 @@ window.wlibDelete = function(id){
     <button class="nut-btn supp gm-hide" onclick="nutSwitch(this,'supp-ref')">Evidence Reference</button>
     <div class="nut-section">Tools</div>
     <button class="nut-btn chat" onclick="nutSwitch(this,'nut-chat')">AI Nutrition Coach</button>
+    <button class="nut-btn chat" onclick="dfMealOpen()">📷 Meal Photo Log</button>
     <button class="nut-btn handout" onclick="nutSwitch(this,'handout')">Client Handout Generator</button>
     <button class="nut-btn chat" onclick="nutSwitch(this,'grocery')">Grocery List Generator</button>
     <div class="nut-section">Guides</div>
@@ -7087,6 +7088,7 @@ function filterPeptides() {
       <button onclick="if(cpViewingClient)buildSessionNow(cpViewingClient.id)" style="padding:9px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">BUILD SESSION NOW</button>
       <button onclick="if(cpViewingClient)openProgramBuilder(cpViewingClient.id)" style="padding:9px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">BUILD PROGRAM</button>
       <button onclick="if(cpViewingClient){setActiveClient(cpViewingClient.id);closeCpModal();setTimeout(function(){document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=nutrition]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=nutrition]').classList.add('active');setTimeout(openNutritionPlanGenerator,200);},150);}" style="padding:9px 16px;background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.4);border-radius:var(--radius-sm);color:var(--teal);font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">⚡ NUTRITION PLAN</button>
+      <button onclick="if(cpViewingClient)dfMealOpen(cpViewingClient.id)" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">📷 MEAL PHOTO LOG</button>
       <button onclick="if(cpViewingClient)openSessionHistory(cpViewingClient.id)" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">VIEW HISTORY</button>
       <button onclick="if(cpViewingClient&&cpViewingClient.email){window.open('mailto:'+cpViewingClient.email)}else{alert('Add email to client profile first.')}" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">EMAIL CLIENT</button>
       <button id="cpPrintBtn" style="padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">PRINT PROFILE</button>
@@ -10813,12 +10815,9 @@ function populateWorkoutFormFromClient(c) {
   if (injEl && c.injuryNotes) injEl.value = c.injuryNotes;
 }
 
-function updateNutritionTargets(c) {
-  // Add/update a targets box at top of nutrition panel if it exists
-  var nutMain = document.querySelector('[data-panel="nutrition"] .nut-main');
-  if (!nutMain) return;
-  var existing = document.getElementById('acNutritionTargets');
-  if (!c || !c.weight) { if (existing) existing.remove(); return; }
+// Daily calorie and protein targets from a profile. Used by the Nutrition tab and the food log.
+function cpNutritionTargets(c) {
+  if (!c || !c.weight) return null;
   var kg = c.weight * 0.453592;
   var age = parseInt(c.age) || 30;
   var rmr = c.sex === 'male' ? Math.round((10*kg)+(6.25*170)-(5*age)+5) : Math.round((10*kg)+(6.25*165)-(5*age)-161);
@@ -10828,8 +10827,20 @@ function updateNutritionTargets(c) {
   var isOlder = (c.special||[]).indexOf('older_adult') !== -1;
   var protMin = isGlp ? 1.8 : isOlder ? 1.6 : 1.6;
   var protMax = isGlp ? 2.4 : isOlder ? 2.0 : 2.2;
-  var protTarget = Math.round(kg * ((protMin+protMax)/2));
-  var calTarget = (c.goals||[]).indexOf('fat_loss') !== -1 ? tdee - 400 : (c.goals||[]).indexOf('muscle_gain') !== -1 ? tdee + 300 : tdee;
+  var calories = (c.goals||[]).indexOf('fat_loss') !== -1 ? tdee - 400 : (c.goals||[]).indexOf('muscle_gain') !== -1 ? tdee + 300 : tdee;
+  return { calories: calories, protein: Math.round(kg * ((protMin+protMax)/2)) };
+}
+window.cpNutritionTargets = cpNutritionTargets;
+
+function updateNutritionTargets(c) {
+  // Add/update a targets box at top of nutrition panel if it exists
+  var nutMain = document.querySelector('[data-panel="nutrition"] .nut-main');
+  if (!nutMain) return;
+  var existing = document.getElementById('acNutritionTargets');
+  if (!c || !c.weight) { if (existing) existing.remove(); return; }
+  var tg = cpNutritionTargets(c);
+  var protTarget = tg.protein;
+  var calTarget = tg.calories;
   var hydration = Math.round(c.weight * 0.5);
   var html = '<div id="acNutritionTargets" style="background:rgba(240,165,0,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:0.875rem 1.25rem;margin-bottom:1rem;">' +
     '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Active Client: ' + c.fname + ' ' + (c.lname||'') + ' — Calculated Targets</div>' +
@@ -14806,6 +14817,371 @@ setTimeout(function() {
 console.log('init: nutrition + enhanced client context complete — ALL INIT DONE');
 </script>
 
+<style>
+.df-meal-grid{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.6fr) minmax(0,0.8fr) repeat(4,minmax(0,0.9fr)) auto;gap:6px;align-items:center;}
+.df-meal-row{background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px;}
+.df-meal-row.low{border-color:var(--gold);}
+.df-meal-row input{background:var(--navy2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-size:0.82rem;width:100%;min-width:0;box-sizing:border-box;}
+.df-mf{display:block;min-width:0;}
+.df-mf span{display:none;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
+.df-meal-head{padding:2px 6px;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;}
+.df-meal-x{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:5px 8px;cursor:pointer;}
+.df-meal-lownote{grid-column:1/-1;font-size:0.7rem;color:var(--gold);}
+/* The floating chat button would cover the meal rows on phones. */
+body:has(#dfMealModal) .fc-btn{display:none;}
+@media (max-width:640px){
+  .df-meal-head{display:none;}
+  .df-meal-grid{grid-template-columns:repeat(4,minmax(0,1fr)) auto;}
+  .df-meal-row .df-f-name{grid-column:1/4;grid-row:1;}
+  .df-meal-row .df-f-servings{grid-column:4/5;grid-row:1;}
+  .df-meal-row .df-meal-x{grid-column:5/6;grid-row:1;align-self:end;}
+  .df-meal-row .df-f-portion{grid-column:1/-1;grid-row:2;}
+  .df-meal-row .df-f-calories{grid-column:1/2;grid-row:3;}
+  .df-meal-row .df-f-protein{grid-column:2/3;grid-row:3;}
+  .df-meal-row .df-f-carbs{grid-column:3/4;grid-row:3;}
+  .df-meal-row .df-f-fat{grid-column:4/6;grid-row:3;}
+  .df-meal-row .df-meal-lownote{grid-row:4;}
+  .df-mf span{display:block;}
+}
+</style>
+<script>
+/* ══ MEAL PHOTO LOG ══
+   The trainer photographs a client's meal (Nutrition tab or client profile).
+   The photo is shrunk in the browser, sent once to /api/chat for an estimate
+   of each food item, shown as editable rows, and saved to the client's daily
+   food log with running totals against the profile's calorie and protein
+   targets. Every result is labeled an estimate. The photo is not kept unless
+   the trainer ticks the box, and then only as a small copy. */
+var DF_FOOD_LOG_KEY = 'drfitness_food_log';
+var DF_MEAL_MAX_EDGE = 1280;          // longest side sent for analysis, in pixels
+var DF_MEAL_MAX_CHARS = 900000;       // base64 size limit for the analysis copy (about 650 KB)
+var DF_MEAL_KEEP_EDGE = 480;          // longest side of the copy kept in the log, if chosen
+var DF_MEAL_TIMEOUT_MS = 60000;
+var dfMeal = null; // { clientId, date, image, rows, result, edited }
+
+var DF_MEAL_SYSTEM = 'You estimate the nutrition of a meal from a photo for a personal trainer. ' +
+  'Identify each distinct food or drink you can see. For each one, estimate the portion in household units and grams, and the calories, protein, carbohydrate and fat in grams for that portion, using typical USDA values. ' +
+  'Do not list foods you cannot see. Count a drink only if it is clearly part of this meal; leave out drinks and dishes in the background. Cooking oil, butter, dressings and sauces are often hidden: if food looks fried, sauteed, glossy or dressed, add a separate line for the likely oil or sauce with low confidence and name it in "hidden". ' +
+  'Confidence: "high" only when the food and portion are clearly visible with a size reference such as a plate or utensil; "medium" for typical cases; "low" when portions are hidden or stacked, the dish is mixed (casserole, burrito, stew, smoothie), or the photo is unclear. ' +
+  'Reply with JSON only, no other text, in exactly this shape: ' +
+  '{"items":[{"name":"","portion":"","grams":0,"calories":0,"protein":0,"carbs":0,"fat":0,"confidence":"high|medium|low","note":""}],"confidence":"high|medium|low","hidden":["only hidden things that change the calories, such as cooking oil, butter, dressing, sauce, or food under other food; never salt, herbs or spices"],"notes":"one short sentence"}. ' +
+  'If the photo shows no food, reply {"items":[],"confidence":"low","hidden":[],"notes":"No food found in the photo."}';
+
+// Calorie and protein targets from the profile (same formula as the Nutrition tab).
+function dfMealTargets(c){ return (typeof cpNutritionTargets === 'function') ? cpNutritionTargets(c) : null; }
+
+function dfMealToday(){ var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+function dfMealDefaultMeal(){ var h = new Date().getHours(); return h < 11 ? 'Breakfast' : h < 15 ? 'Lunch' : h < 21 ? 'Dinner' : 'Snack'; }
+function dfMealNum(v){ var n = Number(v); return isFinite(n) && n > 0 ? n : 0; }
+function dfMealConf(v){ v = String(v || '').toLowerCase(); return v === 'high' || v === 'low' ? v : 'medium'; }
+
+function dfFoodLogAll(){ try { return JSON.parse(localStorage.getItem(DF_FOOD_LOG_KEY) || '{}') || {}; } catch(e) { return {}; } }
+function dfFoodLog(clientId){ return dfFoodLogAll()[clientId] || []; }
+function dfFoodLogSave(clientId, list){ var all = dfFoodLogAll(); all[clientId] = list; localStorage.setItem(DF_FOOD_LOG_KEY, JSON.stringify(all)); }
+window.dfFoodLog = dfFoodLog;
+
+// Shrinks a photo to a JPEG no larger than maxEdge pixels and maxChars of base64.
+function dfMealCompress(file, maxEdge, maxChars){
+  return new Promise(function(resolve, reject){
+    if (!file || !/^image\//.test(file.type || 'image/')) { reject(new Error('Choose a photo file.')); return; }
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      URL.revokeObjectURL(url);
+      var w = img.naturalWidth, h = img.naturalHeight;
+      if (!w || !h) { reject(new Error('That photo could not be read.')); return; }
+      var edge = maxEdge, data = '', cw = 0, ch = 0;
+      for (var tries = 0; tries < 6; tries++) {
+        var scale = Math.min(1, edge / Math.max(w, h));
+        cw = Math.max(1, Math.round(w * scale)); ch = Math.max(1, Math.round(h * scale));
+        var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+        var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cw, ch); cx.drawImage(img, 0, 0, cw, ch);
+        for (var q = 0.82; q >= 0.5; q -= 0.08) { data = cv.toDataURL('image/jpeg', q); if (data.length <= maxChars) break; }
+        if (data.length <= maxChars) break;
+        edge = Math.round(edge * 0.8);
+      }
+      resolve({ dataUrl: data, width: cw, height: ch, originalWidth: w, originalHeight: h, originalBytes: file.size || 0 });
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('That photo could not be opened. Try a JPG or PNG.')); };
+    img.src = url;
+  });
+}
+window.dfMealCompress = dfMealCompress;
+
+// Reads the model reply into clean rows. Totals are always added up here, not taken from the model.
+function dfMealParse(text){
+  var t = String(text || '').replace(/```(json)?/gi, '');
+  var a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('The estimate came back in a form the app could not read. Try again.');
+  var j = JSON.parse(t.slice(a, b + 1));
+  var items = (Array.isArray(j.items) ? j.items : []).slice(0, 25).map(function(x){
+    return { name: String(x.name || 'Food').slice(0, 80), portion: String(x.portion || (x.grams ? Math.round(x.grams) + ' g' : '')).slice(0, 60),
+      grams: Math.round(dfMealNum(x.grams)), servings: 1,
+      calories: Math.round(dfMealNum(x.calories)), protein: Math.round(dfMealNum(x.protein)), carbs: Math.round(dfMealNum(x.carbs)), fat: Math.round(dfMealNum(x.fat)),
+      confidence: dfMealConf(x.confidence), note: String(x.note || '').slice(0, 160) };
+  });
+  var hidden = (Array.isArray(j.hidden) ? j.hidden : []).map(function(h){ return String(h).slice(0, 80); }).filter(Boolean).slice(0, 8);
+  return { items: items, confidence: dfMealConf(j.confidence), hidden: hidden, notes: String(j.notes || '').slice(0, 240) };
+}
+window.dfMealParse = dfMealParse;
+
+function dfMealTotals(rows){
+  return rows.reduce(function(t, r){ t.calories += r.calories; t.protein += r.protein; t.carbs += r.carbs; t.fat += r.fat; return t; }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+}
+// Low confidence: the model said so, any item is low, or something could not be seen.
+function dfMealLowConfidence(res, rows){
+  return !!(res && (res.confidence === 'low' || (res.hidden && res.hidden.length) || (rows || res.items).some(function(r){ return r.confidence === 'low'; })));
+}
+
+window.dfMealOpen = function(clientId){
+  var id = clientId || (window.cpActiveClient && window.cpActiveClient.id);
+  if (typeof cpLoadClients === 'function') cpLoadClients();
+  var c = id && cpClients.find(function(x){ return x.id === id; });
+  if (!c) { alert('Select a client first. The meal photo log is saved to the active client.'); return; }
+  var old = document.getElementById('dfMealModal'); if (old) old.remove();
+  dfMeal = { clientId: c.id, date: dfMealToday(), image: null, rows: [], result: null, edited: false };
+  var esc = dfEsc;
+  var m = document.createElement('div');
+  m.id = 'dfMealModal';
+  m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', 'Meal photo log');
+  // No top padding, so the sticky header covers content scrolled beneath it.
+  m.style.cssText = 'position:fixed;inset:0;z-index:850;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:0 1rem 1rem;overflow-y:auto;';
+  m.onclick = function(e){ if (e.target === m) dfMealClose(); };
+  m.innerHTML = '<div class="df-meal-box" style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);max-width:820px;width:100%;margin:1rem auto;">' +
+    '<div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--navy2);z-index:2;border-radius:var(--radius) var(--radius) 0 0;">' +
+      '<h3 style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);letter-spacing:0.05em;margin:0;">Meal Photo Log — ' + esc(c.fname + ' ' + (c.lname || '')) + '</h3>' +
+      '<button type="button" onclick="dfMealClose()" aria-label="Close" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
+    '</div>' +
+    '<div style="padding:1rem 1.25rem;">' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">' +
+        '<label class="wce-btn gold" style="cursor:pointer;">📷 Take photo<input type="file" id="dfMealCam" accept="image/*" capture="environment" style="display:none;" onchange="dfMealPick(this.files[0])"></label>' +
+        '<label class="wce-btn" style="cursor:pointer;">Upload photo<input type="file" id="dfMealFile" accept="image/*" style="display:none;" onchange="dfMealPick(this.files[0])"></label>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px;">' +
+        '<div class="calc-field"><label for="dfMealMeal">Meal</label><select id="dfMealMeal">' + ['Breakfast', 'Lunch', 'Dinner', 'Snack'].map(function(x){ return '<option' + (x === dfMealDefaultMeal() ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' +
+        '<div class="calc-field"><label for="dfMealDate">Date</label><input type="date" id="dfMealDate" value="' + dfMeal.date + '" onchange="dfMealSetDate(this.value)"></div>' +
+        '<div class="calc-field" style="grid-column:1/-1;"><label for="dfMealNote">Note for the estimate (optional)</label><input type="text" id="dfMealNote" maxlength="200" placeholder="e.g. cooked in olive oil, large plate, half eaten"></div>' +
+      '</div>' +
+      '<div id="dfMealPreview" style="display:none;margin-bottom:10px;"></div>' +
+      '<button type="button" class="wce-btn gold" id="dfMealAnalyzeBtn" onclick="dfMealAnalyze()" disabled>Estimate this meal</button>' +
+      '<div id="dfMealStatus" role="status" aria-live="polite" style="font-size:0.8rem;color:var(--text2);margin-top:8px;min-height:1em;"></div>' +
+      '<div id="dfMealResult"></div>' +
+      '<div id="dfMealLog" style="margin-top:1.25rem;border-top:1px solid var(--border2);padding-top:1rem;"></div>' +
+    '</div></div>';
+  document.body.appendChild(m);
+  dfMealRenderLog();
+};
+
+window.dfMealClose = function(){ var m = document.getElementById('dfMealModal'); if (m) m.remove(); dfMeal = null; };
+
+window.dfMealPick = function(file){
+  var st = document.getElementById('dfMealStatus');
+  if (!file || !dfMeal) return;
+  st.style.color = 'var(--text2)'; st.textContent = 'Preparing the photo...';
+  document.getElementById('dfMealAnalyzeBtn').disabled = true;
+  document.getElementById('dfMealResult').innerHTML = '';
+  dfMealCompress(file, DF_MEAL_MAX_EDGE, DF_MEAL_MAX_CHARS).then(function(img){
+    if (!dfMeal) return;
+    dfMeal.image = img; dfMeal.result = null; dfMeal.rows = [];
+    var pv = document.getElementById('dfMealPreview');
+    pv.style.display = 'block';
+    pv.innerHTML = '<img src="' + img.dataUrl + '" alt="Meal photo" style="max-width:100%;max-height:260px;border-radius:var(--radius-sm);display:block;">' +
+      '<div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Sent at ' + img.width + ' × ' + img.height + ' (' + Math.round(img.dataUrl.length * 0.75 / 1024) + ' KB' +
+      (img.originalBytes ? ', from ' + Math.round(img.originalBytes / 1024) + ' KB' : '') + '). The photo is not saved unless you choose to keep it.</div>';
+    document.getElementById('dfMealAnalyzeBtn').disabled = false;
+    st.textContent = '';
+  }).catch(function(e){ st.style.color = 'var(--red)'; st.textContent = e.message; });
+};
+
+window.dfMealAnalyze = async function(){
+  if (!dfMeal || !dfMeal.image) return;
+  var st = document.getElementById('dfMealStatus'), btn = document.getElementById('dfMealAnalyzeBtn');
+  var meal = document.getElementById('dfMealMeal').value, note = document.getElementById('dfMealNote').value.trim().slice(0, 200);
+  btn.disabled = true; st.style.color = 'var(--text2)'; st.textContent = 'Estimating... this takes about 10 to 20 seconds.';
+  var ctl = new AbortController(), timer = setTimeout(function(){ ctl.abort(); }, DF_MEAL_TIMEOUT_MS);
+  try {
+    var res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+      body: JSON.stringify({ max_tokens: 1500, system: DF_MEAL_SYSTEM, messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: dfMeal.image.dataUrl.split(',')[1] } },
+        { type: 'text', text: 'Meal: ' + meal + '.' + (note ? ' Trainer note: ' + note : '') + ' Reply with the JSON only.' }
+      ] }] }) });
+    var j = await res.json().catch(function(){ return {}; });
+    if (!res.ok) throw new Error((j && j.error && (j.error.message || j.error)) || ('The estimate failed (' + res.status + ').'));
+    var text = (j.content || []).map(function(b){ return b.text || ''; }).join('');
+    var r = dfMealParse(text);
+    if (!dfMeal) return;
+    dfMeal.result = r; dfMeal.rows = r.items.map(function(x){ var o = {}; for (var k in x) o[k] = x[k]; return o; }); dfMeal.edited = false;
+    st.textContent = r.items.length ? '' : (r.notes || 'No food found in the photo.');
+    dfMealRenderResult();
+  } catch(e) {
+    st.style.color = 'var(--red)';
+    st.textContent = e.name === 'AbortError' ? 'The estimate took too long. Try again.' : String(e.message || e);
+  } finally { clearTimeout(timer); btn.disabled = !(dfMeal && dfMeal.image); }
+};
+
+function dfMealRenderResult(){
+  var box = document.getElementById('dfMealResult');
+  if (!box || !dfMeal || !dfMeal.result) return;
+  var r = dfMeal.result, esc = dfEsc, rows = dfMeal.rows;
+  if (!r.items.length && !rows.length) { box.innerHTML = ''; return; }
+  var low = dfMealLowConfidence(r, rows);
+  var num = function(i, f, v, cap){ return '<label class="df-mf df-f-' + f + '"><span>' + cap + '</span><input type="number" inputmode="decimal" min="0" step="1" aria-label="' + cap + '" data-i="' + i + '" data-f="' + f + '" value="' + v + '" oninput="dfMealEdit(this)"></label>'; };
+  box.innerHTML = '<div style="margin-top:1rem;">' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+      '<span class="df-meal-estimate" style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:10px;background:rgba(120,140,255,0.15);color:#9fb0ff;border:1px solid rgba(120,140,255,0.4);">ESTIMATE</span>' +
+      '<span style="font-size:0.8rem;color:var(--text2);">AI estimate from a photo. Check the items and portions with the client, then save.</span>' +
+    '</div>' +
+    (low ? '<div class="df-meal-low" style="background:rgba(240,165,0,0.1);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:8px;color:var(--gold);font-size:0.8rem;line-height:1.5;"><strong>Low confidence.</strong> ' +
+      (r.hidden.length ? 'Cannot be seen in the photo: ' + esc(r.hidden.join(', ')) + '. ' : 'Portions, oils or sauces may not be visible. ') + 'Ask the client and adjust the rows before saving.</div>' : '') +
+    '<div class="df-meal-grid df-meal-head"><span>Food</span><span>Portion</span><span>×</span><span>kcal</span><span>Protein g</span><span>Carbs g</span><span>Fat g</span><span></span></div>' +
+    '<div class="df-meal-rows" style="display:flex;flex-direction:column;gap:6px;">' +
+      rows.map(function(x, i){
+        return '<div class="df-meal-row df-meal-grid' + (x.confidence === 'low' ? ' low' : '') + '">' +
+          '<label class="df-mf df-f-name"><span>Food</span><input type="text" aria-label="Food" data-i="' + i + '" data-f="name" value="' + esc(x.name) + '" oninput="dfMealEdit(this)" title="' + esc(x.note || '') + '"></label>' +
+          '<label class="df-mf df-f-portion"><span>Portion</span><input type="text" aria-label="Portion" data-i="' + i + '" data-f="portion" value="' + esc(x.portion) + '" oninput="dfMealEdit(this)"></label>' +
+          '<label class="df-mf df-f-servings"><span>Servings ×</span><input type="number" inputmode="decimal" min="0" step="0.25" aria-label="Servings" title="Servings: changing this scales the numbers" data-i="' + i + '" data-f="servings" value="' + x.servings + '" onchange="dfMealEdit(this)"></label>' +
+          num(i, 'calories', x.calories, 'kcal') + num(i, 'protein', x.protein, 'Protein g') + num(i, 'carbs', x.carbs, 'Carbs g') + num(i, 'fat', x.fat, 'Fat g') +
+          '<button type="button" class="df-meal-x" onclick="dfMealDelRow(' + i + ')" aria-label="Remove ' + esc(x.name || 'item') + '">✕</button>' +
+          (x.confidence === 'low' ? '<div class="df-meal-lownote">Low confidence' + (x.note ? ': ' + esc(x.note) : '') + '</div>' : '') +
+        '</div>';
+      }).join('') +
+    '</div>' +
+    '<button type="button" class="wce-btn" onclick="dfMealAddRow()" style="margin-top:6px;">+ Add item</button>' +
+    '<div id="dfMealTotal" style="margin-top:10px;"></div>' +
+    (r.notes ? '<div style="font-size:0.75rem;color:var(--text3);margin-top:6px;">' + esc(r.notes) + '</div>' : '') +
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:0.8rem;color:var(--text2);cursor:pointer;"><input type="checkbox" id="dfMealKeepPhoto" style="width:18px;height:18px;accent-color:var(--gold);"> Keep a small copy of the photo with this entry</label>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button type="button" class="wce-btn gold" id="dfMealSaveBtn" onclick="dfMealSave()">Save to food log</button><button type="button" class="wce-btn" onclick="dfMealDiscard()">Discard</button></div>' +
+  '</div>';
+  dfMealRenderTotal();
+}
+
+function dfMealRenderTotal(){
+  var el = document.getElementById('dfMealTotal'); if (!el || !dfMeal) return;
+  var t = dfMealTotals(dfMeal.rows);
+  el.innerHTML = '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline;background:rgba(240,165,0,0.06);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">' +
+    '<strong style="font-family:Barlow Condensed,sans-serif;letter-spacing:0.08em;color:var(--gold);">MEAL TOTAL (ESTIMATE)</strong>' +
+    '<span>' + t.calories + ' kcal</span><span>' + t.protein + ' g protein</span><span>' + t.carbs + ' g carbs</span><span>' + t.fat + ' g fat</span></div>';
+}
+
+window.dfMealEdit = function(el){
+  if (!dfMeal) return;
+  var r = dfMeal.rows[+el.dataset.i], f = el.dataset.f; if (!r) return;
+  dfMeal.edited = true;
+  if (f === 'name' || f === 'portion') { r[f] = el.value.slice(0, 80); return; }
+  if (f === 'servings') {
+    // Servings scale the four numbers from their current values.
+    var next = dfMealNum(el.value), prev = r.servings || 1;
+    if (!next) { el.value = prev; return; }
+    ['calories', 'protein', 'carbs', 'fat'].forEach(function(k){ r[k] = Math.round(r[k] * next / prev); });
+    r.servings = next;
+    var row = el.closest('.df-meal-row');
+    ['calories', 'protein', 'carbs', 'fat'].forEach(function(k){ var x = row.querySelector('[data-f="' + k + '"]'); if (x) x.value = r[k]; });
+  } else {
+    r[f] = Math.round(dfMealNum(el.value));
+  }
+  dfMealRenderTotal();
+};
+window.dfMealDelRow = function(i){ if (!dfMeal) return; dfMeal.rows.splice(i, 1); dfMeal.edited = true; dfMealRenderResult(); };
+window.dfMealAddRow = function(){
+  if (!dfMeal) return;
+  dfMeal.rows.push({ name: '', portion: '', grams: 0, servings: 1, calories: 0, protein: 0, carbs: 0, fat: 0, confidence: 'medium', note: 'Added by the trainer' });
+  dfMeal.edited = true; dfMealRenderResult();
+  var ins = document.querySelectorAll('#dfMealResult .df-meal-row input[data-f="name"]'); if (ins.length) ins[ins.length - 1].focus();
+};
+window.dfMealDiscard = function(){
+  if (!dfMeal) return;
+  dfMeal.result = null; dfMeal.rows = []; dfMeal.image = null;
+  document.getElementById('dfMealResult').innerHTML = '';
+  document.getElementById('dfMealPreview').style.display = 'none';
+  document.getElementById('dfMealAnalyzeBtn').disabled = true;
+  ['dfMealCam', 'dfMealFile'].forEach(function(id){ var x = document.getElementById(id); if (x) x.value = ''; });
+};
+
+window.dfMealSave = function(){
+  if (!dfMeal || !dfMeal.result) return;
+  var rows = dfMeal.rows.filter(function(r){ return r.name.trim(); });
+  var st = document.getElementById('dfMealStatus');
+  if (!rows.length) { st.style.color = 'var(--red)'; st.textContent = 'Add at least one food item before saving.'; return; }
+  var keep = document.getElementById('dfMealKeepPhoto').checked;
+  var finish = function(photo){
+    var entry = {
+      id: 'meal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      date: dfMeal.date, time: new Date().toTimeString().slice(0, 5), meal: document.getElementById('dfMealMeal').value,
+      items: rows.map(function(r){ return { name: r.name.trim(), portion: r.portion, servings: r.servings, calories: r.calories, protein: r.protein, carbs: r.carbs, fat: r.fat, confidence: r.confidence }; }),
+      totals: dfMealTotals(rows), confidence: dfMeal.result.confidence, lowConfidence: dfMealLowConfidence(dfMeal.result, rows), hidden: dfMeal.result.hidden,
+      estimate: true, editedByTrainer: !!dfMeal.edited, savedAt: new Date().toISOString()
+    };
+    if (photo) entry.photo = photo;
+    var list = dfFoodLog(dfMeal.clientId);
+    list.push(entry);
+    try { dfFoodLogSave(dfMeal.clientId, list); }
+    catch(e) { st.style.color = 'var(--red)'; st.textContent = 'Browser storage is full' + (photo ? '. Save again without keeping the photo.' : '.'); return; }
+    st.style.color = 'var(--green)'; st.textContent = '✓ Saved to the ' + entry.meal.toLowerCase() + ' log for ' + entry.date + (photo ? ' with a small copy of the photo.' : '. The photo was not kept.');
+    dfMealDiscard();
+    dfMealRenderLog();
+  };
+  if (keep && dfMeal.image) {
+    fetch(dfMeal.image.dataUrl).then(function(r){ return r.blob(); })
+      .then(function(b){ return dfMealCompress(new File([b], 'meal.jpg', { type: 'image/jpeg' }), DF_MEAL_KEEP_EDGE, 120000); })
+      .then(function(img){ finish(img.dataUrl); }).catch(function(){ finish(null); });
+  } else finish(null);
+};
+
+window.dfMealSetDate = function(v){ if (!dfMeal || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return; dfMeal.date = v; dfMealRenderLog(); };
+window.dfMealShiftDate = function(days){
+  if (!dfMeal) return;
+  var d = new Date(dfMeal.date + 'T12:00:00'); d.setDate(d.getDate() + days);
+  dfMeal.date = d.toISOString().slice(0, 10);
+  var inp = document.getElementById('dfMealDate'); if (inp) inp.value = dfMeal.date;
+  dfMealRenderLog();
+};
+window.dfMealDeleteEntry = function(id){
+  if (!dfMeal || !confirm('Delete this meal from the food log?')) return;
+  dfFoodLogSave(dfMeal.clientId, dfFoodLog(dfMeal.clientId).filter(function(e){ return e.id !== id; }));
+  dfMealRenderLog();
+};
+
+function dfMealBar(label, val, target, unit, color){
+  var pct = target ? Math.min(100, Math.round(val / target * 100)) : 0;
+  return '<div class="df-meal-bar" style="flex:1;min-width:160px;">' +
+    '<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text2);margin-bottom:3px;"><span>' + label + '</span><span><strong style="color:var(--text);">' + val + '</strong>' + (target ? ' / ' + target + ' ' + unit + ' (' + Math.round(val / target * 100) + '%)' : ' ' + unit + ' (no target)') + '</span></div>' +
+    '<div style="height:8px;background:var(--navy3);border-radius:4px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + color + ';"></div></div></div>';
+}
+
+function dfMealRenderLog(){
+  var box = document.getElementById('dfMealLog'); if (!box || !dfMeal) return;
+  cpLoadClients();
+  var c = cpClients.find(function(x){ return x.id === dfMeal.clientId; }) || {};
+  var esc = dfEsc, tg = dfMealTargets(c);
+  var day = dfFoodLog(dfMeal.clientId).filter(function(e){ return e.date === dfMeal.date; }).sort(function(a, b){ return a.time < b.time ? -1 : 1; });
+  var t = day.reduce(function(s, e){ ['calories', 'protein', 'carbs', 'fat'].forEach(function(k){ s[k] += (e.totals && e.totals[k]) || 0; }); return s; }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+  var nav = 'background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:4px 10px;cursor:pointer;';
+  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);">Food log · ' + esc(dfMeal.date) + (dfMeal.date === dfMealToday() ? ' (today)' : '') + '</div>' +
+      '<div style="display:flex;gap:6px;"><button type="button" style="' + nav + '" onclick="dfMealShiftDate(-1)" aria-label="Previous day">‹ Prev</button><button type="button" style="' + nav + '" onclick="dfMealShiftDate(1)" aria-label="Next day">Next ›</button></div>' +
+    '</div>' +
+    '<div class="df-meal-day" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">' +
+      dfMealBar('Calories', t.calories, tg && tg.calories, 'kcal', 'var(--gold)') + dfMealBar('Protein', t.protein, tg && tg.protein, 'g', 'var(--green)') +
+    '</div>' +
+    '<div style="font-size:0.75rem;color:var(--text3);margin-bottom:10px;">Carbs ' + t.carbs + ' g · Fat ' + t.fat + ' g · All numbers are estimates. ' +
+      (tg ? 'Targets from the profile (' + tg.calories + ' kcal, ' + tg.protein + ' g protein).' : 'Add weight, age and activity to the profile to see targets.') + '</div>' +
+    (day.length ? day.map(function(e){
+      return '<div class="df-meal-entry" style="display:flex;gap:10px;align-items:flex-start;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px;">' +
+        (e.photo ? '<img src="' + esc(e.photo) + '" alt="' + esc(e.meal) + ' photo" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;">' : '') +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><strong style="color:var(--text);">' + esc(e.meal) + '</strong><span style="font-size:0.72rem;color:var(--text3);">' + esc(e.time) + '</span>' +
+            '<span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 6px;border-radius:8px;background:rgba(120,140,255,0.15);color:#9fb0ff;">ESTIMATE</span>' +
+            (e.lowConfidence ? '<span style="font-size:0.6rem;font-weight:700;letter-spacing:0.08em;padding:2px 6px;border-radius:8px;background:rgba(240,165,0,0.15);color:var(--gold);">LOW CONFIDENCE</span>' : '') +
+            (e.editedByTrainer ? '<span style="font-size:0.6rem;color:var(--text3);">edited by trainer</span>' : '') + '</div>' +
+          '<div style="font-size:0.78rem;color:var(--text2);margin-top:2px;overflow-wrap:anywhere;">' + e.items.map(function(x){ return esc(x.name) + (x.portion ? ' (' + esc(x.portion) + ')' : ''); }).join(', ') + '</div>' +
+          '<div style="font-size:0.75rem;color:var(--text3);margin-top:2px;">' + e.totals.calories + ' kcal · ' + e.totals.protein + ' g P · ' + e.totals.carbs + ' g C · ' + e.totals.fat + ' g F</div>' +
+        '</div>' +
+        '<button type="button" onclick="dfMealDeleteEntry(\'' + esc(e.id) + '\')" aria-label="Delete ' + esc(e.meal) + '" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:4px 8px;cursor:pointer;">🗑</button>' +
+      '</div>';
+    }).join('') : '<div style="font-size:0.8rem;color:var(--text3);">No meals logged for this day.</div>');
+}
+window.dfMealRenderLog = dfMealRenderLog;
+</script>
+
 <script>
 /* ══ DEMO CLIENTS ══
    Settings > Demo loads five sample clients, marked (Demo), with
@@ -15137,7 +15513,7 @@ function dfDemoClear(){
   Object.keys(DF_DEMO_PROGRAMS).forEach(function(id){ if (ids.indexOf(id) === -1) ids.push(id); });
   localStorage.setItem(CP_STORAGE_KEY, JSON.stringify(all.filter(function(c){ return ids.indexOf(c && c.id) === -1; })));
   // Stores keyed by client id
-  ['drfitness_session_history', 'drfitness_progress_notes', 'drfitness_messages', 'drfitness_checkin_log', 'drfitness_photos'].forEach(function(key){
+  ['drfitness_session_history', 'drfitness_progress_notes', 'drfitness_messages', 'drfitness_checkin_log', 'drfitness_photos', 'drfitness_food_log'].forEach(function(key){
     try {
       var obj = JSON.parse(localStorage.getItem(key) || 'null');
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
