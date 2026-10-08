@@ -532,6 +532,60 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </style>
 
 <script>
+/* ══ STORAGE FAILURE WARNING ══
+   Every save in the app goes through localStorage.setItem. When the
+   browser refuses a write (storage full, private mode, blocked) the error
+   used to be swallowed or only logged. This wraps setItem once so the
+   trainer sees what was not saved; the error is still thrown so callers
+   never report a save that did not happen. */
+(function(){
+  if (typeof Storage === 'undefined' || !Storage.prototype || Storage.prototype._dfWrapped) return;
+  var original = Storage.prototype.setItem;
+  var LABELS = [
+    [/clients/i, 'client profiles'], [/session_history|sessions/i, 'session history'], [/schedule/i, 'the schedule'],
+    [/msg|message/i, 'messages'], [/photo/i, 'progress photos'], [/library/i, 'the workout library'],
+    [/progress_notes/i, 'progress notes'], [/intake/i, 'the intake form'], [/checkin/i, 'check-ins'],
+    [/active_client/i, 'the active client'], [/fc_history/i, 'chat history']
+  ];
+  function describe(key){
+    for (var i = 0; i < LABELS.length; i++) if (LABELS[i][0].test(key)) return LABELS[i][1];
+    return 'your latest change';
+  }
+  function warn(key, err){
+    var full = err && (err.name === 'QuotaExceededError' || err.code === 22 || err.code === 1014 || /quota/i.test(err.message || ''));
+    var msg = 'Could not save ' + describe(String(key)) + '. ' +
+      (full ? 'This browser’s storage is full. Delete old progress photos or sessions to free space, then try again.'
+            : 'This browser blocked the save (private browsing or storage turned off). Your change is not stored.');
+    try {
+      var el = document.getElementById('dfStorageWarning');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'dfStorageWarning';
+        el.setAttribute('role', 'alert');
+        el.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2000;max-width:min(560px,calc(100vw - 32px));background:#3b0d12;color:#fff;border:1px solid #e63946;border-radius:8px;padding:10px 40px 10px 14px;font-size:0.85rem;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,0.4);';
+        var close = document.createElement('button');
+        close.textContent = '✕';
+        close.setAttribute('aria-label', 'Dismiss');
+        close.style.cssText = 'position:absolute;top:6px;right:8px;background:transparent;border:none;color:#fff;font-size:1rem;cursor:pointer;';
+        close.onclick = function(){ el.remove(); };
+        var text = document.createElement('div');
+        text.className = 'dfStorageWarningText';
+        el.appendChild(text); el.appendChild(close);
+        (document.body || document.documentElement).appendChild(el);
+      }
+      el.querySelector('.dfStorageWarningText').textContent = '⚠ ' + msg;
+    } catch(e) {}
+    try { console.error('Storage save failed for ' + key, err); } catch(e) {}
+  }
+  Storage.prototype.setItem = function(key, value){
+    try { return original.call(this, key, value); }
+    catch(err) { warn(key, err); throw err; }
+  };
+  Storage.prototype._dfWrapped = true;
+})();
+</script>
+
+<script>
 (function(){
 /* ══ WORKOUT COMMAND CENTER ══ */
 var WCC_STYLES = [
