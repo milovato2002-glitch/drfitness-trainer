@@ -97,8 +97,13 @@ export default async (request, context) => {
   try {
     body = await request.json();
   } catch (err) {
+    body = undefined;
+  }
+  // A malformed body is the caller's mistake, so 400 rather than 500.
+  // "null" or a bare number is valid JSON but not a usable request.
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return new Response(JSON.stringify({ error: 'Invalid JSON body.' }), {
-      status: 500,
+      status: 400,
       headers: { ...CORS, 'Content-Type': 'application/json' }
     });
   }
