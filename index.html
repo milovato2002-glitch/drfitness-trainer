@@ -492,6 +492,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
       <div style="margin-bottom:1.25rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q4 — PRIMARY GOAL FOR THIS SESSION</div><div id="wccGoal" class="cp-checkgroup" style="gap:8px;"></div></div>
       <div style="margin-bottom:1.25rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q5 — ACTIVE INJURIES OR LIMITATIONS</div><input type="text" id="wccInjuries" placeholder="e.g. left knee meniscus, rotator cuff impingement, lower back — leave blank if none" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></div>
       <div style="margin-bottom:1.5rem;"><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q6 — HOW MUCH TO BUILD</div><div id="wccDays" class="cp-checkgroup" style="gap:8px;"></div></div>
+      <div style="margin-bottom:1.5rem;"><label for="wccNotes" style="display:block;font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Q7 — TRAINER INSTRUCTIONS (OPTIONAL)</label><textarea id="wccNotes" rows="2" maxlength="500" placeholder="e.g. in-person client, machines first; no overhead work today; finish with 5 min on the bike" style="width:100%;padding:11px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.88rem;outline:none;resize:vertical;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea></div>
       <button id="wccGenerateBtn" onclick="wccGenerate()" style="width:100%;padding:16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius);font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;">GENERATE</button>
     </div>
   </div>
@@ -769,6 +770,7 @@ function openQuestionModal(){
   })();
   buildRadioChips('wccDays',['Single Session','2 Days','3 Days','4 Days','5 Days','6 Days','7 Days'],'Single Session');
   document.getElementById('wccInjuries').value = '';
+  var notesEl = document.getElementById('wccNotes'); if(notesEl) notesEl.value = '';
   // Pre-fill from active client
   var note = document.getElementById('wccPrefillNote');
   var rec = window._wccRecommendation;
@@ -1424,6 +1426,7 @@ window.wccGenerate = async function(){
   var daysSel = getSelected('wccDays')||'Single Session';
   var dayCount = (daysSel === 'Single Session') ? 1 : (parseInt(daysSel) || 1);
   var injuries = document.getElementById('wccInjuries').value.trim();
+  var trainerNotes = ((document.getElementById('wccNotes') || {}).value || '').trim().slice(0, 500);
   var styleName = selectedStyle ? selectedStyle.name : 'General';
   var styleId = selectedStyle ? selectedStyle.id : 'sandc';
 
@@ -1432,7 +1435,7 @@ window.wccGenerate = async function(){
 
   var job = {
     styleName: styleName, styleId: styleId, level: level, duration: duration, equipment: equipment,
-    goal: goal, dayCount: dayCount, injuries: injuries,
+    goal: goal, dayCount: dayCount, injuries: injuries, trainerNotes: trainerNotes,
     sessionType: dayCount > 1 ? (dayCount + '-Day Program') : 'Session',
     system: ((typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.') + (window.langSuffix||''),
     injuryRules: wccActiveInjuryRules(injuries, window.cpActiveClient),
@@ -1750,7 +1753,7 @@ function wccRenderFinal(job, text){
     autoSaveSession(
       banner + swapHtml + '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>' + coachHtml,
       styleName,
-      {level:job.level,duration:job.duration,equipment:job.equipment,goal:job.goal,injuries:injuries},
+      {level:job.level,duration:job.duration,equipment:job.equipment,goal:job.goal,injuries:injuries,trainerNotes:job.trainerNotes},
       job.sessionType
     );
     var cName = (activeC.fname + ' ' + (activeC.lname||'')).trim();
@@ -1808,6 +1811,7 @@ function wccBasePrompt(job){
     (goal.indexOf(',') !== -1 ? 'NOTE: Two goals are selected. If they are complementary (e.g. Strength + Hypertrophy), integrate them. If they are in tension (e.g. Recovery + Power, Fat Loss + Power), briefly state the tradeoff in the SUMMARY line and bias the programming toward the first-listed goal.\n' : '') +
     (dayCount > 1 ? 'PROGRAM LENGTH: ' + dayCount + ' days (vary the focus across days)\n' : '') +
     (injuries ? 'INJURIES/LIMITATIONS: ' + injuries + '\n' : '') +
+    (job.trainerNotes ? 'TRAINER INSTRUCTIONS (follow these unless they conflict with a safety or contraindication rule): ' + job.trainerNotes + '\n' : '') +
     clientCtx + injuryInstructions + wccInjuryPromptBlock(job.injuryRules) + applicationRules;
 }
 
