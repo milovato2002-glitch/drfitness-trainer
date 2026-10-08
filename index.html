@@ -1489,11 +1489,46 @@ function wccFixUnits(day){
   return fixes;
 }
 
+// Warm-up size follows session length.
+function wccWarmupRange(minutes){
+  if (!minutes) return { min: 3, max: 5 };
+  if (minutes < 30) return { min: 2, max: 3 };
+  if (minutes <= 45) return { min: 3, max: 4 };
+  if (minutes < 60) return { min: 4, max: 5 };
+  return { min: 5, max: 7 };
+}
+var WCC_WARMUP_FILLERS = [
+  { name:'Glute Bridge', sr:'1x10', cue:'Drive through the heels, squeeze at the top' },
+  { name:'Band Pull-Apart', sr:'1x12', cue:'Straight arms, squeeze the shoulder blades' },
+  { name:'Side-Lying Clamshell', sr:'1x10 each side', cue:'Hips stacked, open the knee slowly' },
+  { name:'Dead Bug', sr:'1x6 each side', cue:'Low back pressed down, move slowly' },
+  { name:'Arm Circles', sr:'1x10 each way', cue:'Small to large circles, ribs down' }
+];
+function wccFixWarmup(day, minutes, rules){
+  var fixes = [], r = wccWarmupRange(minutes), w = day.WARMUP;
+  var removed = [];
+  // Too many: drop from the middle so the first (release) and last (integrate) items stay.
+  while (w.length > r.max) removed.push(w.splice(w.length - 2, 1)[0].name);
+  if (removed.length) fixes.push('warm-up trimmed to ' + w.length + ' items for a ' + minutes + '-minute session (removed ' + removed.join(', ') + ')');
+  // Too few: add simple activation drills that pass every rule for this day.
+  var added = [];
+  var used = WCC_SECTIONS.reduce(function(a, k){ return a.concat(day[k].map(function(e){ return wccNormName(e.name).toLowerCase(); })); }, []);
+  for (var i = 0; i < WCC_WARMUP_FILLERS.length && w.length < r.min; i++) {
+    var f = WCC_WARMUP_FILLERS[i];
+    if (used.indexOf(f.name.toLowerCase()) !== -1 || wccInjuryViolation(f.name, f.cue, rules)) continue;
+    w.splice(Math.max(0, w.length - 1), 0, { name: f.name, sr: f.sr, tempo: '-', rest: '-', load: 'Bodyweight', cue: f.cue, mod: '', swap: '' });
+    added.push(f.name);
+  }
+  if (added.length) fixes.push('warm-up raised to ' + w.length + ' items for a ' + minutes + '-minute session (added ' + added.join(', ') + ')');
+  return fixes;
+}
+
 function wccApplyQualityRules(day, job, idx){
   var fixes = [];
   if (!day) return fixes;
   if (/beginner/i.test(job.level)) fixes = fixes.concat(wccFixBeginnerLoad(day));
   fixes = fixes.concat(wccFixUnits(day));
+  fixes = fixes.concat(wccFixWarmup(day, job.sessionMinutes, (job.injuryRules ? wccDayRules(job, idx) : [])));
   return fixes;
 }
 window.wccApplyQualityRules = wccApplyQualityRules;
@@ -1533,7 +1568,7 @@ window.wccGenerate = async function(){
   var rotation = dayCount > 1 && getSelected('wccSchedule') === 'Gym / Home rotation';
   var job = {
     styleName: styleName, styleId: styleId, level: level, duration: duration, equipment: equipment,
-    goal: goal, dayCount: dayCount, injuries: injuries, trainerNotes: trainerNotes, rotation: rotation,
+    goal: goal, dayCount: dayCount, injuries: injuries, trainerNotes: trainerNotes, rotation: rotation, sessionMinutes: parseInt(duration, 10) || 0,
     sessionType: dayCount > 1 ? (dayCount + (rotation ? '-Day Gym/Home Rotation' : '-Day Program')) : 'Session',
     system: ((typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.') + (window.langSuffix||''),
     injuryRules: wccActiveInjuryRules(injuries, window.cpActiveClient),
@@ -1969,8 +2004,9 @@ function wccDayContract(job, idx){
     (plan ? 'DAY ' + n + ' FOCUS: ' + plan.focus + '\n' +
       'MAIN BLOCK: use exactly these exercises, in this order: ' + plan.exercises.join('; ') + '\n' +
       (others.length ? 'Other days in the program (do not use their exercises on this day):\n' + others.join('\n') + '\n' : '') : '') +
-    'LENGTH: warm-up 3 to 4 exercises, ' + (plan ? 'main block as planned' : 'main block 5 to 6 exercises') + ', cool-down 2 to 3 exercises. Each coaching cue 15 words or fewer. ##NOTES at most 3 short lines' +
+    'LENGTH: warm-up ' + wccWarmupRange(job.sessionMinutes).min + ' to ' + wccWarmupRange(job.sessionMinutes).max + ' exercises, ' + (plan ? 'main block as planned' : 'main block 5 to 6 exercises') + ', cool-down 2 to 3 exercises. Each coaching cue 15 words or fewer. ##NOTES at most 3 short lines' +
       (finalDay ? ', plus up to 4 short lines for any mindset and habit items' : '') + '.\n' +
+    'UNITS: holds, stretches and planks are timed (for example 2x30s); lifts are counted in reps (for example 3x10).\n' +
     '\nOUTPUT FORMAT, FOLLOW EXACTLY. This format overrides every other formatting instruction above, including bold headers, bullet points, MODIFICATIONS / AVOID / ALTERNATIVES lists, extra sections and closing reminders.\n' +
     (N === 1 ? '1. First line: TITLE: <short session title>\n2. Second line: SUMMARY: <one sentence on the session focus>\n' : '1. Do not write TITLE or SUMMARY lines.\n') +
     '3. Then the day header on its own line: ===DAY ' + n + '=== <day focus>\n' +
