@@ -2593,10 +2593,13 @@ window.wlibDelete = function(id){
 .food-name{font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;font-weight:700;color:var(--text);flex:1;}
 .food-stat{font-size:0.75rem;color:var(--text3);}
 .food-tag{font-size:0.62rem;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--green-dim);color:var(--green);border:1px solid rgba(45,198,83,0.3);}
-@media(max-width:680px){.nut-sidebar{display:none;}.handout-grid{grid-template-columns:1fr;}}
+.nut-mobile-nav{display:none;}
+/* Phones: the sidebar is hidden, so a section dropdown takes its place (built from the sidebar in nutBuildMobileNav). */
+@media(max-width:680px){.nut-layout{flex-direction:column;}.nut-sidebar{display:none;}.nut-mobile-nav{display:block;padding:0.6rem 1rem;border-bottom:1px solid var(--border2);background:var(--navy2);}.nut-mobile-nav select{width:100%;padding:10px 12px;background:var(--navy3);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.9rem;}.handout-grid{grid-template-columns:1fr;}}
 </style>
 
 <div class="nut-layout">
+  <div class="nut-mobile-nav"><label for="nutMobileSelect" style="position:absolute;left:-9999px;">Nutrition section</label><select id="nutMobileSelect" onchange="nutMobileGo(this.value)"></select></div>
   <aside class="nut-sidebar">
     <div class="nut-section">Education Hub</div>
     <button class="nut-btn edu active" data-nut="overview" onclick="nutSwitch(this,'overview')">Nutrition Overview</button>
@@ -3066,7 +3069,48 @@ function nutSwitch(btn, id) {
   document.querySelectorAll('.nut-sub').forEach(function(s) { s.classList.remove('active'); });
   var target = document.getElementById('nut-' + id);
   if (target) target.classList.add('active');
+  if (typeof nutSyncMobileNav === 'function') nutSyncMobileNav();
 }
+
+// Builds the phone section dropdown from the sidebar buttons, in order, so
+// both always offer the same sections and each option does what its button does.
+var nutMobileButtons = [];
+function nutBuildMobileNav() {
+  var sel = document.getElementById('nutMobileSelect');
+  var side = document.querySelector('.nut-sidebar');
+  if (!sel || !side) return;
+  sel.innerHTML = '';
+  nutMobileButtons = [];
+  var group = sel;
+  Array.prototype.forEach.call(side.children, function(el) {
+    if (el.classList.contains('nut-section')) {
+      group = document.createElement('optgroup');
+      group.label = el.textContent.trim();
+      sel.appendChild(group);
+    } else if (el.classList.contains('nut-btn')) {
+      var o = document.createElement('option');
+      o.value = String(nutMobileButtons.length);
+      o.textContent = el.textContent.trim();
+      nutMobileButtons.push(el);
+      group.appendChild(o);
+    }
+  });
+  nutSyncMobileNav();
+}
+function nutSyncMobileNav() {
+  var sel = document.getElementById('nutMobileSelect');
+  if (!sel) return;
+  for (var i = 0; i < nutMobileButtons.length; i++) {
+    if (nutMobileButtons[i].classList.contains('active')) { sel.value = String(i); return; }
+  }
+}
+function nutMobileGo(value) {
+  var btn = nutMobileButtons[parseInt(value, 10)];
+  if (btn) btn.click();
+  // An option that opens a tool instead of a section leaves the current section selected.
+  nutSyncMobileNav();
+}
+nutBuildMobileNav();
 
 function nutTog(btn) {
   btn.classList.toggle('open');
