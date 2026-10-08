@@ -2159,9 +2159,11 @@ function wccEdDayHtml(di){
   var mins = wccDayMinutes(d), limit = job.sessionMinutes;
   var over = limit && mins > limit;
   var label = (wccEd.days.length > 1 || d.focus) ? 'Day ' + (di + 1) + (d.focus ? ' — ' + d.focus : '') : 'Session';
+  var msgs = (wccEd.msgs && wccEd.msgs[di]) || [];
   var html = '<div class="wce-dayhdr"><span class="wce-daytitle">' + wccEsc(label) + '</span>' +
-    '<span class="wce-time' + (over ? ' over' : '') + '" data-day-time="' + di + '">≈ ' + mins + (limit ? ' of ' + limit : '') + ' min' + (over ? ' · over by ' + (mins - limit) : '') + '</span></div>' +
-    '<div class="wce-daymsg" data-day-msg="' + di + '"></div>';
+    '<span class="wce-time' + (over ? ' over' : '') + '" data-day-time="' + di + '">≈ ' + mins + (limit ? ' of ' + limit : '') + ' min' + (over ? ' · over by ' + (mins - limit) : '') + '</span>' +
+    (over ? '<button class="wce-btn" type="button" onclick="wccEdFit(' + di + ')">Fit to ' + limit + ' min</button>' : '') + '</div>' +
+    '<div class="wce-daymsg" data-day-msg="' + di + '">' + msgs.map(function(m){ return '<div class="wce-msg' + (m.warn ? ' warn' : '') + '">' + wccEsc(m.text) + '</div>'; }).join('') + '</div>';
   WCC_SECTIONS.forEach(function(k){
     html += '<div class="wce-sec">' + WCC_SEC_LABEL[k] + '</div>' +
       '<div class="wce-list" data-day="' + di + '" data-sec="' + k + '">' + d[k].map(wccEdCardHtml).join('') + '</div>';
@@ -2200,6 +2202,99 @@ function wccEdCommit(days){
   if (dv) dv.innerHTML = buildDetailView(text);
 }
 window.wccEdText = function(){ return wccEd ? wccEdText() : ''; };
+
+// Saves the current program so the next change can be undone.
+function wccEdSnapshot(label){
+  wccEd.undo.push({ label: label, title: wccEd.title, summary: wccEd.summary, days: JSON.parse(JSON.stringify(wccEd.days)) });
+  if (wccEd.undo.length > 50) wccEd.undo.shift();
+}
+function wccEdSetMsgs(di, list){ wccEd.msgs = wccEd.msgs || {}; wccEd.msgs[di] = list; }
+
+/* Safety rules on a hand-edited day: injury and home-day swaps, beginner
+   RPE and the units rule. The time budget is shown, not enforced, so a
+   trainer's own additions are never cut without asking (Fit button). */
+function wccEdCheckDay(di){
+  var job = wccEd.job, day = wccEd.days[di], notes = [];
+  day.num = di + 1;
+  wccApplyInjuryRules(day, wccDayRules(job, di)).forEach(function(s){
+    notes.push({ warn: true, text: s.from + ' breaks the ' + s.injury + ' rule (' + s.reason + '), so it was replaced with ' + s.to + '. Undo to keep it.' });
+  });
+  if (/beginner/i.test(job.level)) wccFixBeginnerLoad(day).forEach(function(f){ notes.push({ text: f }); });
+  wccFixUnits(day).forEach(function(f){ notes.push({ text: f }); });
+  WCC_SECTIONS.forEach(function(k){ day[k].forEach(function(ex){ if (!ex._id) ex._id = 'e' + (wccEdNextId++); }); });
+  return notes;
+}
+
+function wccEdFieldValue(ex, f){
+  if (f === 'sets' || f === 'reps') return wccEdSplitSr(ex.sr)[f];
+  var v = ex[f]; return (v === '-' ? '' : (v || ''));
+}
+
+function wccEdBeginEdit(span){
+  var id = span.dataset.id, f = span.dataset.f, loc = wccEdFind(id);
+  if (!loc) return;
+  var multi = (f === 'cue' || f === 'mod');
+  var input = document.createElement(multi ? 'textarea' : 'input');
+  input.className = 'wce-input';
+  input.value = wccEdFieldValue(loc.ex, f);
+  input.setAttribute('aria-label', f);
+  if (!multi) input.size = Math.max(4, Math.min(28, input.value.length + 2));
+  if (f === 'sets') { input.inputMode = 'numeric'; input.size = 3; }
+  var done = false;
+  var finish = function(save){
+    if (done) return; done = true;
+    if (save && input.value.trim() !== wccEdFieldValue(loc.ex, f)) wccEdApplyField(id, f, input.value.trim());
+    else wccEdRenderDay(loc.di);
+  };
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !(multi && e.shiftKey)) { e.preventDefault(); finish(true); }
+    // stopPropagation: the workout window closes on Escape, but here Escape only cancels the edit.
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+  });
+  input.addEventListener('blur', function(){ finish(true); });
+  span.replaceWith(input);
+  input.focus();
+  if (input.select) input.select();
+}
+
+function wccEdApplyField(id, f, value){
+  var loc = wccEdFind(id);
+  if (!loc) return;
+  if (f === 'name' && !value) { wccEdRenderDay(loc.di); return; }
+  wccEdSnapshot('edit ' + f);
+  var ex = loc.ex;
+  if (f === 'sets' || f === 'reps') {
+    var cur = wccEdSplitSr(ex.sr);
+    var sets = f === 'sets' ? value.replace(/\D/g, '') : cur.sets;
+    var reps = f === 'reps' ? value : cur.reps;
+    ex.sr = sets && reps ? sets + 'x' + reps : (reps || (sets ? sets + 'x10' : '-'));
+  } else if (f === 'name' || f === 'cue' || f === 'mod') {
+    ex[f] = value;
+    if (f === 'name') ex.swap = ''; // a renamed exercise is the trainer's choice, no longer an auto-swap
+  } else {
+    ex[f] = value || '-';
+  }
+  wccEdSetMsgs(loc.di, wccEdCheckDay(loc.di));
+  wccEdCommit([loc.di]);
+}
+
+window.wccEdFit = function(di){
+  if (!wccEd) return;
+  wccEdSnapshot('fit day ' + (di + 1));
+  var fixes = wccFitTimeBudget(wccEd.days[di], wccEd.job.sessionMinutes);
+  wccEdSetMsgs(di, fixes.map(function(t){ return { text: t + '. Undo to put them back.' }; }));
+  wccEdCommit([di]);
+};
+
+// One set of listeners for all cards (the cards are re-rendered after every change).
+document.addEventListener('click', function(e){
+  var span = e.target.closest && e.target.closest('#wceRoot .wce-f');
+  if (span && wccEd) wccEdBeginEdit(span);
+});
+document.addEventListener('keydown', function(e){
+  var span = e.target.closest && e.target.closest('#wceRoot .wce-f');
+  if (span && wccEd && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); wccEdBeginEdit(span); }
+});
 
 // Shared part of every prompt: style, client profile, injury rules and profile rules.
 function wccBasePrompt(job){
