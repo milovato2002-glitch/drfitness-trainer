@@ -529,6 +529,54 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 .wcc-chip{display:inline-flex;padding:8px 16px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:all 0.12s;user-select:none;}
 .wcc-chip:hover{border-color:var(--gold);color:var(--gold);}
 .wcc-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+/* ══ Editable workout cards ══ */
+.wce-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;}
+.wce-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;}
+.wce-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
+.wce-btn:disabled{opacity:0.4;cursor:default;}
+.wce-btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy);}
+.wce-day{margin:1.25rem 0 0.5rem;}
+.wce-dayhdr{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-bottom:4px;border-bottom:2px solid var(--gold-dim);margin-bottom:0.5rem;}
+.wce-daytitle{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;color:var(--gold);letter-spacing:0.04em;}
+.wce-time{font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;color:var(--text2);white-space:nowrap;}
+.wce-time.over{color:var(--red);}
+.wce-sec{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin:0.75rem 0 0.4rem;}
+.wce-list{display:flex;flex-direction:column;gap:6px;min-height:14px;}
+.wce-card{display:flex;align-items:flex-start;gap:8px;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px 8px 4px;}
+.wce-card.mod{border-color:var(--gold);}
+.wce-card.swapped{border-color:var(--teal);}
+.wce-card.changed{animation:wceFlash 1.6s ease;}
+@keyframes wceFlash{0%{box-shadow:0 0 0 2px var(--gold);}100%{box-shadow:0 0 0 0 transparent;}}
+.wce-handle{flex-shrink:0;width:32px;min-height:44px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text3);font-size:1.05rem;cursor:grab;touch-action:none;border-radius:6px;}
+.wce-handle:focus-visible{outline:2px solid var(--gold);}
+.wce-body{flex:1;min-width:0;}
+.wce-name{font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);}
+.wce-badge{display:inline-block;font-size:0.6rem;font-weight:700;letter-spacing:0.06em;color:var(--teal);border:1px solid var(--teal);border-radius:10px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
+.wce-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:0.78rem;color:var(--text3);align-items:baseline;}
+.wce-meta b{font-weight:600;color:var(--text3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;margin-right:3px;}
+.wce-f{display:inline-block;min-width:1.5em;min-height:24px;padding:1px 5px;border-radius:4px;border:1px dashed transparent;color:var(--text);cursor:text;}
+.wce-f:hover,.wce-f:focus-visible{border-color:var(--border);outline:none;}
+.wce-f.empty{color:var(--text3);font-style:italic;}
+.wce-f.sr{color:var(--gold);font-weight:600;}
+.wce-cue{display:block;margin-top:4px;font-size:0.8rem;color:var(--text2);line-height:1.45;}
+.wce-note{display:block;margin-top:3px;font-size:0.76rem;line-height:1.4;}
+.wce-note.mod{color:var(--gold);}
+.wce-note.swap{color:var(--teal);}
+.wce-input{font:inherit;color:var(--text);background:var(--navy3);border:1px solid var(--gold);border-radius:4px;padding:2px 6px;min-width:3em;max-width:100%;}
+textarea.wce-input{width:100%;min-height:3em;resize:vertical;}
+.wce-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.wce-icon{min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:14px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:0.85rem;cursor:pointer;text-decoration:none;}
+.wce-icon:hover{border-color:var(--red);color:var(--red);}
+.wce-icon.video{border-color:rgba(230,57,70,0.35);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:0.66rem;font-weight:700;padding:0 8px;}
+.wce-add{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.wce-add input{flex:1;min-width:140px;}
+.wce-placeholder{border:2px dashed var(--gold);border-radius:var(--radius-sm);background:var(--gold-dim2);}
+.wce-dragging{position:fixed;z-index:3000;pointer-events:none;opacity:0.92;box-shadow:0 10px 30px rgba(0,0,0,0.5);}
+.wce-msg{font-size:0.78rem;color:var(--text2);background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 10px;margin:6px 0;}
+.wce-msg.warn{border-color:rgba(230,57,70,0.35);}
+.wce-chat{margin-top:1.25rem;border-top:1px solid var(--border2);padding-top:1rem;}
+.wce-chat textarea{width:100%;min-height:52px;padding:10px 12px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Barlow',sans-serif;font-size:0.9rem;resize:vertical;}
+@media(max-width:600px){.wce-card{padding:8px 6px 8px 2px;}.wce-meta{gap:4px 8px;}.wce-actions{flex-direction:row;align-items:flex-start;}}
 @media(max-width:768px){
   #styleGrid{grid-template-columns:1fr 1fr!important;}
   #wccQuestionModal>div,#wccOutputModal>div{max-width:100%!important;margin:0!important;border-radius:0!important;min-height:100vh;}
@@ -1203,7 +1251,9 @@ window.wccToggleTrackMode = function(){
   var w = window._wccLastWorkout;
   var qv = document.getElementById('wccQuickView');
   if(qv && w && typeof buildQuickView==='function'){
-    qv.innerHTML = buildQuickView(w.text, w.styleName);
+    // Tracking shows a read-only checklist of the edited program; leaving it returns to the editable cards.
+    if (!window._wccTrackMode && wccEd && typeof wccEdRenderAll === 'function') wccEdRenderAll();
+    else qv.innerHTML = buildQuickView(w.text, w.styleName);
     // ensure Quick View is the visible pane
     if(typeof setWccView==='function') setWccView('quick');
   }
@@ -2005,7 +2055,8 @@ function wccRenderFinal(job, text){
   var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
   var detailHtml = buildDetailView(text);
   var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>';
-  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(text, styleName) + '</div>';
+  // Quick View is the editable card view, filled by wccEdRenderAll below.
+  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'"></div>';
   var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(wccExerciseNames(text)) : '';
   // Save status + actions row (prepended to output)
   var activeC = window.cpActiveClient;
@@ -2026,7 +2077,129 @@ function wccRenderFinal(job, text){
   var libBtn = '<button onclick="wccSaveToLibrary()" style="padding:7px 14px;background:transparent;border:1px solid var(--gold);border-radius:20px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;">+ SAVE TO LIBRARY</button>';
   var actionRow = '<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;"><div style="flex:1;min-width:200px;">'+saveStatus+'</div>'+libBtn+'</div>';
   document.getElementById('wccOutputContent').innerHTML = actionRow + banner + swapHtml + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
+  wccEditorStart(job, text);
+  wccEd.pieces = { banner: banner, swapHtml: swapHtml, coachHtml: coachHtml };
+  wccEdRenderAll();
 }
+
+/* ══ EDITABLE WORKOUT CARDS ══
+   After generation the program lives in one editor state (wccEd). Every
+   change goes through wccEdCommit, which rebuilds the canonical EX| text in
+   window._wccLastWorkout (read by Quick View tracking, Detail View, PDF,
+   Copy for Client and Save to Library), re-renders the changed days and
+   refreshes each day's time estimate. */
+var wccEd = null;
+var wccEdNextId = 1;
+var WCC_SEC_LABEL = { WARMUP:'Warm-Up', MAIN:'Main Block', COOLDOWN:'Cool-Down' };
+
+function wccEdCopyEx(ex){ return { _id: ex._id || ('e' + (wccEdNextId++)), name: ex.name || '', sr: ex.sr || '-', tempo: ex.tempo || '-', rest: ex.rest || '-', load: ex.load || '-', cue: ex.cue || '', mod: ex.mod || '', swap: ex.swap || '', superset: ex.superset }; }
+function wccEdCopyDay(d){
+  var o = { num: d.num, focus: d.focus || '', NOTES: (d.NOTES || []).slice() };
+  WCC_SECTIONS.forEach(function(k){ o[k] = (d[k] || []).map(wccEdCopyEx); });
+  return o;
+}
+
+function wccEditorStart(job, text){
+  var p = wccParseWorkout(text);
+  wccEd = { job: job, title: p.title, summary: p.summary, days: p.days.map(wccEdCopyDay), undo: [], pieces: {} };
+  return wccEd;
+}
+
+// The program as EX| text, in the same format the generator produces.
+function wccEdText(){
+  var e = wccEd;
+  return 'TITLE: ' + (e.title || e.job.styleName) + '\n' + (e.summary ? 'SUMMARY: ' + e.summary + '\n' : '') +
+    e.days.map(function(d, i){ return wccSerializeDay(d, i + 1); }).join('\n');
+}
+function wccEdFind(id){
+  for (var i = 0; i < wccEd.days.length; i++) for (var s = 0; s < WCC_SECTIONS.length; s++) {
+    var list = wccEd.days[i][WCC_SECTIONS[s]];
+    for (var j = 0; j < list.length; j++) if (list[j]._id === id) return { di: i, sec: WCC_SECTIONS[s], idx: j, ex: list[j], list: list };
+  }
+  return null;
+}
+
+function wccEdFieldHtml(id, f, value, cls){
+  var v = (value === undefined || value === null) ? '' : String(value);
+  var empty = !v || v === '-';
+  return '<span class="wce-f' + (cls ? ' ' + cls : '') + (empty ? ' empty' : '') + '" role="button" tabindex="0" data-id="' + id + '" data-f="' + f + '" title="Click to edit">' + (empty ? 'add' : wccEsc(v)) + '</span>';
+}
+// "3x10 each side" shows as sets 3 and reps "10 each side"; anything else edits as one field.
+function wccEdSplitSr(sr){
+  var m = String(sr || '').match(/^\s*(\d+)\s*x\s*(.+)$/i);
+  return m ? { sets: m[1], reps: m[2].trim() } : { sets: '', reps: String(sr || '') };
+}
+
+function wccEdCardHtml(ex){
+  var tut = (typeof getTutorialUrl === 'function') ? getTutorialUrl(ex.name) : { url: '#' };
+  var sr = wccEdSplitSr(ex.sr);
+  return '<div class="wce-card' + (ex.swap ? ' swapped' : ex.mod ? ' mod' : '') + '" data-id="' + ex._id + '">' +
+    '<button class="wce-handle" type="button" data-id="' + ex._id + '" aria-label="Drag to move ' + wccEsc(ex.name) + '" title="Drag to move (or focus and use arrow keys)">⋮⋮</button>' +
+    '<div class="wce-body">' +
+      '<div>' + (ex.mod ? '<span style="color:var(--gold);">⚠ </span>' : '') + wccEdFieldHtml(ex._id, 'name', ex.name, 'wce-name') + (ex.swap ? '<span class="wce-badge">↺ INJURY SWAP</span>' : '') + '</div>' +
+      '<div class="wce-meta">' +
+        '<span><b>Sets</b>' + wccEdFieldHtml(ex._id, 'sets', sr.sets, 'sr') + '</span>' +
+        '<span><b>Reps/time</b>' + wccEdFieldHtml(ex._id, 'reps', sr.reps, 'sr') + '</span>' +
+        '<span><b>Rest</b>' + wccEdFieldHtml(ex._id, 'rest', ex.rest) + '</span>' +
+        '<span><b>Tempo</b>' + wccEdFieldHtml(ex._id, 'tempo', ex.tempo) + '</span>' +
+        '<span><b>Load</b>' + wccEdFieldHtml(ex._id, 'load', ex.load) + '</span>' +
+      '</div>' +
+      '<span class="wce-cue">' + wccEdFieldHtml(ex._id, 'cue', ex.cue) + '</span>' +
+      (ex.mod ? '<span class="wce-note mod">⚠ Modification: ' + wccEdFieldHtml(ex._id, 'mod', ex.mod) + '</span>' : '') +
+      (ex.swap ? '<span class="wce-note swap">↺ Auto-swap: ' + wccEsc(ex.swap) + '</span>' : '') +
+    '</div>' +
+    '<div class="wce-actions">' +
+      (tut.url && tut.url !== '#' ? '<a class="wce-icon video" href="' + wccEsc(tut.url) + '" target="_blank" rel="noopener" title="Watch form video">▶ FORM</a>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+function wccEdDayHtml(di){
+  var d = wccEd.days[di], job = wccEd.job;
+  var mins = wccDayMinutes(d), limit = job.sessionMinutes;
+  var over = limit && mins > limit;
+  var label = (wccEd.days.length > 1 || d.focus) ? 'Day ' + (di + 1) + (d.focus ? ' — ' + d.focus : '') : 'Session';
+  var html = '<div class="wce-dayhdr"><span class="wce-daytitle">' + wccEsc(label) + '</span>' +
+    '<span class="wce-time' + (over ? ' over' : '') + '" data-day-time="' + di + '">≈ ' + mins + (limit ? ' of ' + limit : '') + ' min' + (over ? ' · over by ' + (mins - limit) : '') + '</span></div>' +
+    '<div class="wce-daymsg" data-day-msg="' + di + '"></div>';
+  WCC_SECTIONS.forEach(function(k){
+    html += '<div class="wce-sec">' + WCC_SEC_LABEL[k] + '</div>' +
+      '<div class="wce-list" data-day="' + di + '" data-sec="' + k + '">' + d[k].map(wccEdCardHtml).join('') + '</div>';
+  });
+  if (d.NOTES.length) {
+    html += '<div class="wce-sec">Trainer Notes</div><div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.8rem;color:var(--text2);line-height:1.6;">' +
+      d.NOTES.map(function(n){ return '<div style="margin-bottom:4px;">' + wccEsc(n) + '</div>'; }).join('') + '</div>';
+  }
+  return html;
+}
+
+function wccEdRenderAll(){
+  var root = document.getElementById('wccQuickView');
+  if (!root || !wccEd) return;
+  var head = '<div style="background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:0.75rem;">' +
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);text-transform:uppercase;">' + wccEsc(wccEd.title || wccEd.job.styleName) + '</div>' +
+    (wccEd.summary ? '<div style="font-size:0.8rem;color:var(--text2);margin-top:6px;line-height:1.5;">' + wccEsc(wccEd.summary) + '</div>' : '') +
+    '<div style="font-size:0.72rem;color:var(--text3);margin-top:6px;">Tap any field to edit it.</div></div>';
+  var toolbar = '<div class="wce-toolbar" id="wceToolbar">' +
+    '<button class="wce-btn" type="button" onclick="wccToggleTrackMode()">▷ Track live session</button></div>';
+  root.innerHTML = '<div id="wceRoot">' + head + toolbar + wccEd.days.map(function(_, i){ return '<div class="wce-day" data-day-block="' + i + '">' + wccEdDayHtml(i) + '</div>'; }).join('') + '</div>';
+}
+function wccEdRenderDay(di){
+  var el = document.querySelector('[data-day-block="' + di + '"]');
+  if (el) el.innerHTML = wccEdDayHtml(di); else wccEdRenderAll();
+}
+
+/* Every change ends here. days: indexes of the days that changed (all if omitted). */
+function wccEdCommit(days){
+  var e = wccEd;
+  if (!e) return;
+  var text = wccEdText();
+  if (window._wccLastWorkout) window._wccLastWorkout.text = text;
+  (days || e.days.map(function(_, i){ return i; })).forEach(wccEdRenderDay);
+  var dv = document.getElementById('wccDetailView');
+  if (dv) dv.innerHTML = buildDetailView(text);
+}
+window.wccEdText = function(){ return wccEd ? wccEdText() : ''; };
 
 // Shared part of every prompt: style, client profile, injury rules and profile rules.
 function wccBasePrompt(job){
@@ -2474,6 +2647,7 @@ window.wlibLoad = function(id){
   var it = items.find(function(x){ return x.id === id; });
   if(!it) return;
   // Reconstruct the output modal using the saved text + the existing renderers.
+  wccEd = null; // a library item is shown read-only; edits apply to a freshly generated program
   window._wccLastWorkout = { text: it.text, styleName: it.styleName, level: it.level, duration: it.duration, goal: it.goal, days: it.days, injuries: it.injuries };
   var lm = document.getElementById('wlibModal'); if(lm) lm.remove();
   var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
