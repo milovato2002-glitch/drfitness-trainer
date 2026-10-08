@@ -12451,6 +12451,7 @@ window.getFullClientContext = function(c) {
     isMale: isMale,
     useMaleFormula: useMaleFormula, // the Mifflin constant actually used for mifflinBMR
     weight: c.weight || 0,
+    hasWeight: kg > 0, // calorie and protein targets are meaningless without it
     weightKg: Math.round(kg * 10) / 10,
     heightIn: heightIn,
     heightCm: Math.round(heightCm),
@@ -12506,21 +12507,45 @@ function updateNutPlanBanner(ctx) {
     '<div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;flex-shrink:0;">' + ctx.fname.charAt(0) + (ctx.lname.charAt(0)||'') + '</div>' +
     '<div>' +
     '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;color:var(--text);">' + ctx.fname + ' ' + ctx.lname + '</div>' +
-    '<div style="font-size:0.72rem;color:var(--text2);">' + ctx.age + ' y/o · ' + ctx.weight + ' lbs · Goal: ' + ctx.goalLabel + '</div>' +
+    '<div style="font-size:0.72rem;color:var(--text2);">' + ctx.age + ' y/o · ' + (ctx.hasWeight ? ctx.weight + ' lbs' : 'weight not set') + ' · Goal: ' + ctx.goalLabel + '</div>' +
     '</div>' +
     '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">' +
-    '<span style="background:var(--gold-dim);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.calTarget + ' kcal</span>' +
-    '<span style="background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.protG + 'g protein</span>' +
+    // Without a weight the targets come out as nonsense (BMR from height and age alone, 0g protein).
+    (ctx.hasWeight
+      ? '<span style="background:var(--gold-dim);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.calTarget + ' kcal</span>' +
+        '<span style="background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.protG + 'g protein</span>'
+      : '<span style="border:1px dashed var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--text3);">Targets need a weight</span>' +
+        '<button onclick="nptAddWeight()" style="padding:6px 12px;background:transparent;border:1px solid var(--gold);border-radius:6px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">ADD WEIGHT</button>') +
     '<button onclick="openNutritionPlanGenerator()" style="padding:6px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:6px;font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">⚡ GENERATE FULL PLAN</button>' +
     '</div>' +
     '</div>';
 }
 
+// Collects the active client's weight from the banner, saves it, and refreshes the targets.
+window.nptAddWeight = function() {
+  var c = window.cpActiveClient;
+  if (!c) return;
+  var wv = prompt('Enter ' + (c.fname || 'the client') + '’s weight in lbs:', '');
+  if (wv === null) return;
+  var wn = parseFloat(wv);
+  if (!wn || wn < 50 || wn > 700) { alert('Please enter a valid weight in lbs (50–700).'); return; }
+  c.weight = wn;
+  if (typeof cpLoadClients === 'function') cpLoadClients();
+  if (typeof cpClients !== 'undefined') {
+    var idx = cpClients.findIndex(function(x){ return x.id === c.id; });
+    if (idx >= 0) { cpClients[idx].weight = wn; if (typeof cpSaveClients === 'function') cpSaveClients(); }
+  }
+  try { localStorage.setItem('drfitness_active_client', JSON.stringify(c)); } catch(e) {}
+  var ctx = window.getFullClientContext(c);
+  updateNutPlanBanner(ctx);
+  updateSuppContextBanner(ctx);
+};
+
 function updateSuppContextBanner(ctx) {
   var b = document.getElementById('suppContextBanner');
   if (!b) return;
   b.style.display = 'block';
-  b.innerHTML = '<span style="color:var(--gold);font-weight:700;">' + ctx.fname + '</span> — ' + ctx.goalLabel + ' · ' + ctx.age + ' y/o · ' + ctx.weight + ' lbs · ' + ctx.level +
+  b.innerHTML = '<span style="color:var(--gold);font-weight:700;">' + ctx.fname + '</span> — ' + ctx.goalLabel + ' · ' + ctx.age + ' y/o · ' + (ctx.hasWeight ? ctx.weight + ' lbs' : 'weight not set') + ' · ' + ctx.level +
     ' <button onclick="openNutritionPlanGenerator(\'supplements\')" style="margin-left:12px;padding:4px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:5px;font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;">GENERATE SUPP STACK</button>';
 }
 
