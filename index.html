@@ -571,6 +571,7 @@ textarea.wce-input{width:100%;min-height:3em;resize:vertical;}
 .wce-add{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
 .wce-add input{flex:1;min-width:140px;}
 .wce-placeholder{border:2px dashed var(--gold);border-radius:var(--radius-sm);background:var(--gold-dim2);}
+.wce-noselect,.wce-noselect *{user-select:none;-webkit-user-select:none;}
 .wce-dragging{position:fixed;z-index:3000;pointer-events:none;opacity:0.92;box-shadow:0 10px 30px rgba(0,0,0,0.5);}
 .wce-msg{font-size:0.78rem;color:var(--text2);background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 10px;margin:6px 0;}
 .wce-msg.warn{border-color:rgba(230,57,70,0.35);}
@@ -2346,6 +2347,133 @@ function wccEdAdd(di, sec, name){
   wccEdSetMsgs(di, [{ text: 'Added ' + name + ' to ' + WCC_SEC_LABEL[sec] + '. Tap its fields to adjust.' }].concat(notes));
   wccEdCommit([di]);
 }
+
+/* ── Moving cards ──
+   Pointer events cover mouse and touch with one code path. The handle has
+   touch-action:none, so dragging it on a phone moves the card instead of
+   scrolling; near the top or bottom edge the view scrolls on its own. */
+// toIdx is the position in the destination list once the card has been taken out.
+function wccEdMove(id, toDay, toSec, toIdx){
+  var loc = wccEdFind(id);
+  if (!loc) return;
+  if (loc.di === toDay && loc.sec === toSec && toIdx === loc.idx) { wccEdRenderDay(loc.di); return; }
+  wccEdSnapshot('move ' + loc.ex.name);
+  loc.list.splice(loc.idx, 1);
+  wccEd.days[toDay][toSec].splice(toIdx, 0, loc.ex);
+  var notes = loc.di !== toDay ? wccEdCheckDay(toDay) : [];
+  wccEdSetMsgs(toDay, [{ text: 'Moved ' + loc.ex.name + (loc.di !== toDay ? ' from Day ' + (loc.di + 1) : '') + ' to ' + WCC_SEC_LABEL[toSec] + '.' }].concat(notes));
+  wccEdCommit(loc.di === toDay ? [toDay] : [loc.di, toDay]);
+  var moved = document.querySelector('#wceRoot .wce-card[data-id="' + id + '"]');
+  if (moved) { moved.classList.add('changed'); var hd = moved.querySelector('.wce-handle'); if (hd && wccEdKeyMove) hd.focus(); }
+}
+
+function wccEdScroller(el){
+  for (var n = el && el.parentElement; n && n !== document.body; n = n.parentElement) {
+    var oy = getComputedStyle(n).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight + 2) return n;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+var wccDrag = null, wccEdKeyMove = false;
+function wccEdDragTarget(x, y){
+  var d = wccDrag, el = document.elementFromPoint(x, y);
+  if (!el || !el.closest('#wceRoot')) return;
+  var card = el.closest('.wce-card'), list;
+  if (card && card !== d.card) {
+    list = card.parentNode;
+    var r = card.getBoundingClientRect();
+    list.insertBefore(d.ph, y < r.top + r.height / 2 ? card : card.nextSibling);
+    return;
+  }
+  list = el.closest('.wce-list');
+  if (!list) {
+    var sec = el.closest('.wce-sec'), add = el.closest('.wce-add');
+    if (sec && sec.nextElementSibling && sec.nextElementSibling.classList.contains('wce-list')) { list = sec.nextElementSibling; list.insertBefore(d.ph, list.firstChild); return; }
+    if (add && add.previousElementSibling && add.previousElementSibling.classList.contains('wce-list')) list = add.previousElementSibling;
+  }
+  if (list && d.ph.parentNode !== list) list.appendChild(d.ph);
+}
+function wccEdDragFrame(){
+  var d = wccDrag;
+  if (!d) return;
+  var edge = 70, h = window.innerHeight, dy = 0;
+  if (d.y < edge) dy = -Math.ceil((edge - d.y) / 5);
+  else if (d.y > h - edge) dy = Math.ceil((d.y - (h - edge)) / 5);
+  // Holding at the edge speeds the scroll up (to 3x after about a second); a phone program is several screens long.
+  d.edgeFrames = dy ? (d.edgeFrames || 0) + 1 : 0;
+  dy = Math.round(dy * Math.min(3, 1 + d.edgeFrames / 30));
+  if (dy) {
+    if (d.scroller === document.scrollingElement || d.scroller === document.documentElement) window.scrollBy(0, dy); else d.scroller.scrollTop += dy;
+    wccEdDragTarget(d.x, d.y);
+  }
+  d.raf = requestAnimationFrame(wccEdDragFrame);
+}
+function wccEdEndDrag(commit){
+  var d = wccDrag;
+  if (!d) return;
+  wccDrag = null;
+  cancelAnimationFrame(d.raf);
+  document.body.classList.remove('wce-noselect');
+  d.card.remove();
+  var list = d.ph.parentNode;
+  if (!commit || !list || !list.dataset || list.dataset.day === undefined) { d.ph.remove(); wccEdRenderDay(d.fromDay); return; }
+  var idx = 0;
+  for (var n = list.firstChild; n && n !== d.ph; n = n.nextSibling) if (n.classList && n.classList.contains('wce-card')) idx++;
+  d.ph.remove();
+  wccEdKeyMove = false;
+  wccEdMove(d.id, parseInt(list.dataset.day, 10), list.dataset.sec, idx);
+}
+document.addEventListener('pointerdown', function(e){
+  var h = e.target.closest && e.target.closest('#wceRoot .wce-handle');
+  if (!h || !wccEd || wccDrag || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  e.preventDefault();
+  var card = h.closest('.wce-card'), rect = card.getBoundingClientRect(), loc = wccEdFind(card.dataset.id);
+  if (!loc) return;
+  var ph = document.createElement('div');
+  ph.className = 'wce-placeholder';
+  ph.style.height = rect.height + 'px';
+  card.parentNode.insertBefore(ph, card);
+  // The card floats over the page (on body, so no transformed ancestor affects position:fixed).
+  card.classList.add('wce-dragging');
+  card.style.width = rect.width + 'px'; card.style.left = rect.left + 'px'; card.style.top = rect.top + 'px';
+  document.body.appendChild(card);
+  document.body.classList.add('wce-noselect');
+  wccDrag = { id: card.dataset.id, card: card, ph: ph, fromDay: loc.di, offX: e.clientX - rect.left, offY: e.clientY - rect.top, x: e.clientX, y: e.clientY, scroller: wccEdScroller(ph) };
+  wccDrag.raf = requestAnimationFrame(wccEdDragFrame);
+});
+document.addEventListener('pointermove', function(e){
+  var d = wccDrag;
+  if (!d) return;
+  e.preventDefault();
+  d.x = e.clientX; d.y = e.clientY;
+  d.card.style.left = (e.clientX - d.offX) + 'px';
+  d.card.style.top = (e.clientY - d.offY) + 'px';
+  wccEdDragTarget(e.clientX, e.clientY);
+}, { passive: false });
+document.addEventListener('pointerup', function(){ if (wccDrag) wccEdEndDrag(true); });
+document.addEventListener('pointercancel', function(){ if (wccDrag) wccEdEndDrag(false); });
+
+// Keyboard: a focused handle moves its card with the arrow keys, across sections and days.
+document.addEventListener('keydown', function(e){
+  var h = e.target.closest && e.target.closest('#wceRoot .wce-handle');
+  if (!h || !wccEd || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+  e.preventDefault();
+  var loc = wccEdFind(h.dataset.id);
+  if (!loc) return;
+  var lists = [];
+  wccEd.days.forEach(function(_, di){ WCC_SECTIONS.forEach(function(k){ lists.push({ di: di, sec: k }); }); });
+  var li = lists.findIndex(function(l){ return l.di === loc.di && l.sec === loc.sec; });
+  wccEdKeyMove = true;
+  if (e.key === 'ArrowUp') {
+    if (loc.idx > 0) wccEdMove(loc.ex._id, loc.di, loc.sec, loc.idx - 1);
+    else if (li > 0) { var prev = lists[li - 1]; wccEdMove(loc.ex._id, prev.di, prev.sec, wccEd.days[prev.di][prev.sec].length); }
+  } else {
+    if (loc.idx < loc.list.length - 1) wccEdMove(loc.ex._id, loc.di, loc.sec, loc.idx + 1);
+    else if (li < lists.length - 1) { var next = lists[li + 1]; wccEdMove(loc.ex._id, next.di, next.sec, 0); }
+  }
+  wccEdKeyMove = false;
+});
 
 // One set of listeners for all cards (the cards are re-rendered after every change).
 document.addEventListener('click', function(e){
