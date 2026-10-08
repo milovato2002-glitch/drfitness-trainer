@@ -870,7 +870,39 @@ function wccParseWorkout(text){
     if (cur && sec === 'NOTES') { cur.NOTES.push(t.replace(/\*\*/g, '')); return; }
     flag(t, 'Not in the EX| format');
   });
+  out.days.forEach(function(d){ WCC_SECTIONS.forEach(function(k){ wccCheckSupersets(d[k]); }); });
   return out;
+}
+
+/* Superset labels: "A1: Name", "Superset A: Name", "Name (superset)", or
+   "Superset" in the sets field. A label is kept only when its group has a
+   partner in the same section; an orphan label is removed so a single
+   exercise is never shown as a superset. */
+var WCC_SS_PREFIX = /^\s*(?:super-?set\s*([A-Z])\b\s*[:.)–—-]?|ss\s*([A-Z])\d?\s*[:.)–—-]|([A-Z])([1-9])\s*[:.)–—-])\s*/i;
+var WCC_SS_SUFFIX = /\s*[(\[–—-]\s*super-?set\s*[)\]]?\s*$/i;
+function wccCheckSupersets(list){
+  var groups = {};
+  list.forEach(function(ex, i){
+    var m = ex.name.match(WCC_SS_PREFIX);
+    if (m) ex._ss = { key: (m[1] || m[2] || m[3]).toUpperCase(), prefix: m[0] };
+    else if (WCC_SS_SUFFIX.test(ex.name) || /^super-?set$/i.test(ex.sr)) ex._ss = { key: 'adj' + i, loose: true };
+    if (ex._ss && !ex._ss.loose) (groups[ex._ss.key] = groups[ex._ss.key] || []).push(ex);
+  });
+  // Unlettered markers pair with a marked neighbour.
+  list.forEach(function(ex, i){
+    if (!ex._ss || !ex._ss.loose) return;
+    var prev = list[i - 1], next = list[i + 1];
+    ex._ss.paired = !!((prev && prev._ss) || (next && next._ss));
+  });
+  list.forEach(function(ex){
+    var s = ex._ss; delete ex._ss;
+    if (!s) return;
+    var paired = s.loose ? s.paired : groups[s.key].length > 1;
+    if (paired) { if (!s.loose) ex.superset = s.key; return; }
+    ex.name = s.loose ? ex.name.replace(WCC_SS_SUFFIX, '') : ex.name.replace(WCC_SS_PREFIX, '');
+    if (/^super-?set$/i.test(ex.sr)) ex.sr = '-';
+    ex.ssRemoved = true;
+  });
 }
 
 // A day is complete only with all three blocks, no unreadable lines, and
@@ -1677,7 +1709,7 @@ function wccBasePrompt(job){
 function wccPlanContract(job){
   var N = job.dayCount;
   return '\n\nTHIS REQUEST: Plan the ' + N + '-day program only. Do not write the workouts yet.\n' +
-    'For each day choose its focus and its 5 or 6 main-block exercises. No exercise may appear on more than one day. ' +
+    'For each day choose its focus and its 5 or 6 main-block exercises, one exercise per item (never two exercises combined into one item). No exercise may appear on more than one day. ' +
     (N >= 5 ? 'Make one day a lighter recovery day. ' : '') +
     'Every exercise must respect the contraindications above.\n' +
     'OUTPUT FORMAT, FOLLOW EXACTLY, and write nothing else:\n' +
@@ -1712,6 +1744,7 @@ function wccDayContract(job, idx){
     '   Use a single dash (-) for a field that does not apply. Never use the | character inside a field. No markdown, no bold, no numbering, no blank sub-headings.\n' +
     '6. Under ##NOTES write plain prose lines only, no EX| lines.\n' +
     '7. Last line: COUNT|<number of warm-up exercises>|<number of main exercises>|<number of cool-down exercises>\n' +
+    'SUPERSETS: to pair exercises, write each one on its own EX| line, next to each other, with names starting A1: and A2: (B1: and B2: for the next pair). Never label a single exercise as a superset and never put two exercises on one line.\n' +
     'WHERE OTHER REQUESTED TEXT GOES: An exercise modification goes at the end of that exercise’s cue field as [MOD: ...]. A short reason, pain-free range of motion reminder or form note for one exercise also goes in its cue field. Everything else, including profile-driven decisions, volume adjustments, physician or physical therapist reminders, the consult-a-physician reminder, breathing cues, and any mindset, habit or accountability section, goes as plain prose lines under ##NOTES. ' +
     (N > 1 && !finalDay ? 'Put mindset and habit items only on the final day; skip them on this day. ' : '') +
     'Write nothing outside this structure.\n' +
