@@ -1432,6 +1432,42 @@ function wccApplyInjuryRules(day, rules){
   });
   return swaps;
 }
+/* ══ WORKOUT QUALITY CHECKS ══
+   Run on every generated day after it passes the structure check. Each
+   check fixes what it can and records what it changed in day.fixes, which
+   the result lists under Quality checks. */
+var WCC_PCT_1RM = /~?\s*<?\s*\d{2,3}\s*(?:[-–]\s*\d{2,3}\s*)?%\s*(?:of\s*)?(?:1\s*-?\s*RM|one[- ]rep max|max)?/i;
+function wccRpeForPercent(text){
+  var m = String(text).match(/(\d{2,3})\s*(?:[-–]\s*(\d{2,3}))?\s*%/);
+  var pct = m ? parseInt(m[2] || m[1], 10) : 65;
+  return pct < 60 ? 'RPE 4-5' : pct < 70 ? 'RPE 5-6' : pct < 80 ? 'RPE 6-7' : 'RPE 7';
+}
+// Beginners are prescribed by effort (RPE), never by a percentage of a max they have not tested.
+function wccFixBeginnerLoad(day){
+  var fixes = [];
+  WCC_SECTIONS.forEach(function(k){
+    day[k].forEach(function(ex){
+      if (WCC_PCT_1RM.test(ex.load) && /%/.test(ex.load)) {
+        var before = ex.load;
+        var rest = ex.load.replace(new RegExp(WCC_PCT_1RM.source, 'gi'), '').replace(/^[\s,\/;]+|[\s,\/;]+$/g, '').replace(/\s*[,\/;]\s*[,\/;]\s*/g, ', ');
+        ex.load = /RPE/i.test(rest) ? rest : wccRpeForPercent(before);
+        fixes.push(ex.name + ': load "' + before + '" changed to ' + ex.load + ' (beginners use RPE, not %1RM)');
+      }
+      if (/%/.test(ex.cue) && WCC_PCT_1RM.test(ex.cue)) {
+        ex.cue = ex.cue.replace(new RegExp('(?:\\b(?:at|about|around|approximately|approx\\.?|roughly)\\s*)?' + WCC_PCT_1RM.source, 'gi'), '').replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.;])/g, '$1').trim();
+      }
+    });
+  });
+  return fixes;
+}
+function wccApplyQualityRules(day, job, idx){
+  var fixes = [];
+  if (!day) return fixes;
+  if (/beginner/i.test(job.level)) fixes = fixes.concat(wccFixBeginnerLoad(day));
+  return fixes;
+}
+window.wccApplyQualityRules = wccApplyQualityRules;
+
 window.wccActiveInjuryRules = wccActiveInjuryRules;
 window.wccInjuryViolation = wccInjuryViolation;
 window.wccApplyInjuryRules = wccApplyInjuryRules;
@@ -1595,7 +1631,7 @@ function wccApplyInjuryRulesToPlan(plan, rulesFor){
 
 async function wccRunDay(job, idx){
   var day = job.days[idx];
-  day.status = 'running'; day.text = ''; day.parsed = null; day.problems = []; day.error = ''; day.swaps = []; day.flagged = [];
+  day.status = 'running'; day.text = ''; day.parsed = null; day.problems = []; day.error = ''; day.swaps = []; day.flagged = []; day.fixes = [];
   var t0 = Date.now();
   wccRenderProgress(job);
   try {
@@ -1631,6 +1667,8 @@ async function wccRunDay(job, idx){
       }); });
       day.problems = problems;
       day.status = problems.length ? 'invalid' : 'done';
+      // Quality checks (load, units, warm-up size, time budget) only run on a structurally complete day.
+      if (day.status === 'done') day.fixes = wccApplyQualityRules(d, job, idx);
     }
     day.parsed = d; day.flagged = p.flagged;
     if (job.dayCount === 1 && day.status === 'done') { job.title = p.title || job.title; job.summary = p.summary || job.summary; }
@@ -1751,6 +1789,22 @@ function wccSwapSummaryHtml(job){
     }).join('') + '</ul>' : '') + '</div>';
 }
 
+// Lists what the quality checks changed on each day, and each day's estimated time.
+function wccQualitySummaryHtml(job){
+  var rows = [];
+  job.days.forEach(function(d){
+    var bits = [];
+    if (d.minutes) bits.push('<span style="color:var(--text);">≈ ' + d.minutes + ' min</span>' + (job.sessionMinutes ? ' of ' + job.sessionMinutes : ''));
+    (d.fixes || []).forEach(function(f){ bits.push(wccEsc(f)); });
+    if (bits.length) rows.push('<li><strong>Day ' + d.num + '</strong>: ' + bits.join('; ') + '</li>');
+  });
+  if (job.balanceFixes && job.balanceFixes.length) job.balanceFixes.forEach(function(f){ rows.push('<li>' + wccEsc(f) + '</li>'); });
+  if (!rows.length) return '';
+  return '<div style="background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius);padding:0.85rem 1.1rem;margin-bottom:1rem;font-size:0.8rem;color:var(--text2);line-height:1.55;">' +
+    '<strong style="color:var(--gold);font-family:Barlow Condensed,sans-serif;letter-spacing:0.08em;text-transform:uppercase;font-size:0.78rem;">Quality checks</strong>' +
+    '<ul style="margin:4px 0 0 1.1rem;">' + rows.join('') + '</ul></div>';
+}
+
 function wccRenderFinal(job, text){
   var styleName = job.styleName, injuries = job.injuries;
   window._wccTrackMode = false; // fresh workout starts as clean reference, not tracker
@@ -1761,7 +1815,7 @@ function wccRenderFinal(job, text){
   if(injuries){
     banner = '<div style="background:rgba(240,165,0,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start;"><span style="font-size:1.1rem;flex-shrink:0;">⚠️</span><div><strong style="color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;">INJURY PROTOCOL ACTIVE</strong><p style="font-size:0.82rem;color:var(--text2);margin-top:4px;">Modifications applied for '+wccEsc(injuries)+'. Exercises marked with ⚠ include alternative options.</p></div></div>';
   }
-  var swapHtml = wccSwapSummaryHtml(job);
+  var swapHtml = wccSwapSummaryHtml(job) + wccQualitySummaryHtml(job);
 
   // Coaches reference
   var coaches = WCC_COACHES[job.styleId] || '';
@@ -1839,6 +1893,7 @@ function wccBasePrompt(job){
     '• MEDICATIONS / GLP-1: If on a GLP-1 or weight-loss medication, prioritize lean-mass preservation (adequate resistance stimulus), account for reduced energy/fatigue tolerance and hydration needs, and avoid excessive metabolic volume. Reflect this in loading and rest.\n' +
     '• EQUIPMENT/LOCATION: Hard constraint. Never prescribe equipment the client does not have. Every exercise must be performable with the listed equipment.\n' +
     '• GOALS: The primary (first-listed) goal must drive the loading scheme (sets/reps/rest/intensity). Secondary goal is accessory.\n' +
+    (/beginner/i.test(job.level) ? '• BEGINNER LOAD: Prescribe load as RPE only (for example RPE 5-6), or bodyweight or light. Never write a percentage of 1RM for this client.\n' : '') +
     '• CONFIDENCE / MENTAL-HEALTH FLAGS: Honor the tone and language rules already specified in the client profile block exactly.\n' +
     '• In ##NOTES, briefly note the 2–3 most important profile-driven decisions you made for this day and why.\n';
 
