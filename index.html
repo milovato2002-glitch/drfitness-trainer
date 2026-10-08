@@ -4408,20 +4408,17 @@ function generateHandout() {
   var challenge = document.getElementById('ho-challenge').value;
 
   var goalLabels = {fat_loss:'Fat Loss',muscle_gain:'Muscle Gain',maintenance:'Maintenance',glp1:'GLP-1 Client',older_adult:'Older Adult 55+',athletic:'Athletic Performance'};
-  var activityFactors = {sedentary:1.2,light:1.375,moderate:1.55,very:1.725};
-  var kg = weight * 0.453592;
-  // Height was hardcoded at 170 cm. Without a real height there is no calorie target.
-  var heightIn = parseFloat((document.getElementById('ho-height') || {}).value) || 0;
-  var cm = heightIn * 2.54;
-
-  var protMin = goal === 'glp1' ? 1.8 : goal === 'older_adult' ? 1.6 : 1.6;
-  var protMax = goal === 'glp1' ? 2.4 : goal === 'older_adult' ? 2.0 : 2.2;
-  var protTarget = Math.round(kg * ((protMin + protMax) / 2));
-
-  var hasCalories = kg > 0 && cm > 0;
-  var rmr = hasCalories ? (sex === 'm' ? Math.round((10 * kg) + (6.25 * cm) - (5 * age) + 5) : Math.round((10 * kg) + (6.25 * cm) - (5 * age) - 161)) : 0;
-  var tdee = hasCalories ? Math.round(rmr * (activityFactors[activity] || 1.55)) : 0;
-  var calTarget = goal === 'fat_loss' ? tdee - 400 : goal === 'muscle_gain' ? tdee + 300 : goal === 'glp1' ? Math.min(tdee, 1400) : tdee;
+  // Targets come from the shared function, from what was typed here. Without a height there is no calorie target.
+  var heightIn = cpHeightIn((document.getElementById('ho-height') || {}).value);
+  var tg = cpNutritionTargets({
+    weight: weight, height: heightIn, age: age, sex: sex === 'm' ? 'male' : 'female',
+    activity: {sedentary:'sedentary', light:'lightly_active', moderate:'moderately_active', very:'very_active'}[activity] || 'moderately_active',
+    goals: (goal === 'fat_loss' || goal === 'muscle_gain') ? [goal] : [], special: (goal === 'glp1' || goal === 'older_adult') ? [goal] : []
+  });
+  var kg = tg.kg;
+  var protTarget = tg.protein;
+  var hasCalories = tg.ready;
+  var calTarget = tg.calories;
   var hydrationOz = weight > 0 ? Math.round(weight * 0.5) : 64;
 
   var topFoods = {
@@ -4454,7 +4451,9 @@ function generateHandout() {
   var dateStr = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
 
   var output = document.getElementById('handoutOutput');
-  output.innerHTML =
+  // Shown above the handout (not printed) when a target is missing.
+  var need = tg.missing ? '<div class="df-handout-need" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:0.8rem;color:var(--text2);"><span style="border:1px dashed var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);">Targets need a ' + tg.missing + '</span><button type="button" onclick="var f=document.getElementById(\'ho-' + tg.missing + '\');f.scrollIntoView({block:\'center\'});f.focus();" style="padding:6px 12px;background:transparent;border:1px solid var(--gold);border-radius:6px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">ADD ' + tg.missing.toUpperCase() + '</button></div>' : '';
+  output.innerHTML = need +
     '<div id="handoutPrint" style="background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--gold);padding-bottom:1rem;margin-bottom:1rem;">' +
       '<div><div style="font-family:Bebas Neue,sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;">Dr. Fitness</div><div style="font-size:0.68rem;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;">Client Nutrition Handout</div></div>' +
@@ -4463,7 +4462,7 @@ function generateHandout() {
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem;">' +
       '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--gold);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">' + goalLabels[goal] + '</div><div style="font-size:0.65rem;color:var(--text3);">GOAL</div></div>' +
       (hasCalories ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid #60a5fa;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#60a5fa;">' + calTarget + '</div><div style="font-size:0.65rem;color:var(--text3);">DAILY KCAL</div></div>' : '') +
-      (kg > 0 ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--green);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--green);">' + protTarget + 'g</div><div style="font-size:0.65rem;color:var(--text3);">DAILY PROTEIN</div></div>' : '') +
+      (protTarget !== null ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--green);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--green);">' + protTarget + 'g</div><div style="font-size:0.65rem;color:var(--text3);">DAILY PROTEIN</div></div>' : '') +
       '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--teal);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--teal);">' + hydrationOz + 'oz</div><div style="font-size:0.65rem;color:var(--text3);">DAILY WATER</div></div>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">' +
@@ -10815,39 +10814,89 @@ function populateWorkoutFormFromClient(c) {
   if (injEl && c.injuryNotes) injEl.value = c.injuryNotes;
 }
 
-// Daily calorie and protein targets from a profile. Used by the Nutrition tab and the food log.
+/* Daily targets from a profile: the one formula behind every calorie and protein
+   target in the app (Nutrition tab, nutrition plan and PDF, food log, handout).
+   Weight and height come from the profile and are never guessed:
+   no weight means no targets, and no height means no calorie target.
+   Height is in inches. */
+function cpHeightIn(v){
+  var n = parseFloat(v);
+  return n >= 36 && n <= 96 ? n : 0;
+}
 function cpNutritionTargets(c) {
-  if (!c || !c.weight) return null;
-  var kg = c.weight * 0.453592;
+  c = c || {};
+  var weight = parseFloat(c.weight) || 0;
+  var kg = weight * 0.453592;
   var age = parseInt(c.age) || 30;
-  var rmr = c.sex === 'male' ? Math.round((10*kg)+(6.25*170)-(5*age)+5) : Math.round((10*kg)+(6.25*165)-(5*age)-161);
-  var actMap = {sedentary:1.2,lightly_active:1.375,moderately_active:1.55,very_active:1.725,extra_active:1.9};
-  var tdee = Math.round(rmr * (actMap[c.activity]||1.55));
-  var isGlp = (c.special||[]).indexOf('glp1') !== -1;
-  var isOlder = (c.special||[]).indexOf('older_adult') !== -1;
-  var protMin = isGlp ? 1.8 : isOlder ? 1.6 : 1.6;
-  var protMax = isGlp ? 2.4 : isOlder ? 2.0 : 2.2;
-  var calories = (c.goals||[]).indexOf('fat_loss') !== -1 ? tdee - 400 : (c.goals||[]).indexOf('muscle_gain') !== -1 ? tdee + 300 : tdee;
-  return { calories: calories, protein: Math.round(kg * ((protMin+protMax)/2)) };
+  var heightIn = cpHeightIn(c.height);
+  var heightCm = heightIn * 2.54;
+  // Sex: handle arrays, capitals and unset values. Unknown uses the male Mifflin constant (+5)
+  // as the neutral default rather than silently asserting female (-161).
+  var sexRaw = String(Array.isArray(c.sex) ? (c.sex[0] || '') : (c.sex || '')).toLowerCase().trim();
+  var sexKnown = sexRaw === 'male' || sexRaw === 'm' || sexRaw === 'female' || sexRaw === 'f';
+  var isMale = sexRaw === 'male' || sexRaw === 'm';
+  var useMaleFormula = isMale || !sexKnown;
+  var hasWeight = kg > 0, hasHeight = heightIn > 0, ready = hasWeight && hasHeight;
+  // BMR: Mifflin-St Jeor, plus Cunningham when body fat is known (blended at 40+).
+  var mifflinBMR = ready ? Math.round((10*kg) + (6.25*heightCm) - (5*age) + (useMaleFormula ? 5 : -161)) : 0;
+  var bf = parseFloat(c.bf) || null;
+  var lbmKg = (bf && hasWeight) ? Math.round((kg * (1 - bf/100)) * 10) / 10 : null;
+  var cunninghamBMR = lbmKg ? Math.round(500 + (22 * lbmKg)) : null;
+  var bmr = !ready ? 0 : (cunninghamBMR && age >= 40) ? Math.round((cunninghamBMR + mifflinBMR) / 2) : (cunninghamBMR || mifflinBMR);
+  var actMap = {sedentary:1.2, lightly_active:1.375, moderately_active:1.55, very_active:1.725, extra_active:1.9};
+  var actFactor = actMap[c.activity] || 1.55;
+  var tdee = ready ? Math.round(bmr * actFactor) : 0;
+  var goals = c.goals || [];
+  var special = (c.special || []).filter(function(x){ return x && x !== 'none'; });
+  var isGlp1 = special.indexOf('glp1') !== -1 || special.indexOf('GLP-1 or AOM Client') !== -1;
+  var isOlder = special.indexOf('older_adult') !== -1 || age >= 55;
+  var isFatLoss = goals.indexOf('fat_loss') !== -1, isMuscle = goals.indexOf('muscle_gain') !== -1, isStrength = goals.indexOf('strength') !== -1;
+  var calories = !ready ? null : isFatLoss ? tdee - 400 : isMuscle ? tdee + 300 : isGlp1 ? Math.min(tdee - 300, 1400) : tdee;
+  var protGperKg = isGlp1 ? 2.1 : isOlder ? 1.8 : isMuscle ? 2.0 : isFatLoss ? 1.9 : 1.7;
+  var protein = hasWeight ? Math.round(kg * protGperKg) : null;
+  var fatGperKg = isOlder ? 1.1 : age >= 40 ? 0.9 : isFatLoss ? 0.9 : 1.0;
+  var fatG = hasWeight ? Math.round(kg * fatGperKg) : 0;
+  var protKcal = (protein || 0) * 4, fatKcal = fatG * 9;
+  var carbKcal = ready ? Math.max(0, calories - protKcal - fatKcal) : 0;
+  var carbG = Math.round(carbKcal / 4);
+  return {
+    hasWeight: hasWeight, hasHeight: hasHeight, ready: ready, missing: !hasWeight ? 'weight' : !hasHeight ? 'height' : null,
+    calories: calories, protein: protein,
+    weight: weight, kg: kg, age: age, heightIn: heightIn, heightCm: Math.round(heightCm),
+    sexKnown: sexKnown, isMale: isMale, useMaleFormula: useMaleFormula, bf: bf, lbmKg: lbmKg,
+    mifflinBMR: mifflinBMR, cunninghamBMR: cunninghamBMR, bmr: bmr, actFactor: actFactor, tdee: tdee,
+    protGperKg: protGperKg, protKcal: protKcal, fatG: fatG, fatKcal: fatKcal, fatGperKg: fatGperKg, carbG: carbG, carbKcal: carbKcal,
+    isGlp1: isGlp1, isOlder: isOlder, isFatLoss: isFatLoss, isMuscle: isMuscle, isStrength: isStrength, goals: goals, special: special
+  };
 }
 window.cpNutritionTargets = cpNutritionTargets;
+window.cpHeightIn = cpHeightIn;
+
+// Chips shown where targets are missing, the same for weight and height.
+function cpTargetsNeedHtml(t){
+  var btn = 'padding:6px 12px;background:transparent;border:1px solid var(--gold);border-radius:6px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;';
+  var chip = 'border:1px dashed var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--text3);';
+  if (t.missing === 'weight') return '<span class="df-targets-need" style="' + chip + '">Targets need a weight</span><button type="button" onclick="nptAddWeight()" style="' + btn + '">ADD WEIGHT</button>';
+  if (t.missing === 'height') return '<span class="df-targets-need" style="' + chip + '">Targets need a height</span><button type="button" onclick="nptAddHeight()" style="' + btn + '">ADD HEIGHT</button>';
+  return '';
+}
+window.cpTargetsNeedHtml = cpTargetsNeedHtml;
 
 function updateNutritionTargets(c) {
   // Add/update a targets box at top of nutrition panel if it exists
   var nutMain = document.querySelector('[data-panel="nutrition"] .nut-main');
   if (!nutMain) return;
   var existing = document.getElementById('acNutritionTargets');
-  if (!c || !c.weight) { if (existing) existing.remove(); return; }
+  if (!c) { if (existing) existing.remove(); return; }
   var tg = cpNutritionTargets(c);
-  var protTarget = tg.protein;
-  var calTarget = tg.calories;
-  var hydration = Math.round(c.weight * 0.5);
+  var cell = function(v, label, color){ return '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:' + color + ';">' + v + '</div><div style="font-size:0.62rem;color:var(--text3);">' + label + '</div></div>'; };
   var html = '<div id="acNutritionTargets" style="background:rgba(240,165,0,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:0.875rem 1.25rem;margin-bottom:1rem;">' +
-    '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Active Client: ' + c.fname + ' ' + (c.lname||'') + ' — Calculated Targets</div>' +
-    '<div style="display:flex;gap:1rem;flex-wrap:wrap;">' +
-    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--gold);">' + calTarget + '</div><div style="font-size:0.62rem;color:var(--text3);">DAILY KCAL</div></div>' +
-    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--green);">' + protTarget + 'g</div><div style="font-size:0.62rem;color:var(--text3);">PROTEIN</div></div>' +
-    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:var(--teal);">' + hydration + 'oz</div><div style="font-size:0.62rem;color:var(--text3);">WATER</div></div>' +
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Active Client: ' + dfEsc(c.fname + ' ' + (c.lname||'')) + ' — Calculated Targets</div>' +
+    '<div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">' +
+    (tg.calories !== null ? cell(tg.calories, 'DAILY KCAL', 'var(--gold)') : '') +
+    (tg.protein !== null ? cell(tg.protein + 'g', 'PROTEIN', 'var(--green)') : '') +
+    (tg.hasWeight ? cell(Math.round(tg.weight * 0.5) + 'oz', 'WATER', 'var(--teal)') : '') +
+    cpTargetsNeedHtml(tg) +
     '</div></div>';
   if (existing) { existing.outerHTML = html; }
   else { nutMain.insertAdjacentHTML('afterbegin', html); }
@@ -13824,109 +13873,49 @@ console.log('init: nutrition + enhanced client context script start');
 */
 window.getFullClientContext = function(c) {
   if (!c) return null;
-  var kg = (c.weight || 0) * 0.453592;
-  var age = parseInt(c.age) || 30;
-  var heightIn = parseInt(c.height) || 69;
-  var heightCm = heightIn * 2.54;
-  // Robust sex detection: handle array, capitalization, and unset values.
-  var sexRaw = Array.isArray(c.sex) ? (c.sex[0]||'') : (c.sex||'');
-  sexRaw = String(sexRaw).toLowerCase().trim();
-  var sexKnown = (sexRaw === 'male' || sexRaw === 'm' || sexRaw === 'female' || sexRaw === 'f');
-  var isMale = (sexRaw === 'male' || sexRaw === 'm');
-  // If sex is unknown, use the male Mifflin constant (+5) as the neutral default
-  // rather than silently asserting female (−161), which mislabels the client.
-  var useMaleFormula = isMale || !sexKnown;
-
-  // BMR — Mifflin St Jeor
-  var mifflinBMR = useMaleFormula
-    ? Math.round((10*kg) + (6.25*heightCm) - (5*age) + 5)
-    : Math.round((10*kg) + (6.25*heightCm) - (5*age) - 161);
-
-  // Cunningham (if BF known)
-  var bf = parseFloat(c.bf) || null;
-  var lbmKg = bf ? Math.round((kg * (1 - bf/100)) * 10) / 10 : null;
-  var cunninghamBMR = lbmKg ? Math.round(500 + (22 * lbmKg)) : null;
-
-  // Blended BMR for 40+
-  var bmr = (cunninghamBMR && age >= 40)
-    ? Math.round((cunninghamBMR + mifflinBMR) / 2)
-    : (cunninghamBMR || mifflinBMR);
-
-  var actMap = {sedentary:1.2, lightly_active:1.375, moderately_active:1.55, very_active:1.725, extra_active:1.9};
-  var actFactor = actMap[c.activity] || 1.55;
-  var tdee = Math.round(bmr * actFactor);
-
-  var goals = (c.goals || []);
-  var special = (c.special || []).filter(function(s){return s && s!=='none';});
-  var isGlp1 = special.indexOf('glp1') !== -1 || special.indexOf('GLP-1 or AOM Client') !== -1;
-  var isOlder = special.indexOf('older_adult') !== -1 || (age >= 55);
-  var isFatLoss = goals.indexOf('fat_loss') !== -1;
-  var isMuscle = goals.indexOf('muscle_gain') !== -1;
-  var isStrength = goals.indexOf('strength') !== -1;
-
-  // Calorie target
-  var calTarget = isFatLoss ? tdee - 400
-    : isMuscle ? tdee + 300
-    : isGlp1 ? Math.min(tdee - 300, 1400)
-    : tdee;
-
-  // Protein g/kg
-  var protGperKg = isGlp1 ? 2.1 : isOlder ? 1.8 : isMuscle ? 2.0 : isFatLoss ? 1.9 : 1.7;
-  var protG = Math.round(kg * protGperKg);
-  var protKcal = protG * 4;
-
-  // Fat g/kg
-  var fatGperKg = isOlder ? 1.1 : age >= 40 ? 0.9 : isFatLoss ? 0.9 : 1.0;
-  var fatG = Math.round(kg * fatGperKg);
-  var fatKcal = fatG * 9;
-
-  // Carbs fill remaining
-  var carbKcal = Math.max(0, calTarget - protKcal - fatKcal);
-  var carbG = Math.round(carbKcal / 4);
-
-  // Hydration
-  var waterOz = Math.round(c.weight * 0.5);
-  var mealsPerDay = isGlp1 ? 5 : isMuscle ? 5 : 4;
-
-  var goalLabel = isFatLoss ? 'Fat Loss' : isMuscle ? 'Muscle Gain' : isStrength ? 'Strength' : isGlp1 ? 'GLP-1 Support / Body Recomposition' : 'Body Recomposition / Maintenance';
+  // All calorie and macro numbers come from the shared target function.
+  var t = cpNutritionTargets(c);
+  var age = t.age;
+  var goalLabel = t.isFatLoss ? 'Fat Loss' : t.isMuscle ? 'Muscle Gain' : t.isStrength ? 'Strength' : t.isGlp1 ? 'GLP-1 Support / Body Recomposition' : 'Body Recomposition / Maintenance';
   var levelMap = {none:'Beginner','0to6mo':'Beginner','6to12mo':'Beginner','1to2yr':'Intermediate','2to5yr':'Intermediate','5to10yr':'Advanced','10yr+':'Advanced'};
-  var level = levelMap[c.trainingAge] || 'Intermediate';
-
   return {
     // Raw client
     fname: c.fname || 'Client',
     lname: c.lname || '',
     age: age,
-    sex: sexKnown ? (isMale ? 'Male' : 'Female') : 'Not specified',
-    sexKnown: sexKnown,
-    isMale: isMale,
-    useMaleFormula: useMaleFormula, // the Mifflin constant actually used for mifflinBMR
-    weight: c.weight || 0,
-    hasWeight: kg > 0, // calorie and protein targets are meaningless without it
-    weightKg: Math.round(kg * 10) / 10,
-    heightIn: heightIn,
-    heightCm: Math.round(heightCm),
-    bf: bf,
-    lbmKg: lbmKg,
+    sex: t.sexKnown ? (t.isMale ? 'Male' : 'Female') : 'Not specified',
+    sexKnown: t.sexKnown,
+    isMale: t.isMale,
+    useMaleFormula: t.useMaleFormula, // the Mifflin constant actually used for mifflinBMR
+    weight: t.weight,
+    hasWeight: t.hasWeight, // protein targets need a weight
+    hasHeight: t.hasHeight, // calorie targets also need a height
+    targetsReady: t.ready,
+    missing: t.missing,
+    weightKg: Math.round(t.kg * 10) / 10,
+    heightIn: t.heightIn,
+    heightCm: t.heightCm,
+    bf: t.bf,
+    lbmKg: t.lbmKg,
     // Calculated
-    bmr: bmr,
-    mifflinBMR: mifflinBMR,
-    cunninghamBMR: cunninghamBMR,
-    tdee: tdee,
-    actFactor: actFactor,
+    bmr: t.bmr,
+    mifflinBMR: t.mifflinBMR,
+    cunninghamBMR: t.cunninghamBMR,
+    tdee: t.tdee,
+    actFactor: t.actFactor,
     actLabel: {sedentary:'Sedentary',lightly_active:'Lightly Active (1-3x/wk)',moderately_active:'Moderately Active (3-5x/wk)',very_active:'Very Active (6-7x/wk)',extra_active:'Extremely Active (2x/day)'}[c.activity] || 'Moderately Active',
-    calTarget: calTarget,
-    protG: protG, protKcal: protKcal, protGperKg: protGperKg,
-    carbG: carbG, carbKcal: carbKcal, carbGperKg: Math.round((carbG/kg)*10)/10,
-    fatG: fatG, fatKcal: fatKcal, fatGperKg: fatGperKg,
-    waterOz: waterOz,
-    mealsPerDay: mealsPerDay,
+    calTarget: t.calories || 0,
+    protG: t.protein || 0, protKcal: t.protKcal, protGperKg: t.protGperKg,
+    carbG: t.carbG, carbKcal: t.carbKcal, carbGperKg: t.kg ? Math.round((t.carbG/t.kg)*10)/10 : 0,
+    fatG: t.fatG, fatKcal: t.fatKcal, fatGperKg: t.fatGperKg,
+    waterOz: t.hasWeight ? Math.round(t.weight * 0.5) : 0,
+    mealsPerDay: (t.isGlp1 || t.isMuscle) ? 5 : 4,
     // Labels
     goalLabel: goalLabel,
-    level: level,
-    isGlp1: isGlp1, isOlder: isOlder, isFatLoss: isFatLoss, isMuscle: isMuscle,
-    goals: goals,
-    special: special,
+    level: levelMap[c.trainingAge] || 'Intermediate',
+    isGlp1: t.isGlp1, isOlder: t.isOlder, isFatLoss: t.isFatLoss, isMuscle: t.isMuscle,
+    goals: t.goals,
+    special: t.special,
     injuries: (c.injuries || []).filter(function(x){return x && x!=='no_injuries';}),
     meds: c.currentMeds || c.medications || '',
     injuryNotes: c.injuryNotes || '',
@@ -13961,35 +13950,66 @@ function updateNutPlanBanner(ctx) {
     '<div style="font-size:0.72rem;color:var(--text2);">' + ctx.age + ' y/o · ' + (ctx.hasWeight ? ctx.weight + ' lbs' : 'weight not set') + ' · Goal: ' + ctx.goalLabel + '</div>' +
     '</div>' +
     '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">' +
-    // Without a weight the targets come out as nonsense (BMR from height and age alone, 0g protein).
-    (ctx.hasWeight
-      ? '<span style="background:var(--gold-dim);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.calTarget + ' kcal</span>' +
-        '<span style="background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.protG + 'g protein</span>'
-      : '<span style="border:1px dashed var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--text3);">Targets need a weight</span>' +
-        '<button onclick="nptAddWeight()" style="padding:6px 12px;background:transparent;border:1px solid var(--gold);border-radius:6px;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;">ADD WEIGHT</button>') +
+    // Targets show only when the profile has what they need; otherwise ask for it.
+    (ctx.hasWeight ? '<span style="background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--green);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.protG + 'g protein</span>' : '') +
+    (ctx.targetsReady ? '<span style="background:var(--gold-dim);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;color:var(--gold);font-family:Barlow Condensed,sans-serif;font-weight:700;">' + ctx.calTarget + ' kcal</span>' : cpTargetsNeedHtml({ missing: ctx.missing })) +
     '<button onclick="openNutritionPlanGenerator()" style="padding:6px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:6px;font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;">⚡ GENERATE FULL PLAN</button>' +
     '</div>' +
     '</div>';
 }
 
-// Collects the active client's weight from the banner, saves it, and refreshes the targets.
-window.nptAddWeight = function() {
+// Saves a field on one client and refreshes every place that shows targets.
+// Does not change which client is active.
+function cpSetClientField(id, field, value) {
+  if (typeof cpLoadClients === 'function') cpLoadClients();
+  var idx = cpClients.findIndex(function(x){ return x.id === id; });
+  if (idx < 0) return;
+  cpClients[idx][field] = value; cpSaveClients();
+  var a = window.cpActiveClient;
+  if (a && a.id === id) { a[field] = value; try { localStorage.setItem('drfitness_active_client', JSON.stringify(a)); } catch(e) {} }
+  cpRefreshTargets();
+}
+window.cpRefreshTargets = function() {
   var c = window.cpActiveClient;
+  if (c) {
+    if (typeof updateNutritionTargets === 'function') updateNutritionTargets(c);
+    var ctx = window.getFullClientContext(c);
+    updateNutPlanBanner(ctx);
+    updateSuppContextBanner(ctx);
+  }
+  if (document.getElementById('dfMealModal') && typeof dfMealRenderLog === 'function') dfMealRenderLog();
+  if (typeof renderClients === 'function') renderClients();
+};
+// Height in inches, or feet and inches such as 5'6 or 5 6. Returns 0 if it cannot be read.
+function cpParseHeight(v) {
+  var t = String(v || '').trim(), m = t.match(/^(\d)\s*(?:'|’|ft|feet|\s)\s*(\d{1,2})?\s*(?:"|”|in|inches)?$/i);
+  var n = m ? parseInt(m[1], 10) * 12 + (parseInt(m[2] || '0', 10)) : parseFloat(t);
+  return cpHeightIn(n);
+}
+window.cpParseHeight = cpParseHeight;
+// The client to update: the given id, else the active client.
+function cpTargetClient(id) {
+  if (!id) return window.cpActiveClient || null;
+  cpLoadClients();
+  return cpClients.find(function(x){ return x.id === id; }) || null;
+}
+window.nptAddWeight = function(id) {
+  var c = cpTargetClient(id);
   if (!c) return;
   var wv = prompt('Enter ' + (c.fname || 'the client') + '’s weight in lbs:', '');
   if (wv === null) return;
   var wn = parseFloat(wv);
   if (!wn || wn < 50 || wn > 700) { alert('Please enter a valid weight in lbs (50–700).'); return; }
-  c.weight = wn;
-  if (typeof cpLoadClients === 'function') cpLoadClients();
-  if (typeof cpClients !== 'undefined') {
-    var idx = cpClients.findIndex(function(x){ return x.id === c.id; });
-    if (idx >= 0) { cpClients[idx].weight = wn; if (typeof cpSaveClients === 'function') cpSaveClients(); }
-  }
-  try { localStorage.setItem('drfitness_active_client', JSON.stringify(c)); } catch(e) {}
-  var ctx = window.getFullClientContext(c);
-  updateNutPlanBanner(ctx);
-  updateSuppContextBanner(ctx);
+  cpSetClientField(c.id, 'weight', wn);
+};
+window.nptAddHeight = function(id) {
+  var c = cpTargetClient(id);
+  if (!c) return;
+  var hv = prompt('Enter ' + (c.fname || 'the client') + '’s height in inches (for example 66), or feet and inches (for example 5\'6):', '');
+  if (hv === null) return;
+  var hn = cpParseHeight(hv);
+  if (!hn) { alert('Please enter a height between 36 and 96 inches, for example 66 or 5\'6.'); return; }
+  cpSetClientField(c.id, 'height', hn);
 };
 
 function updateSuppContextBanner(ctx) {
@@ -14009,17 +14029,25 @@ window.openNutritionPlanGenerator = function(startSection) {
   }
 
   // Check minimum data — collect inline instead of dead-ending to the Clients tab.
-  if (!c.weight || !c.age) {
+  if (!c.weight || !c.age || !cpHeightIn(c.height)) {
     var missing = [];
     if(!c.weight) missing.push('weight');
+    if(!cpHeightIn(c.height)) missing.push('height');
     if(!c.age) missing.push('age');
-    var msg = 'To build accurate nutrition targets, '+(c.fname||'this client')+'\u2019s '+missing.join(' and ')+' '+(missing.length>1?'are':'is')+' needed.';
+    var msg = 'To build accurate nutrition targets, '+(c.fname||'this client')+'\u2019s '+missing.join(', ').replace(/, ([^,]*)$/, ' and $1')+' '+(missing.length>1?'are':'is')+' needed.';
     if(!c.weight){
       var wv = prompt(msg+'\n\nEnter weight in lbs:', '');
       if(wv===null) return; // cancelled
       var wn = parseFloat(wv);
       if(!wn || wn < 50 || wn > 700){ alert('Please enter a valid weight in lbs (50–700).'); return; }
       c.weight = wn;
+    }
+    if(!cpHeightIn(c.height)){
+      var hv = prompt((c.weight && missing[0] === 'height' ? msg + '\n\n' : '') + 'Enter '+(c.fname||'client')+'\u2019s height in inches (for example 66), or feet and inches (for example 5\'6):', '');
+      if(hv===null) return;
+      var hn = cpParseHeight(hv);
+      if(!hn){ alert('Please enter a height between 36 and 96 inches, for example 66 or 5\'6.'); return; }
+      c.height = hn;
     }
     if(!c.age){
       var av = prompt('Enter '+(c.fname||'client')+'\u2019s age in years:', '');
@@ -14032,10 +14060,11 @@ window.openNutritionPlanGenerator = function(startSection) {
     if(typeof cpLoadClients==='function') cpLoadClients();
     if(typeof cpClients!=='undefined'){
       var idx = cpClients.findIndex(function(x){return x.id===c.id;});
-      if(idx>=0){ cpClients[idx].weight=c.weight; cpClients[idx].age=c.age; if(typeof cpSaveClients==='function') cpSaveClients(); }
+      if(idx>=0){ cpClients[idx].weight=c.weight; cpClients[idx].height=c.height; cpClients[idx].age=c.age; if(typeof cpSaveClients==='function') cpSaveClients(); }
     }
     window.cpActiveClient = c;
     if(typeof localStorage!=='undefined') localStorage.setItem('drfitness_active_client', JSON.stringify(c));
+    if (window.cpRefreshTargets) cpRefreshTargets();
     // continue — fall through to generation with the now-complete profile
   }
 
@@ -14868,7 +14897,7 @@ var DF_MEAL_SYSTEM = 'You estimate the nutrition of a meal from a photo for a pe
   'If the photo shows no food, reply {"items":[],"confidence":"low","hidden":[],"notes":"No food found in the photo."}';
 
 // Calorie and protein targets from the profile (same formula as the Nutrition tab).
-function dfMealTargets(c){ return (typeof cpNutritionTargets === 'function') ? cpNutritionTargets(c) : null; }
+function dfMealTargets(c){ return cpNutritionTargets(c); }
 
 function dfMealToday(){ var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
 function dfMealDefaultMeal(){ var h = new Date().getHours(); return h < 11 ? 'Breakfast' : h < 15 ? 'Lunch' : h < 21 ? 'Dinner' : 'Snack'; }
@@ -15160,10 +15189,11 @@ function dfMealRenderLog(){
       '<div style="display:flex;gap:6px;"><button type="button" style="' + nav + '" onclick="dfMealShiftDate(-1)" aria-label="Previous day">‹ Prev</button><button type="button" style="' + nav + '" onclick="dfMealShiftDate(1)" aria-label="Next day">Next ›</button></div>' +
     '</div>' +
     '<div class="df-meal-day" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">' +
-      dfMealBar('Calories', t.calories, tg && tg.calories, 'kcal', 'var(--gold)') + dfMealBar('Protein', t.protein, tg && tg.protein, 'g', 'var(--green)') +
+      dfMealBar('Calories', t.calories, tg.calories, 'kcal', 'var(--gold)') + dfMealBar('Protein', t.protein, tg.protein, 'g', 'var(--green)') +
     '</div>' +
     '<div style="font-size:0.75rem;color:var(--text3);margin-bottom:10px;">Carbs ' + t.carbs + ' g · Fat ' + t.fat + ' g · All numbers are estimates. ' +
-      (tg ? 'Targets from the profile (' + tg.calories + ' kcal, ' + tg.protein + ' g protein).' : 'Add weight, age and activity to the profile to see targets.') + '</div>' +
+      (tg.ready ? 'Targets from the profile (' + tg.calories + ' kcal, ' + tg.protein + ' g protein).' : '') + '</div>' +
+    (tg.missing ? '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' + cpTargetsNeedHtml(tg).replace(/nptAdd(Weight|Height)\(\)/, 'dfMealAddMissing(\'' + tg.missing + '\')') + '</div>' : '') +
     (day.length ? day.map(function(e){
       return '<div class="df-meal-entry" style="display:flex;gap:10px;align-items:flex-start;background:var(--navy3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px;">' +
         (e.photo ? '<img src="' + esc(e.photo) + '" alt="' + esc(e.meal) + ' photo" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;">' : '') +
@@ -15180,6 +15210,11 @@ function dfMealRenderLog(){
     }).join('') : '<div style="font-size:0.8rem;color:var(--text3);">No meals logged for this day.</div>');
 }
 window.dfMealRenderLog = dfMealRenderLog;
+// The log may be for a client who is not active, so the field is set on that client.
+window.dfMealAddMissing = function(field){
+  if (!dfMeal) return;
+  if (field === 'height') nptAddHeight(dfMeal.clientId); else nptAddWeight(dfMeal.clientId);
+};
 </script>
 
 <script>
