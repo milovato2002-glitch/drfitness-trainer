@@ -281,7 +281,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <button class="nav-tab" data-tab="schedule">📅 SCHEDULE</button>
   <button class="nav-tab" data-tab="nutrition">🥗 NUTRITION</button>
   <button class="nav-tab" data-tab="calcs">🔢 CALCULATORS</button>
-  <button class="nav-tab" data-tab="supplements">💊 SUPPLEMENTS</button>
+  <button class="nav-tab gm-hide" data-tab="supplements">💊 SUPPLEMENTS</button>
   <button class="nav-tab" data-tab="reflib">📚 REFERENCE</button>
   <button class="nav-tab" data-tab="quickref">⚡ QUICK REF</button>
   <button class="nav-tab" data-tab="settings">⚙ SETTINGS</button>
@@ -530,6 +530,8 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 .wcc-chip{display:inline-flex;padding:8px 16px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:all 0.12s;user-select:none;}
 .wcc-chip:hover{border-color:var(--gold);color:var(--gold);}
 .wcc-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+/* ══ Gym Mode (Settings) hides supplement, medication and peptide tools ══ */
+body.gym-mode .gm-hide,body.gym-mode #nut-supp-tree,body.gym-mode #nut-supp-ref{display:none!important;}
 /* ══ Editable workout cards ══ */
 .wce-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;}
 .wce-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;}
@@ -677,8 +679,47 @@ window.dfApplySettings = function(){
   if (link) { if (s.bookingLink) { link.href = s.bookingLink; link.style.display = 'inline-block'; } else link.style.display = 'none'; }
   if (hint) hint.style.display = s.bookingLink ? 'none' : 'block';
   if (document.body) document.body.classList.toggle('gym-mode', !!s.gymMode);
+  // The phone nutrition dropdown is built from the sidebar, which Gym Mode changes.
+  if (typeof nutBuildMobileNav === 'function') nutBuildMobileNav();
+  // Leave a hidden tab if it is open when Gym Mode turns on.
+  if (s.gymMode && document.querySelector('.panel.active[data-panel="supplements"], .panel.active[data-panel="peptides"]') && window.mobileNavTo) window.mobileNavTo('ask');
+  if (s.gymMode && typeof nutSwitch === 'function') {
+    var activeSupp = document.querySelector('#nut-supp-tree.active, #nut-supp-ref.active');
+    var first = document.querySelector('.nut-sidebar .nut-btn');
+    if (activeSupp && first) first.click();
+  }
 };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window.dfApplySettings); else window.dfApplySettings();
+
+/* Gym Mode for AI answers: every request to /api/chat gets this rule added
+   to its system prompt while Gym Mode is on, so the chat, nutrition coach
+   and program builders cannot be asked around the hidden tools. */
+var DF_GYM_MODE_RULE = '\n\nGYM MODE IS ON AT THIS GYM: do not recommend supplements, supplement doses, medications or peptides, and do not assess supplement or medication interactions. If asked, say that at this gym those questions go to the client’s physician, pharmacist or a registered dietitian. Food-first nutrition guidance is fine. Keep every recommendation to see a physician or physical therapist.';
+window.dfGymMode = function(){ return !!window.dfSettings().gymMode; };
+(function(){
+  var orig = window.fetch;
+  if (!orig || orig._dfGym) return;
+  var wrapped = function(input, init){
+    try {
+      var url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (/\/api\/chat(\?|$)/.test(url) && init && typeof init.body === 'string' && window.dfGymMode()) {
+        var b = JSON.parse(init.body);
+        b.system = (b.system || '') + DF_GYM_MODE_RULE;
+        init = Object.assign({}, init, { body: JSON.stringify(b) });
+        return orig.call(this, input, init);
+      }
+    } catch(e) {}
+    return orig.apply(this, arguments);
+  };
+  wrapped._dfGym = true;
+  window.fetch = wrapped;
+})();
+// The supplement and peptide tools refuse to run in Gym Mode, even if reached directly.
+window.dfGymModeBlocked = function(where){
+  if (!window.dfGymMode()) return false;
+  try { alert((where || 'This tool') + ' is turned off because Gym Mode is on (Settings). Supplement, medication and peptide questions go to the client’s physician, pharmacist or a registered dietitian.'); } catch(e) {}
+  return true;
+};
 
 // Settings tab form.
 var dfPendingLogo = null; // { logo, logoW, logoH } chosen but not yet saved
@@ -3618,8 +3659,8 @@ window.wlibDelete = function(id){
     <button class="nut-btn food" onclick="nutSwitch(this,'food-budget')">Budget High Protein</button>
     <button class="nut-btn food" onclick="nutSwitch(this,'food-fastfood')">Fast Food Options</button>
     <div class="nut-section">Supplements</div>
-    <button class="nut-btn supp" onclick="nutSwitch(this,'supp-tree')">Supplement Decision Tree</button>
-    <button class="nut-btn supp" onclick="nutSwitch(this,'supp-ref')">Evidence Reference</button>
+    <button class="nut-btn supp gm-hide" onclick="nutSwitch(this,'supp-tree')">Supplement Decision Tree</button>
+    <button class="nut-btn supp gm-hide" onclick="nutSwitch(this,'supp-ref')">Evidence Reference</button>
     <div class="nut-section">Tools</div>
     <button class="nut-btn chat" onclick="nutSwitch(this,'nut-chat')">AI Nutrition Coach</button>
     <button class="nut-btn handout" onclick="nutSwitch(this,'handout')">Client Handout Generator</button>
@@ -4081,7 +4122,7 @@ function nutBuildMobileNav() {
       group = document.createElement('optgroup');
       group.label = el.textContent.trim();
       sel.appendChild(group);
-    } else if (el.classList.contains('nut-btn')) {
+    } else if (el.classList.contains('nut-btn') && !(document.body.classList.contains('gym-mode') && el.classList.contains('gm-hide'))) {
       var o = document.createElement('option');
       o.value = String(nutMobileButtons.length);
       o.textContent = el.textContent.trim();
@@ -4258,10 +4299,8 @@ function generateHandout() {
       '</ol></div>' +
       '<div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;padding-bottom:4px;border-bottom:1px solid var(--border2);">Meal Timing Guidance</div><p style="font-size:0.8rem;color:var(--text2);line-height:1.7;">' + (mealTiming[goal] || '') + '</p></div>' +
     '</div>' +
-    '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.875rem 1rem;margin-bottom:1rem;">' +
-      '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.3rem;">Key Supplement Recommendation</div>' +
-      '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;">' + (keySupplement[goal] || 'Creatine 3-5g/day') + '</p>' +
-    '</div>' +
+    // Dosed supplement advice is left off the handout in Gym Mode.
+    (dfSettings().gymMode ? '' : '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.875rem 1rem;margin-bottom:1rem;">' + '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.3rem;">Key Supplement Recommendation</div>' + '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;">' + (keySupplement[goal] || 'Creatine 3-5g/day') + '</p>' + '</div>') +
     '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border2);padding-top:0.75rem;margin-top:0.75rem;">' +
       '<div style="font-size:0.72rem;color:var(--text3);"><strong style="color:var(--text2);">Trainer:</strong> ' + dfEsc(dfSettings().trainerName || '\u2014') + (dfSettings().gymName ? ' &nbsp;|&nbsp; <strong style="color:var(--text2);">' + dfEsc(dfSettings().gymName) + '</strong>' : '') + '</div>' +
       '<div style="font-size:0.62rem;color:var(--text3);max-width:50%;text-align:right;">This is general nutrition education within personal trainer scope of practice. It does not replace medical advice. For individualized meal planning, consult a Registered Dietitian.</div>' +
@@ -7609,7 +7648,7 @@ function filterPeptides() {
       <div class="accord reflib-section" data-refpanel="exlib"><button class="accord-hdr" onclick="togRefLib(this,'exlib')">📖 Exercise Library <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="workout"><button class="accord-hdr" onclick="togRefLib(this,'workout')">🏋️ Workout Builder and Library <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="plbb"><button class="accord-hdr" onclick="togRefLib(this,'plbb')">🏆 Powerlifting and Bodybuilding <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
-      <div class="accord reflib-section" data-refpanel="peptides"><button class="accord-hdr" onclick="togRefLib(this,'peptides')">🔬 Peptides <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
+      <div class="accord reflib-section gm-hide" data-refpanel="peptides"><button class="accord-hdr" onclick="togRefLib(this,'peptides')">🔬 Peptides <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="youtube"><button class="accord-hdr" onclick="togRefLib(this,'youtube')">📺 Video Resources <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="resources"><button class="accord-hdr" onclick="togRefLib(this,'resources')">🔗 External Resources and Links <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
       <div class="accord reflib-section" data-refpanel="qref"><button class="accord-hdr" onclick="togRefLib(this,'qref')">📋 Quick Reference Tables <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="accord-body"></div></div>
@@ -7768,6 +7807,7 @@ function refLibReturn(panelId) {
 }
 
 function togRefLib(btn, panelId) {
+  if (panelId === 'peptides' && dfGymModeBlocked('The peptide library')) return;
   var body = btn.nextElementSibling;
   if (refLibBorrowed[panelId]) { refLibReturn(panelId); return; }
   var srcPanel = document.querySelector('[data-panel="'+panelId+'"]');
@@ -10826,6 +10866,7 @@ try {
 } catch (err) { console.error('init: supplement-advisor nav-hook FAILED:', err); }
 
 window.openSuppBuilder = function(){
+  if (dfGymModeBlocked('The supplement stack builder')) return;
   var c = window.cpActiveClient;
   var modal = document.createElement('div');
   modal.id = 'suppBuilderModal';
@@ -10850,6 +10891,7 @@ window.openSuppBuilder = function(){
 };
 
 window.generateSuppStack = async function(){
+  if (dfGymModeBlocked('The supplement stack builder')) return;
   var goal=''; document.querySelectorAll('#suppGoalChips .wcc-chip.active').forEach(function(c){goal=c.dataset.val;});
   var budget=''; document.querySelectorAll('#suppBudgetChips .wcc-chip.active').forEach(function(c){budget=c.dataset.val;});
   var meds = document.getElementById('suppMeds').value;
@@ -10883,6 +10925,7 @@ window.generateSuppStack = async function(){
 };
 
 window.checkSuppInteractions = async function(){
+  if (dfGymModeBlocked('The supplement and medication interaction checker')) return;
   var supps = document.getElementById('suppCheckSupps').value;
   var meds = document.getElementById('suppCheckMeds').value;
   if(!supps){alert('Enter supplements to check.');return;}
@@ -11370,7 +11413,7 @@ window.generateCompleteProgram = async function() {
     '## SECTION 1 — CLIENT OVERVIEW\nPersonalized opening addressing '+name+' specifically. Acknowledge their situation, barriers ('+((c.barriersChips||[]).join(', '))+'), and goals. Adjust tone to their confidence level.\n\n'+
     '## SECTION 2 — TRAINING PROGRAM\nFull day-by-day schedule for '+tf+'. Each training day: complete session with exercises, sets, reps, tempo, rest, coaching cues. Include rest days. Progressive overload built in. NASM OPT phase appropriate. Apply injury modifications for: '+((c.injuries||[]).filter(function(x){return x&&x!=='no_injuries';}).join(', ')||'none')+'.\n\n'+
     '## SECTION 3 — NUTRITION PLAN\nDaily calorie and macro targets. Meal timing. Sample day of eating. Foods to prioritize. Simple meal prep tips.'+(((c.special||[]).indexOf('glp1')!==-1)?' Include GLP-1 protein-first protocol.':'')+'\n\n'+
-    '## SECTION 4 — SUPPLEMENT PROTOCOL\nPrioritized OTC stack for their goal and '+budget+' budget. When to take each. What to look for when buying. Evidence grade for each. Scope of practice disclaimer.\n\n'+
+    (dfSettings().gymMode ? '## SECTION 4 — RECOVERY AND HYDRATION\nSleep, hydration and recovery habits for this client. No supplement, medication or peptide recommendations; refer those questions to the client\'s physician, pharmacist or a registered dietitian.\n\n' : '## SECTION 4 — SUPPLEMENT PROTOCOL\nPrioritized OTC stack for their goal and '+budget+' budget. When to take each. What to look for when buying. Evidence grade for each. Scope of practice disclaimer.\n\n')+
     '## SECTION 5 — MINDSET AND HABIT PLAN\nWeek-by-week habit goals. Confidence building milestones. Accountability strategies. Self-compassion reminders adjusted to their mental health flags.\n\n'+
     '## SECTION 6 — RESEARCH SUPPORT\n3-5 key research citations supporting this approach. PubMed search links. NASM/ACE guideline references.\n\n'+
     '## SECTION 7 — TRAINER NOTES\nLeave a section header for the trainer to add observations after delivery.\n\n'+
@@ -12393,7 +12436,7 @@ console.log('init: main script complete');
       <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What injury modifications should I make for my active client?')">Injury Mod</button>
       <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('What are the GLP-1 training and nutrition protocols for my active client?')">GLP-1 Protocol</button>
       <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Give me nutrition recommendations for my active client based on their goals.')">Nutrition</button>
-      <button class="qp-chip" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Build an evidence-based supplement stack for my active client.')">Supplement Stack</button>
+      <button class="qp-chip gm-hide" style="font-size:0.62rem;padding:3px 8px;" onclick="fcQuickPrompt('Build an evidence-based supplement stack for my active client.')">Supplement Stack</button>
     </div>
     <div class="fc-input-row">
       <textarea id="fcQi" placeholder="Ask Dr. Fitness..." rows="1"></textarea>
@@ -12559,7 +12602,7 @@ console.log('init: floating-chat complete');
   </div>
   <div id="mobileMoreMenu" style="display:none;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--border2);justify-content:center;">
     <button onclick="mobileNavTo('nutrition')" class="qp-chip">Nutrition</button>
-    <button onclick="mobileNavTo('supplements')" class="qp-chip">Supplements</button>
+    <button onclick="mobileNavTo('supplements')" class="qp-chip gm-hide">Supplements</button>
     <button onclick="mobileNavTo('calcs')" class="qp-chip">Calculators</button>
     <button onclick="mobileNavTo('reflib')" class="qp-chip">Reference</button>
     <button onclick="mobileNavTo('quickref')" class="qp-chip">Quick Ref</button>
@@ -12595,6 +12638,7 @@ console.log('init: floating-chat complete');
 console.log('init: secondary script start (mobile nav, PWA, messaging, schedule, builds 1-3)');
 /* ══ MOBILE NAV ══ */
 function mobileNavTo(tab){
+  if ((tab === 'supplements' || tab === 'peptides') && dfGymModeBlocked(tab === 'peptides' ? 'The peptide library' : 'The Supplements tab')) return;
   document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active');});
   var t=document.querySelector('[data-tab="'+tab+'"]');if(t)t.classList.add('active');
   document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
@@ -13841,7 +13885,7 @@ window.openNutritionPlanGenerator = function(startSection) {
     '<button class="npt-tab active" data-sec="profile" onclick="nptSwitch(this,\'profile\')">1 · Profile & Targets</button>' +
     '<button class="npt-tab" data-sec="macros" onclick="nptSwitch(this,\'macros\')">2 · Macro Calculation</button>' +
     '<button class="npt-tab" data-sec="foods" onclick="nptSwitch(this,\'foods\')">3 · Meal Plan</button>' +
-    '<button class="npt-tab" data-sec="supplements" onclick="nptSwitch(this,\'supplements\')">4 · Supplement Stack</button>' +
+    (dfSettings().gymMode ? '' : '<button class="npt-tab" data-sec="supplements" onclick="nptSwitch(this,\'supplements\')">4 · Supplement Stack</button>') +
     '<button class="npt-tab" data-sec="coaching" onclick="nptSwitch(this,\'coaching\')">5 · Coaching Notes</button>' +
     '<button class="npt-tab" data-sec="grocery" onclick="nptSwitch(this,\'grocery\')">6 · Grocery & Shopping</button>' +
   '</div>' +
@@ -13961,7 +14005,7 @@ window.openNutritionPlanGenerator = function(startSection) {
     '<button class="npt-gen-btn" id="nptGenMealBtn" onclick="generateAIMealPlan()">⚡ GENERATE PERSONALIZED MEAL PLAN WITH AI</button>' +
     '<div id="nptMealPlanOutput" style="display:none;">' +
       '<div class="npt-ai-output" id="nptMealPlanContent"></div>' +
-      '<button onclick="nptSwitch(document.querySelector(\'.npt-tab[data-sec=supplements]\'),\'supplements\')" style="width:100%;margin-top:1rem;padding:12px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">NEXT: SUPPLEMENT STACK →</button>' +
+      (dfSettings().gymMode ? '' : '<button onclick="nptSwitch(document.querySelector(\'.npt-tab[data-sec=supplements]\'),\'supplements\')" style="width:100%;margin-top:1rem;padding:12px;background:transparent;border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--gold);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">NEXT: SUPPLEMENT STACK →</button>') +
     '</div>' +
   '</div>' +
 
@@ -13974,15 +14018,15 @@ window.openNutritionPlanGenerator = function(startSection) {
     '</div>' +
   '</div>' +
 
-  // ── SECTION 4: Supplements ──
-  '<div class="npt-section" id="npt-supplements">' +
+  // ── SECTION 4: Supplements (hidden in Gym Mode) ──
+  (dfSettings().gymMode ? '' : '<div class="npt-section" id="npt-supplements">' +
     '<div class="npt-card">' +
       '<div class="npt-h2">Supplement Stack — Evidence-Based & Client-Specific</div>' +
       '<p style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem;">Generated specifically for ' + ctx.fname + ' based on their goal (' + ctx.goalLabel + '), age (' + ctx.age + '), activity level, and any current medications or health conditions.</p>' +
       '<button class="npt-gen-btn" id="nptGenSuppBtn" onclick="generateAISuppStack()">⚡ GENERATE PERSONALIZED SUPPLEMENT STACK WITH AI</button>' +
       '<div id="nptSuppOutput" style="display:none;"><div class="npt-ai-output" id="nptSuppContent"></div></div>' +
     '</div>' +
-  '</div>' +
+  '</div>') +
 
   // ── SECTION 5: Coaching Notes ──
   '<div class="npt-section" id="npt-coaching">' +
@@ -14013,7 +14057,7 @@ window.openNutritionPlanGenerator = function(startSection) {
   document.body.appendChild(overlay);
 
   // Auto-switch to supplements if requested
-  if (startSection === 'supplements') {
+  if (startSection === 'supplements' && !dfSettings().gymMode) {
     setTimeout(function() {
       nptSwitch(overlay.querySelector('.npt-tab[data-sec="supplements"]'), 'supplements');
     }, 50);
@@ -14182,10 +14226,10 @@ window.nptBuildCompletePlan = async function() {
   var steps = [
     { label: 'Recommended foods', fn: window.generateAIFoodPlan },
     { label: 'Meal plan', fn: window.generateAIMealPlan },
-    { label: 'Supplement stack', fn: window.generateAISuppStack },
+    (dfSettings().gymMode ? null : { label: 'Supplement stack', fn: window.generateAISuppStack }),
     { label: 'Grocery list & shopping guide', fn: window.generateAIGroceryGuide },
     { label: 'Coaching notes', fn: window.generateAICoachingNotes }
-  ];
+  ].filter(Boolean); // Gym Mode drops the supplement step
   var stepsEl = document.getElementById('nptBuildSteps');
   function render(done, current, failed){
     var h='';
@@ -14235,10 +14279,10 @@ window.nptBuildFullPlan = async function() {
 
   var steps = [
     { label: 'Meal plan', fn: window.generateAIMealPlan },
-    { label: 'Supplement stack', fn: window.generateAISuppStack },
+    (dfSettings().gymMode ? null : { label: 'Supplement stack', fn: window.generateAISuppStack }),
     { label: 'Grocery list & shopping guide', fn: window.generateAIGroceryGuide },
     { label: 'Coaching notes', fn: window.generateAICoachingNotes }
-  ];
+  ].filter(Boolean); // Gym Mode drops the supplement step
 
   function renderProgress(done, current, failed){
     if(!prog) return;
@@ -14371,6 +14415,7 @@ window.generateAIFoodPlan = async function() {
 
 /* ── AI: Supplement Stack ── */
 window.generateAISuppStack = async function() {
+  if (dfGymModeBlocked('The supplement stack')) return;
   var ctx = window._nptCtx;
   if (!ctx) return;
   var btn = document.getElementById('nptGenSuppBtn');
@@ -14566,7 +14611,7 @@ window.downloadNutritionPlanPDF = function() {
 
     '<div class="section-break"><div class="header"><h1>Sample Training Day Meal Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.mealsPerDay + ' Meals · ' + ctx.calTarget + ' kcal target</p></div>' + mealContent + '</div>' +
 
-    '<div class="section-break"><div class="header"><h1>Supplement Stack & Coaching Notes</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + dfEsc(dfSettings().gymName || 'Dr. Fitness') + ' · ' + date + '</p></div><h2>Supplement Recommendations</h2>' + suppContent + '<h2>Coaching Notes & Guidelines</h2>' + coachContent + '</div>' +
+    '<div class="section-break"><div class="header"><h1>' + (dfSettings().gymMode ? 'Coaching Notes' : 'Supplement Stack & Coaching Notes') + '</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + dfEsc(dfSettings().gymName || 'Dr. Fitness') + ' · ' + date + '</p></div>' + (dfSettings().gymMode ? '' : '<h2>Supplement Recommendations</h2>' + suppContent) + '<h2>Coaching Notes & Guidelines</h2>' + coachContent + '</div>' +
 
     (window._nptGrocery ? '<div class="section-break"><div class="header"><h1>Grocery List & Shopping Guide</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Weekly shopping · ' + date + '</p></div>' + window.nptMdToHtml(window._nptGrocery) + '</div>' : '') +
 
