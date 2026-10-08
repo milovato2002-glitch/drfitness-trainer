@@ -12444,6 +12444,8 @@ window.getFullClientContext = function(c) {
     age: age,
     sex: sexKnown ? (isMale ? 'Male' : 'Female') : 'Not specified',
     sexKnown: sexKnown,
+    isMale: isMale,
+    useMaleFormula: useMaleFormula, // the Mifflin constant actually used for mifflinBMR
     weight: c.weight || 0,
     weightKg: Math.round(kg * 10) / 10,
     heightIn: heightIn,
@@ -12674,7 +12676,7 @@ window.openNutritionPlanGenerator = function(startSection) {
       '<table class="npt-table">' +
         '<tr><th>Component</th><th>Method</th><th>Calculation</th><th>Result</th></tr>' +
         (ctx.cunninghamBMR ? '<tr><td>Cunningham BMR</td><td>LBM-based formula</td><td>500 + (22 × ' + ctx.lbmKg + ' kg LBM)</td><td><strong>' + ctx.cunninghamBMR + ' kcal</strong></td></tr>' : '') +
-        '<tr><td>Mifflin-St Jeor BMR</td><td>' + (ctx.sex) + ', age + weight formula</td><td>' + (ctx.isMale ? '(10×' + ctx.weightKg + ') + (6.25×' + ctx.heightCm + ') - (5×' + ctx.age + ') + 5' : '(10×' + ctx.weightKg + ') + (6.25×' + ctx.heightCm + ') - (5×' + ctx.age + ') - 161') + '</td><td><strong>' + ctx.mifflinBMR + ' kcal</strong></td></tr>' +
+        '<tr><td>Mifflin-St Jeor BMR</td><td>' + (ctx.sexKnown ? ctx.sex + ', age + weight formula' : 'Sex not set, male constant (+5) used') + '</td><td>' + (ctx.useMaleFormula ? '(10×' + ctx.weightKg + ') + (6.25×' + ctx.heightCm + ') - (5×' + ctx.age + ') + 5' : '(10×' + ctx.weightKg + ') + (6.25×' + ctx.heightCm + ') - (5×' + ctx.age + ') - 161') + '</td><td><strong>' + ctx.mifflinBMR + ' kcal</strong></td></tr>' +
         (ctx.cunninghamBMR && ctx.age >= 40 ? '<tr><td>Blended BMR</td><td>Average of both (age correction)</td><td>(' + ctx.cunninghamBMR + ' + ' + ctx.mifflinBMR + ') ÷ 2</td><td><strong>' + ctx.bmr + ' kcal</strong></td></tr>' : '') +
         '<tr><td>TDEE</td><td>BMR × Activity Factor</td><td>' + ctx.bmr + ' × ' + ctx.actFactor + ' (' + ctx.actLabel + ')</td><td><strong>' + ctx.tdee + ' kcal</strong></td></tr>' +
         '<tr class="total-row"><td><strong>Target Calories</strong></td><td>' + (ctx.isFatLoss ? 'Fat Loss: ~' + Math.round((1-(ctx.calTarget/ctx.tdee))*100) + '% deficit' : ctx.isMuscle ? 'Muscle Gain: +' + (ctx.calTarget-ctx.tdee) + ' kcal surplus' : 'Maintenance / Recomp') + '</td><td>' + ctx.tdee + ' × ' + (ctx.isFatLoss ? '0.88' : ctx.isMuscle ? '1.09' : '1.0') + '</td><td><strong style="color:var(--gold);">' + ctx.calTarget + ' kcal</strong></td></tr>' +
