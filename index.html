@@ -1523,14 +1523,77 @@ function wccFixWarmup(day, minutes, rules){
   return fixes;
 }
 
+/* Time budget. Each exercise is estimated as
+     sets x (reps x seconds per rep, or the hold time) + rest between sets + a transition,
+   with seconds per rep from the tempo (3-1-1 is 5s; default 3s) and per-side work doubled.
+   Missing rest counts as 45s in the main block and 0 in warm-up and cool-down. */
+var WCC_TRANSITION_S = { WARMUP: 15, MAIN: 30, COOLDOWN: 15 };
+function wccExerciseSeconds(ex, section){
+  var sr = String(ex.sr || '').toLowerCase();
+  var sets = parseInt((sr.match(/^\s*(\d+)\s*x/) || [0, '1'])[1], 10) || 1;
+  var perSide = /each|per side|\/side|per leg|per arm|e\/s/.test(sr) ? 2 : 1;
+  var work;
+  var t = sr.match(/(\d+(?:\.\d+)?)\s*(s|sec|secs|seconds|min|mins|minutes)\b/);
+  if (t) work = parseFloat(t[1]) * (/^m/.test(t[2]) ? 60 : 1);
+  else {
+    var reps = sr.match(/x\s*(\d+)(?:\s*[-–]\s*(\d+))?/) || sr.match(/(\d+)\s*(?:reps?|breaths?)/);
+    var n = reps ? (reps[2] ? (parseInt(reps[1], 10) + parseInt(reps[2], 10)) / 2 : parseInt(reps[1], 10)) : (sr === '-' || !sr ? 0 : 10);
+    var tempo = String(ex.tempo || '').match(/\d/g);
+    var perRep = tempo && tempo.length >= 2 ? tempo.reduce(function(a, b){ return a + parseInt(b, 10); }, 0) : 3;
+    perRep = Math.max(2, Math.min(8, perRep || 3));
+    work = n * perRep;
+    if (!work) work = 45; // an item with no sets or reps (for example "-") still takes time
+  }
+  work *= perSide;
+  var rm = String(ex.rest || '').toLowerCase().match(/(\d+(?:\.\d+)?)\s*(s|sec|secs|seconds|min|mins|minutes)?/);
+  var rest = rm ? parseFloat(rm[1]) * (rm[2] && /^m/.test(rm[2]) ? 60 : 1) : (section === 'MAIN' ? 45 : 0);
+  return sets * work + (sets - 1) * rest + WCC_TRANSITION_S[section];
+}
+function wccDayMinutes(day){
+  var s = 0;
+  WCC_SECTIONS.forEach(function(k){ day[k].forEach(function(ex){ s += wccExerciseSeconds(ex, k); }); });
+  return Math.round(s / 60);
+}
+// Cuts items until the day fits the session. Returns the fixes made.
+function wccFitTimeBudget(day, minutes){
+  var fixes = [];
+  if (!minutes) { day.minutes = wccDayMinutes(day); return fixes; }
+  var start = wccDayMinutes(day), removed = [], fewerSets = [];
+  var minCool = minutes <= 30 ? 1 : 2, minWarm = wccWarmupRange(minutes).min;
+  var over = function(){ return wccDayMinutes(day) > minutes; };
+  while (over() && day.COOLDOWN.length > minCool) removed.push(day.COOLDOWN.pop().name + ' (cool-down)');
+  while (over() && day.WARMUP.length > minWarm) removed.push(day.WARMUP.splice(day.WARMUP.length - 2, 1)[0].name + ' (warm-up)');
+  while (over() && day.MAIN.length > 3) removed.push(day.MAIN.pop().name + ' (main)');
+  // Last resort: one set fewer on main exercises, last first, never below 2 sets.
+  var guard = 0;
+  while (over() && guard++ < 30) {
+    var changed = false;
+    for (var i = day.MAIN.length - 1; i >= 0 && over(); i--) {
+      var ex = day.MAIN[i], m = String(ex.sr).match(/^\s*(\d+)\s*x/);
+      if (m && parseInt(m[1], 10) > 2) { ex.sr = String(ex.sr).replace(/^\s*\d+/, String(parseInt(m[1], 10) - 1)); fewerSets.push(ex.name); changed = true; }
+    }
+    if (!changed) break;
+  }
+  day.minutes = wccDayMinutes(day);
+  if (removed.length || fewerSets.length) {
+    fixes.push('trimmed from about ' + start + ' to ' + day.minutes + ' minutes to fit ' + minutes +
+      (removed.length ? '; removed ' + removed.join(', ') : '') +
+      (fewerSets.length ? '; one set fewer on ' + fewerSets.filter(function(x, i, a){ return a.indexOf(x) === i; }).join(', ') : ''));
+  }
+  return fixes;
+}
+
 function wccApplyQualityRules(day, job, idx){
   var fixes = [];
   if (!day) return fixes;
   if (/beginner/i.test(job.level)) fixes = fixes.concat(wccFixBeginnerLoad(day));
   fixes = fixes.concat(wccFixUnits(day));
   fixes = fixes.concat(wccFixWarmup(day, job.sessionMinutes, (job.injuryRules ? wccDayRules(job, idx) : [])));
+  // Time budget last, after everything that changes the item list.
+  fixes = fixes.concat(wccFitTimeBudget(day, job.sessionMinutes));
   return fixes;
 }
+window.wccDayMinutes = wccDayMinutes;
 window.wccApplyQualityRules = wccApplyQualityRules;
 
 window.wccActiveInjuryRules = wccActiveInjuryRules;
@@ -1733,7 +1796,14 @@ async function wccRunDay(job, idx){
       day.problems = problems;
       day.status = problems.length ? 'invalid' : 'done';
       // Quality checks (load, units, warm-up size, time budget) only run on a structurally complete day.
-      if (day.status === 'done') day.fixes = wccApplyQualityRules(d, job, idx);
+      if (day.status === 'done') {
+        day.fixes = wccApplyQualityRules(d, job, idx);
+        day.minutes = d.minutes;
+        if (job.sessionMinutes && d.minutes > job.sessionMinutes) {
+          day.status = 'invalid';
+          day.problems = ['Estimated ' + d.minutes + ' minutes, over the ' + job.sessionMinutes + '-minute session even after trimming.'];
+        }
+      }
     }
     day.parsed = d; day.flagged = p.flagged;
     if (job.dayCount === 1 && day.status === 'done') { job.title = p.title || job.title; job.summary = p.summary || job.summary; }
@@ -2007,6 +2077,7 @@ function wccDayContract(job, idx){
     'LENGTH: warm-up ' + wccWarmupRange(job.sessionMinutes).min + ' to ' + wccWarmupRange(job.sessionMinutes).max + ' exercises, ' + (plan ? 'main block as planned' : 'main block 5 to 6 exercises') + ', cool-down 2 to 3 exercises. Each coaching cue 15 words or fewer. ##NOTES at most 3 short lines' +
       (finalDay ? ', plus up to 4 short lines for any mindset and habit items' : '') + '.\n' +
     'UNITS: holds, stretches and planks are timed (for example 2x30s); lifts are counted in reps (for example 3x10).\n' +
+    (job.sessionMinutes ? 'TIME: the whole day, counting every set, rest period and change between exercises, must fit in ' + job.sessionMinutes + ' minutes: about ' + Math.round(job.sessionMinutes * 0.15) + ' minutes warm-up, ' + Math.round(job.sessionMinutes * 0.75) + ' minutes main block including any finisher, and ' + Math.round(job.sessionMinutes * 0.1) + ' minutes cool-down. Fewer exercises done well beats a list that cannot be finished.\n' : '') +
     '\nOUTPUT FORMAT, FOLLOW EXACTLY. This format overrides every other formatting instruction above, including bold headers, bullet points, MODIFICATIONS / AVOID / ALTERNATIVES lists, extra sections and closing reminders.\n' +
     (N === 1 ? '1. First line: TITLE: <short session title>\n2. Second line: SUMMARY: <one sentence on the session focus>\n' : '1. Do not write TITLE or SUMMARY lines.\n') +
     '3. Then the day header on its own line: ===DAY ' + n + '=== <day focus>\n' +
