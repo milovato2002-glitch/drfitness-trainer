@@ -1222,7 +1222,12 @@ var WCC_INJURY_RULES = [
     prompt:'No kneeling or half-kneeling positions of any kind (including quadruped, bird dog, Child\'s Pose, kneeling stretches, knee push-ups, a knee on a bench). No deep loaded knee flexion: no squats below parallel, no lunges or split squats, no pistol or sissy squats, no high step-ups, no wall sits, no pigeon stretch. No jumping or plyometrics. Allowed: squats to a box set above parallel, leg press with feet high and limited depth, low step-ups, hip hinges, glute bridges, seated and standing upper-body work.',
     banned:[
       { reason:'kneeling puts load through the kneecap',
-        test:function(n, cue){ return /\b(half[- ]?kneel\w*|tall[- ]?kneel\w*|kneel\w*|quadruped|all[- ]fours|bird[- ]?dogs?|child'?s pose|hero pose|frog stretch|couch stretch|nordic\w*|knee push-?ups?)\b/i.test(n) || /\b(knee on (the )?bench|kneel(ing)? on)\b/i.test(cue); },
+        test:function(n, cue){
+          if (/\b(half[- ]?kneel\w*|tall[- ]?kneel\w*|kneel\w*|quadruped|all[- ]fours|bird[- ]?dogs?|child'?s pose|hero pose|frog stretch|couch stretch|nordic\w*|knee push-?ups?)\b/i.test(n)) return true;
+          // Also caught live: "Ab Wheel Rollout from Knees-Elevated on Mat".
+          if (/\b(from|on) (the |your )?knees\b|\bknees?[- ](elevated|down|supported)\b/i.test(n)) return true;
+          if (/\b(ab[- ]?wheel|ab roller|barbell) roll-?outs?\b|\bab[- ]?wheel\b/i.test(n) && !/\bstanding\b/i.test(n)) return true;
+          return /\b(knee on (the )?bench|kneel(ing)? on|on (the |your )?knees)\b/i.test(cue); },
         alts:[
           { when:/row/i, name:'Chest-Supported Dumbbell Row (incline bench)', cue:'Chest on the pad, feet on the floor, drive the elbows to the hips' },
           { when:/row/i, name:'Seated Cable Row (neutral grip)', cue:'Sit tall, drive the elbows back, squeeze the shoulder blades' },
@@ -1231,7 +1236,8 @@ var WCC_INJURY_RULES = [
           { when:/hip flexor|psoas|quad|couch|lunge/i, name:'Standing Split-Stance Hip Flexor Stretch', cue:'Back heel up, tuck the pelvis and shift forward gently, knees pain-free' },
           { when:/child|lat|thoracic|reach|back/i, name:'Standing Lat Stretch at Rack', cue:'Hold the rack, sit the hips back and let the lats lengthen' },
           { when:/child|lat|thoracic|reach|back/i, name:'Seated Thoracic Rotation', cue:'Sit tall, rotate through the upper back, breathe out as you turn' },
-          { when:/bird|quadruped|dog|fours/i, name:'Dead Bug', cue:'Low back pressed down, move opposite arm and leg slowly' },
+          { when:/bird|quadruped|dog|fours|roll-?out|ab wheel|ab roller|plank|crunch|core/i, name:'Dead Bug', cue:'Low back pressed down, move opposite arm and leg slowly' },
+          { when:/roll-?out|ab wheel|ab roller|plank|core/i, name:'Forearm Plank (on toes)', cue:'Elbows under shoulders, legs straight, squeeze glutes and brace' },
           { when:/push-?up/i, name:'Incline Push-Up (hands on bench)', cue:'Body in one straight line, lower the chest to the bench' }
         ] },
       { reason:'deep loaded knee flexion',
