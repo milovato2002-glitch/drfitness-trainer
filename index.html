@@ -11417,10 +11417,10 @@ function renderMsgList(){
     var msgs=getMsgs(c.id);
     var last=msgs.length>0?msgs[msgs.length-1]:{};
     var preview=(last.text||'No messages yet').substring(0,40);
-    var initials=(c.fname||'')[0]+(c.lname||'')[0];
+    var initials=cpGetInitials(c); // handles a client with no last name
     return '<div onclick="openMsgConvo(\''+c.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:background 0.12s;'+(msgActiveClient===c.id?'background:var(--gold-dim);border:1px solid var(--gold);':'border:1px solid transparent;')+'" onmouseover="this.style.background=\'var(--gold-dim2)\'" onmouseout="this.style.background=\''+(msgActiveClient===c.id?'var(--gold-dim)':'transparent')+'\'">' +
-      '<div style="width:36px;height:36px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;color:var(--gold);flex-shrink:0;">'+initials+'</div>' +
-      '<div style="flex:1;min-width:0;"><div style="font-size:0.85rem;color:var(--text);font-weight:500;">'+c.fname+' '+(c.lname||'')+'</div><div style="font-size:0.72rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+preview+'</div></div>' +
+      '<div style="width:36px;height:36px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;color:var(--gold);flex-shrink:0;">'+(window.wccEsc||String)(initials)+'</div>' +
+      '<div style="flex:1;min-width:0;"><div style="font-size:0.85rem;color:var(--text);font-weight:500;">'+(window.wccEsc||String)((c.fname||'')+' '+(c.lname||''))+'</div><div style="font-size:0.72rem;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(window.wccEsc||String)(preview)+'</div></div>' +
     '</div>';
   }).join('');
 }
