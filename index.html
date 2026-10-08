@@ -10303,6 +10303,10 @@ var iwData = {};
 var iwCode = null;
 
 function openIntakeWizard(code, skipConversation) {
+  // A second tap used to stack another full-screen intake on top. Skip then
+  // removed the hidden copy, so the visible screen never changed and the
+  // page looked frozen. Only one intake screen may be open at a time.
+  document.querySelectorAll('#convoIntakeOverlay, #intakeWizardOverlay').forEach(function(el){ el.remove(); });
   iwStep = 0;
   iwData = JSON.parse(localStorage.getItem('drfitness_intake_draft') || '{}');
   iwCode = code || null;
@@ -10594,7 +10598,9 @@ function openConversationalIntake() {
   overlay.innerHTML = '<div style="width:100%;max-width:560px;margin:0 auto;flex:1;display:flex;flex-direction:column;overflow:hidden;">'+
     '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">'+
       '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">DR. FITNESS AI — Client Intake</div>'+
+      '<div style="display:flex;align-items:center;">'+
       '<button onclick="iwData.conversationDone=true;saveIntakeDraft();document.getElementById(\'convoIntakeOverlay\').remove();renderWizardStep()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:0.78rem;">Skip to Form</button>'+
+      '<button onclick="saveIntakeDraft();document.getElementById(\'convoIntakeOverlay\').remove()" aria-label="Close intake" title="Save draft and close" style="margin-left:8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 10px;cursor:pointer;font-size:0.78rem;">✕</button></div>'+
     '</div>'+
     '<div id="convoChat" style="flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:12px;">'+
       '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;max-width:88%;font-size:0.9rem;color:var(--text2);line-height:1.65;">Before I build '+name+'\'s program, I want to understand what actually brought them here. What is going on with this client — what is their real situation?</div>'+
@@ -10643,11 +10649,15 @@ window.convoRespond = async function(text) {
       var followUpPrompt = step === 0
         ? 'The trainer said about their client: "'+text+'". Ask ONE specific follow-up question referencing something they said. Be conversational and warm. Do not use apostrophes in contractions.'
         : 'The trainer previously said: "'+window._convoHistory[0].content+'". Then added: "'+text+'". Ask ONE final question: "What is the biggest challenge or barrier you expect with this client — what has stopped them before or what might get in the way?" Frame it naturally referencing their previous answers.';
-      var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
+      // A stalled request left "Thinking..." on screen forever; give up after 15s and use the built-in question.
+      var convoCtrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var convoTimer = setTimeout(function(){ if (convoCtrl) convoCtrl.abort(); }, 15000);
+      var res = await fetch('/.netlify/functions/chat',{method:'POST',signal:convoCtrl?convoCtrl.signal:undefined,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
       var d = await res.json();
       if (d.content && d.content[0]) aiDiv.textContent = d.content[0].text;
       else aiDiv.textContent = step===0 ? 'Tell me more — what specifically are they hoping to achieve?' : 'What is the biggest challenge or barrier you expect with this client?';
     } catch(e) { aiDiv.textContent = step===0 ? 'What specifically are they hoping to achieve?' : 'What is the biggest barrier you expect with this client?'; }
+    clearTimeout(convoTimer);
     chat.scrollTop = chat.scrollHeight;
   } else {
     // Step 3 — show summary and transition
