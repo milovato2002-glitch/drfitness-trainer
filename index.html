@@ -2070,7 +2070,7 @@ function wccRenderFinal(job, text){
       job.sessionType
     );
     var cName = (activeC.fname + ' ' + (activeC.lname||'')).trim();
-    saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--green);"><span>✓</span><span>Saved to <strong>'+wccEsc(cName)+'</strong>’s session history</span></div>';
+    saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--green);"><span>✓</span><span>Saved to <strong>'+wccEsc(cName)+'</strong>’s session history · edits save automatically</span></div>';
   } else {
     saveStatus = '<div style="display:flex;align-items:center;gap:8px;background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--gold);"><span>⚠</span><span>No active client — not saved to a profile. Select a client to auto-save, or add to your Library below.</span></div>';
   }
@@ -2080,6 +2080,11 @@ function wccRenderFinal(job, text){
   document.getElementById('wccOutputContent').innerHTML = actionRow + banner + swapHtml + diagramHtml + toggleHtml + quickContent + detailContent + coachHtml;
   wccEditorStart(job, text);
   wccEd.pieces = { banner: banner, swapHtml: swapHtml, coachHtml: coachHtml };
+  // Remember which saved session this is, so edits update it instead of adding new ones.
+  if (activeC && activeC.id && typeof getClientSessions === 'function') {
+    var newest = getClientSessions(activeC.id)[0];
+    if (newest) wccEd.session = { clientId: activeC.id, id: newest.id };
+  }
   wccEdRenderAll();
 }
 
@@ -2205,6 +2210,27 @@ function wccEdCommit(days){
   var dv = document.getElementById('wccDetailView');
   if (dv) dv.innerHTML = buildDetailView(text);
   wccEdUpdateUndo();
+  wccEdQueueSave();
+}
+
+// Keeps the client's saved session in step with the edits (debounced).
+function wccEdQueueSave(){
+  if (!wccEd || !wccEd.session) return;
+  clearTimeout(wccEd.saveTimer);
+  wccEd.saveTimer = setTimeout(wccEdSaveSession, 500);
+}
+function wccEdSaveSession(){
+  var e = wccEd;
+  if (!e || !e.session || typeof SESSION_HISTORY_KEY === 'undefined') return;
+  var all;
+  try { all = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}'); } catch(err) { return; }
+  var s = (all[e.session.clientId] || []).find(function(x){ return x.id === e.session.id; });
+  if (!s) return;
+  var pc = e.pieces || {};
+  s.content = (pc.banner || '') + (pc.swapHtml || '') +
+    '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">' + buildDetailView(wccEdText()) + '</div>' + (pc.coachHtml || '');
+  s.editedAt = new Date().toISOString();
+  try { localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(all)); } catch(err) {} // a failure is shown by the storage warning
 }
 function wccEdUpdateUndo(){
   var b = document.getElementById('wceUndoBtn');
