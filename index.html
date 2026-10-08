@@ -10243,7 +10243,7 @@ function renderClients() {
   count.textContent = list.length + ' client' + (list.length!==1?'s':'') + (cpClients.length!==list.length?' (filtered from '+cpClients.length+')':'');
   if (list.length === 0) {
     grid.innerHTML = cpClients.length === 0
-      ? '<div class="cp-empty"><h3>No clients yet</h3><p>Click "+ New Client" to create your first client profile.<br>Profiles save locally in your browser.</p></div>'
+      ? '<div class="cp-empty"><h3>No clients yet</h3><p>Click "+ New Client" to create your first client profile.<br>Profiles save locally in your browser.</p><button type="button" class="wce-btn" style="margin-top:12px;" onclick="dfDemoLoad()">Load demo clients</button></div>'
       : '<div class="cp-empty"><h3>No matches</h3><p>Try a different search or filter.</p></div>';
     return;
   }
@@ -10283,7 +10283,7 @@ function renderClients() {
           <div class="cp-card-sub">${[lvl, phase, lastSes ? 'Last: '+lastSes : ''].filter(Boolean).join(' · ')||'Profile incomplete'}</div>
         </div>
       </div>
-      <div class="cp-card-tags">${waiverHtml}${assessHtml}${specialTags?(' '+specialTags):''}</div>
+      <div class="cp-card-tags">${c.isDemo?'<span class="waiver-badge" style="background:rgba(120,140,255,0.15);color:#9fb0ff;border:1px solid rgba(120,140,255,0.4);">DEMO</span>':''}${waiverHtml}${assessHtml}${specialTags?(' '+specialTags):''}</div>
       <div class="cp-card-goal">${c.success ? '"'+c.success.substring(0,80)+(c.success.length>80?'...':'')+'"' : goalLabel}</div>
       <div style="display:flex;gap:6px;margin-top:8px;">
         <button onclick="event.stopPropagation();setActiveClient('${c.id}')" style="flex:1;padding:7px 8px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;${isActive?'opacity:0.5;':''}">SET ACTIVE</button>
@@ -14761,6 +14761,413 @@ setTimeout(function() {
 }, 300);
 
 console.log('init: nutrition + enhanced client context complete — ALL INIT DONE');
+</script>
+
+<script>
+/* ══ DEMO CLIENTS ══
+   Settings > Demo loads five sample clients with obviously made-up names,
+   complete profiles and one saved program each. Everything they create is
+   marked isDemo (or keyed by a demo_ client id), so Reset Demo removes only
+   demo data and never touches real clients. */
+var DF_DEMO_PREFIX = 'demo_';
+var DF_DEMO_PROGRAMS = {
+  demo_penny: { style: 'CORRECTIVE EXERCISE AND REHAB', styleId: 'corrective', level: 'Beginner', duration: '45 min', equipment: 'Full Gym', goal: 'Fat Loss', injuries: 'Anterior knee pain (patellofemoral), both knees', daysAgo: 2,
+    text: [
+      'TITLE: Knee-Friendly Foundations',
+      'SUMMARY: Two full-body beginner days that build leg strength with box squats above parallel, hip hinges and bridges, with no kneeling, lunges or jumping.',
+      '===DAY 1=== Lower Body and Push',
+      '##WARMUP',
+      'EX|Stationary Bike (easy)|1x5 min|-|-|Easy pace|Seat high so the knee stays comfortable',
+      'EX|Glute Bridge|1x12|2-1-2|-|Bodyweight|Drive through the heels, squeeze at the top',
+      'EX|Side-Lying Clamshell|1x10 each side|-|-|Bodyweight|Hips stacked, open the knee slowly',
+      'EX|Band Pull-Apart|1x12|-|-|Light band|Straight arms, squeeze the shoulder blades',
+      '##MAIN',
+      'EX|Goblet Squat to High Box (above parallel)|3x10|3-1-1|60s|RPE 6|Touch the box and stand, pain-free range only [MOD: Raise the box if the knee aches]',
+      'EX|Incline Dumbbell Bench Press|3x10|2-1-2|60s|RPE 6|Shoulder blades back, lower with control',
+      'EX|Dumbbell Romanian Deadlift|3x10|3-1-1|60s|RPE 6|Hinge at the hips with soft knees and a flat back',
+      'EX|Seated Cable Row (neutral grip)|3x12|2-1-2|60s|RPE 6|Sit tall, drive the elbows back',
+      'EX|Dead Bug|2x8 each side|-|45s|Bodyweight|Low back pressed down, move slowly',
+      '##COOLDOWN',
+      'EX|Supine Hamstring Stretch with Strap|1x30s each side|-|-|-|Soft knee, pull the leg up gently',
+      'EX|Supine Figure-Four Stretch|1x30s each side|-|-|-|Ankle over the opposite knee, pull gently',
+      'EX|Supine Diaphragmatic Breathing|1x60s|-|-|-|Slow breaths into the belly',
+      '##NOTES',
+      'Knee pain should stay at 2 out of 10 or lower during and after the session. Stop any exercise that makes it worse.',
+      'COUNT|4|5|3',
+      '===DAY 2=== Upper Body and Hips',
+      '##WARMUP',
+      'EX|Treadmill Walk (slight incline)|1x5 min|-|-|Easy pace|Short steps, tall posture',
+      'EX|Arm Circles|1x10 each way|-|-|Bodyweight|Small to large circles, ribs down',
+      'EX|Standing Hip Circles|1x8 each way|-|-|Bodyweight|Hold the rack, draw slow circles with the knee',
+      '##MAIN',
+      'EX|Leg Press (feet high, limited depth)|3x12|3-1-1|60s|RPE 6|Feet high on the platform, stop before the knees pass 90 degrees',
+      'EX|Neutral-Grip Lat Pulldown|3x10|2-1-2|60s|RPE 6|Pull the elbows to the ribs, chest up',
+      'EX|Dumbbell Hip Thrust (shoulders on bench)|3x10|2-1-2|60s|RPE 6|Chin tucked, drive through the heels',
+      'EX|Seated Dumbbell Shoulder Press|3x10|2-1-2|60s|RPE 6|Sit tall, press without arching the low back',
+      'EX|Standing Pallof Press|2x10 each side|2-2-1|45s|Light cable|Feet hip-width, press out and resist rotation',
+      '##COOLDOWN',
+      'EX|Standing Calf Stretch at Wall|1x30s each side|-|-|-|Back heel down, lean in gently',
+      'EX|Doorway Chest Stretch|1x30s|-|-|-|Elbows at shoulder height, breathe out as you lean',
+      'COUNT|3|5|2'
+    ] },
+  demo_gail: { style: 'GLP-1 AND AOM ADAPTIVE TRAINING', styleId: 'glp1', level: 'Beginner', duration: '45 min', equipment: 'Full Gym', goal: 'Strength', injuries: '', daysAgo: 3,
+    text: [
+      'TITLE: Lean Mass Protection on a GLP-1',
+      'SUMMARY: Two full-body strength days that protect muscle during medication-supported weight loss, with moderate effort, longer rest and easy pacing on low-appetite days.',
+      '===DAY 1=== Full Body A',
+      '##WARMUP',
+      'EX|Recumbent Bike (easy)|1x5 min|-|-|Easy pace|Conversational effort, sip water',
+      'EX|Glute Bridge|1x12|2-1-2|-|Bodyweight|Drive through the heels, squeeze at the top',
+      'EX|Band Pull-Apart|1x12|-|-|Light band|Straight arms, squeeze the shoulder blades',
+      '##MAIN',
+      'EX|Leg Press|3x10|3-1-1|75s|RPE 6|Full foot on the platform, smooth reps',
+      'EX|Chest-Supported Dumbbell Row (incline bench)|3x10|2-1-2|75s|RPE 6|Chest on the pad, drive the elbows to the hips',
+      'EX|Machine Chest Press|3x10|2-1-2|75s|RPE 6|Shoulder blades back, press without locking out hard',
+      'EX|Dumbbell Romanian Deadlift|3x8|3-1-1|75s|RPE 6|Hinge at the hips, flat back',
+      'EX|Farmer Carry|3x30s|-|60s|Moderate dumbbells|Tall posture, slow steady steps',
+      '##COOLDOWN',
+      'EX|Seated Hamstring Stretch|1x30s each side|-|-|-|Long spine, reach toward the toes gently',
+      'EX|Supine Diaphragmatic Breathing|1x60s|-|-|-|Slow breaths into the belly',
+      '##NOTES',
+      'On low-appetite or nausea days keep effort at RPE 5 and cut one set from each lift. Sit and rest if lightheaded.',
+      'COUNT|3|5|2',
+      '===DAY 2=== Full Body B',
+      '##WARMUP',
+      'EX|Treadmill Walk (slight incline)|1x5 min|-|-|Easy pace|Short steps, tall posture',
+      'EX|Bodyweight Box Squat|1x10|2-1-2|-|Bodyweight|Sit back to the box and stand tall',
+      'EX|Arm Circles|1x10 each way|-|-|Bodyweight|Small to large circles, ribs down',
+      '##MAIN',
+      'EX|Goblet Squat to Box|3x10|3-1-1|75s|RPE 6|Chest tall, touch the box and stand',
+      'EX|Neutral-Grip Lat Pulldown|3x10|2-1-2|75s|RPE 6|Pull the elbows to the ribs',
+      'EX|Dumbbell Step-Up (low step)|2x8 each leg|2-1-2|60s|RPE 6|Whole foot on the step, stand tall at the top',
+      'EX|Seated Cable Row|3x12|2-1-2|75s|RPE 6|Sit tall, squeeze the shoulder blades',
+      'EX|Forearm Plank (on toes)|2x20s|-|45s|Bodyweight|Elbows under shoulders, squeeze glutes and brace',
+      '##COOLDOWN',
+      'EX|Standing Calf Stretch at Wall|1x30s each side|-|-|-|Back heel down, lean in gently',
+      'EX|Doorway Chest Stretch|1x30s|-|-|-|Elbows at shoulder height, breathe out as you lean',
+      'COUNT|3|5|2'
+    ] },
+  demo_walter: { style: 'SENIOR AND 55 PLUS FUNCTIONAL FITNESS', styleId: 'senior', level: 'Beginner', duration: '45 min', equipment: 'Full Gym', goal: 'Strength', injuries: '', daysAgo: 1,
+    text: [
+      'TITLE: Strong and Steady at 63',
+      'SUMMARY: Two days of strength, balance and power for everyday independence, with blood pressure friendly breathing and no breath holding.',
+      '===DAY 1=== Strength and Balance',
+      '##WARMUP',
+      'EX|Recumbent Bike (easy)|1x5 min|-|-|Easy pace|Steady breathing, light resistance',
+      'EX|Standing Hip Circles|1x8 each way|-|-|Bodyweight|Hold the rack, draw slow circles with the knee',
+      'EX|Wall Slides|1x10|2-1-2|-|Bodyweight|Forearms on the wall, slide up while breathing out',
+      '##MAIN',
+      'EX|Sit-to-Stand from Bench|3x10|2-1-2|60s|RPE 6|Stand up quickly, sit down slowly, breathe out as you stand',
+      'EX|Seated Cable Row|3x10|2-1-2|60s|RPE 6|Sit tall, squeeze the shoulder blades',
+      'EX|Dumbbell Step-Up (low step)|2x8 each leg|2-1-2|60s|RPE 6|Hold the rail if needed, whole foot on the step',
+      'EX|Machine Chest Press|3x10|2-1-2|60s|RPE 6|Breathe out as you press, no breath holding',
+      'EX|Single-Leg Stand at Rack|2x20s each side|-|30s|Bodyweight|Fingertips on the rack, eyes forward',
+      '##COOLDOWN',
+      'EX|Seated Hamstring Stretch|1x30s each side|-|-|-|Long spine, reach toward the toes gently',
+      'EX|Supine Diaphragmatic Breathing|1x60s|-|-|-|Slow breaths into the belly',
+      '##NOTES',
+      'Check blood pressure before the session. Breathe out on every effort and never hold the breath while lifting.',
+      'COUNT|3|5|2',
+      '===DAY 2=== Power and Carry',
+      '##WARMUP',
+      'EX|Treadmill Walk (slight incline)|1x5 min|-|-|Easy pace|Short steps, tall posture',
+      'EX|Arm Circles|1x10 each way|-|-|Bodyweight|Small to large circles, ribs down',
+      'EX|Glute Bridge|1x10|2-1-2|-|Bodyweight|Drive through the heels, squeeze at the top',
+      '##MAIN',
+      'EX|Leg Press|3x10|2-1-2|60s|RPE 6|Push the platform away quickly, lower slowly',
+      'EX|Neutral-Grip Lat Pulldown|3x10|2-1-2|60s|RPE 6|Pull the elbows to the ribs',
+      'EX|Dumbbell Romanian Deadlift|3x8|3-1-1|60s|RPE 6|Hinge at the hips, flat back',
+      'EX|Suitcase Carry|3x30s each side|-|45s|Moderate dumbbell|Stand tall, do not lean toward the weight',
+      'EX|Medicine Ball Chest Pass (standing)|2x8|-|45s|Light ball|Soft knees, pass fast to the wall',
+      '##COOLDOWN',
+      'EX|Standing Calf Stretch at Wall|1x30s each side|-|-|-|Back heel down, lean in gently',
+      'EX|Doorway Chest Stretch|1x30s|-|-|-|Elbows at shoulder height, breathe out as you lean',
+      'COUNT|3|5|2'
+    ] },
+  demo_rory: { style: 'CORRECTIVE EXERCISE AND REHAB', styleId: 'corrective', level: 'Intermediate', duration: '60 min', equipment: 'Full Gym', goal: 'Strength', injuries: 'Right shoulder, rotator cuff repair, discharged from physical therapy', daysAgo: 4,
+    text: [
+      'TITLE: Return to Strength After Shoulder Rehab',
+      'SUMMARY: Two days that rebuild pressing and pulling below shoulder height, keep up the rotator cuff work from physical therapy and train the lower body hard.',
+      '===DAY 1=== Lower Body and Pull',
+      '##WARMUP',
+      'EX|Rowing Machine (light)|1x5 min|-|-|Easy pace|Legs, hips, then arms, smooth strokes',
+      'EX|Band External Rotation|1x15 each side|2-1-2|-|Light band|Elbow at the side on a towel roll, rotate out slowly',
+      'EX|Band Pull-Apart|1x15|-|-|Light band|Straight arms, squeeze the shoulder blades',
+      'EX|Scapular Wall Slides|1x10|2-1-2|-|Bodyweight|Forearms on the wall, stop below shoulder pain',
+      'EX|Glute Bridge|1x12|2-1-2|-|Bodyweight|Drive through the heels, squeeze at the top',
+      '##MAIN',
+      'EX|Trap Bar Deadlift|4x6|2-1-1|120s|RPE 7|Push the floor away, hips and chest rise together',
+      'EX|Chest-Supported Dumbbell Row (incline bench)|3x10|2-1-2|75s|RPE 7|Chest on the pad, drive the elbows to the hips',
+      'EX|Rear-Foot-Elevated Split Squat|3x8 each leg|3-1-1|75s|RPE 7|Dumbbells at the sides, front shin vertical',
+      'EX|Neutral-Grip Lat Pulldown|3x10|2-1-2|75s|RPE 7|Pull the elbows to the ribs, stop if the shoulder pinches',
+      'EX|Cable Face Pull|3x15|2-1-2|60s|Light|Pull to the eyes, elbows high, rotate the hands back',
+      'EX|Side-Lying Dumbbell External Rotation|2x12 each side|3-1-2|45s|Light dumbbell|Towel under the elbow, slow lowering',
+      '##COOLDOWN',
+      'EX|Cross-Body Shoulder Stretch|1x30s each side|-|-|-|Gentle pull, no pain in the front of the shoulder',
+      'EX|Supine Figure-Four Stretch|1x30s each side|-|-|-|Ankle over the opposite knee, pull gently',
+      '##NOTES',
+      'Follow the discharge notes from the physical therapist. Stop any exercise that brings back the old shoulder pain and let the therapist know.',
+      'COUNT|5|6|2',
+      '===DAY 2=== Upper Body Press and Legs',
+      '##WARMUP',
+      'EX|Stationary Bike (easy)|1x5 min|-|-|Easy pace|Light resistance, steady cadence',
+      'EX|Band External Rotation|1x15 each side|2-1-2|-|Light band|Elbow at the side on a towel roll, rotate out slowly',
+      'EX|Prone Y Raise on Incline Bench|1x10|2-1-2|-|Bodyweight|Thumbs up, raise only as high as is pain-free',
+      'EX|Dead Bug|1x6 each side|-|-|Bodyweight|Low back pressed down, move slowly',
+      'EX|Arm Circles|1x10 each way|-|-|Bodyweight|Small circles, below shoulder height',
+      '##MAIN',
+      'EX|Landmine Press|3x10 each side|2-1-2|75s|RPE 7|Press up and forward along the bar path, ribs down',
+      'EX|Goblet Squat|4x8|3-1-1|90s|RPE 7|Elbows inside the knees, chest tall',
+      'EX|Neutral-Grip Dumbbell Floor Press|3x10|2-1-2|75s|RPE 7|Elbows at 45 degrees, upper arm touches the floor softly',
+      'EX|Seated Cable Row|3x12|2-1-2|60s|RPE 7|Sit tall, squeeze the shoulder blades',
+      'EX|Dumbbell Hip Thrust (shoulders on bench)|3x10|2-1-2|60s|RPE 7|Chin tucked, drive through the heels',
+      'EX|Cable Triceps Pushdown|2x12|2-1-2|45s|RPE 7|Elbows pinned at the sides, full lockout',
+      '##COOLDOWN',
+      'EX|Doorway Chest Stretch (low)|1x30s|-|-|-|Elbows below shoulder height, gentle lean',
+      'EX|Supine Diaphragmatic Breathing|1x60s|-|-|-|Slow breaths into the belly',
+      'COUNT|5|6|2'
+    ] },
+  demo_max: { style: 'BODYBUILDING / HYPERTROPHY', styleId: 'bodybuilding', level: 'Intermediate', duration: '60 min', equipment: 'Full Gym', goal: 'Hypertrophy', injuries: '', daysAgo: 1,
+    text: [
+      'TITLE: Upper and Lower Hypertrophy Block',
+      'SUMMARY: Two hypertrophy days with 8 to 12 reps, 1 to 2 reps in reserve and controlled lowering, repeated twice a week for four weeks.',
+      '===DAY 1=== Upper Body',
+      '##WARMUP',
+      'EX|Rowing Machine (light)|1x4 min|-|-|Easy pace|Legs, hips, then arms, smooth strokes',
+      'EX|Band Pull-Apart|1x15|-|-|Light band|Straight arms, squeeze the shoulder blades',
+      'EX|Band External Rotation|1x12 each side|2-1-2|-|Light band|Elbow at the side, rotate out slowly',
+      'EX|Push-Up|1x10|2-1-1|-|Bodyweight|Body in one straight line',
+      'EX|Scapular Pull-Up|1x8|2-1-2|-|Bodyweight|Hang and pull the shoulder blades down',
+      '##MAIN',
+      'EX|Incline Dumbbell Bench Press|4x8-10|3-1-1|90s|RPE 8 (2 RIR)|Shoulder blades back, slow lowering',
+      'EX|Chest-Supported Dumbbell Row (incline bench)|4x10|2-1-2|90s|RPE 8 (2 RIR)|Drive the elbows to the hips',
+      'EX|Seated Dumbbell Shoulder Press|3x10|2-1-1|75s|RPE 8|Sit tall, press without arching the low back',
+      'EX|Neutral-Grip Lat Pulldown|3x10-12|2-1-2|75s|RPE 8|Pull the elbows to the ribs, full stretch at the top',
+      'EX|Cable Lateral Raise|3x12-15|2-1-2|45s|RPE 9 (1 RIR)|Lead with the elbow, stop at shoulder height',
+      'EX|Dumbbell Hammer Curl|2x12|2-1-2|45s|RPE 9|Elbows still, slow lowering',
+      '##COOLDOWN',
+      'EX|Doorway Chest Stretch|1x30s|-|-|-|Elbows at shoulder height, breathe out as you lean',
+      'EX|Standing Lat Stretch at Rack|1x30s each side|-|-|-|Hold the rack, sit the hips back',
+      '##NOTES',
+      'Add a rep each week, then add load once every set reaches the top of the rep range.',
+      'COUNT|5|6|2',
+      '===DAY 2=== Lower Body',
+      '##WARMUP',
+      'EX|Stationary Bike (easy)|1x4 min|-|-|Easy pace|Light resistance, steady cadence',
+      'EX|Glute Bridge|1x12|2-1-2|-|Bodyweight|Drive through the heels, squeeze at the top',
+      'EX|Bodyweight Box Squat|1x10|2-1-2|-|Bodyweight|Sit back to the box and stand tall',
+      'EX|Leg Swings|1x10 each side|-|-|Bodyweight|Hold the rack, swing front to back',
+      'EX|Side-Lying Clamshell|1x10 each side|-|-|Bodyweight|Hips stacked, open the knee slowly',
+      '##MAIN',
+      'EX|Hack Squat|4x8-10|3-1-1|120s|RPE 8 (2 RIR)|Full depth you can control, drive through the mid-foot',
+      'EX|Dumbbell Romanian Deadlift|4x10|3-1-1|90s|RPE 8|Hinge at the hips, feel the hamstrings stretch',
+      'EX|Leg Press|3x12|2-1-1|90s|RPE 8|Feet shoulder-width, smooth reps',
+      'EX|Seated Leg Curl|3x12|2-1-2|60s|RPE 9 (1 RIR)|Pause at the bottom, slow return',
+      'EX|Leg Extension|2x15|2-1-2|45s|RPE 9|Squeeze at the top, slow lowering',
+      'EX|Standing Calf Raise|3x12|2-2-2|45s|RPE 9|Pause at the bottom stretch',
+      '##COOLDOWN',
+      'EX|Supine Hamstring Stretch with Strap|1x30s each side|-|-|-|Soft knee, pull the leg up gently',
+      'EX|Standing Split-Stance Hip Flexor Stretch|1x30s each side|-|-|-|Tuck the pelvis and shift forward gently',
+      'COUNT|5|6|2'
+    ] }
+};
+
+// Profiles use the same field names and option values as the client form.
+function dfDemoClients(){
+  var now = Date.now(), day = 86400000;
+  var iso = function(d){ return new Date(now - d * day).toISOString(); };
+  var ymd = function(d){ return new Date(now - d * day).toISOString().slice(0, 10); };
+  var ahead = function(d){ return new Date(now + d * day).toISOString().slice(0, 10); };
+  var base = {
+    isDemo: true, language: 'english', smoking: 'no', trainLocation: ['gym'], formatPref: '1on1', sessionFreq: '2x', frequency: '2x',
+    equipment: ['full_gym'], hydration: 'fair', alcohol: 'occasional', allergies: ['none_allergy'], breakfast: 'usually',
+    underPhysician: true, physClearanceObtained: true, clearance: 'obtained', currentPain: 'no', familyCvd: 'no', familyDiabetes: 'no',
+    consentParq: true, consentInformed: true, consentWaiver: true, consentConfirm: true,
+    waiverSigned: true, waiverSignedBy: 'Sample client (demo data)', waiverDate: 'Demo data, not a signed waiver',
+    trainerName: 'Demo Trainer', assessDate: ymd(14), assessmentDate: iso(14), reassessDate: ahead(28), reassessSched: ahead(28),
+    gait: 'normal', ankleMob: 'adequate', shoulderMob: 'full_mob', pushupScreen: 'full_rom', thomasTest: 'normal_thomas',
+    slsLeft: 'none_sls', slsRight: 'none_sls_r', ohsaFoot: [], ohsaKnee: [], ohsaLphc: [], ohsaShoulder: [],
+    posturalPattern: 'none', movementQuality: 'good', mentalHealth: ['none_mh'], recoveryHabits: ['stretching'],
+    welcomeComplete: true, profileComplete: true
+  };
+  var list = [
+    { id: 'demo_penny', fname: 'Penny', lname: 'Patella (Demo)', age: '34', sex: 'female', height: '64', weight: '182', bf: '36',
+      occupation: 'Office manager (sample)', activity: 'lightly_active', sleep: '6to7', stress: 'moderate',
+      goals: ['fat_loss', 'general'], special: ['beginner_decond'], sport: '', success: 'Walk up the stairs at work without knee pain and lose 20 pounds.', timeline: '6 months',
+      motivation: 'health', stage: 'preparation', barriers: 'Knee pain made past gym attempts stop after a few weeks.', trainingAge: 'none', optPhase: '1', style: 'resistance',
+      diet: 'standard', protein: 'low', supplements: '', conditions: ['none_hx'], rhr: '78', bp: '122/80', glucose: '', cholesterol: '',
+      glp1Med: 'no', injuries: ['knee'], injuryNotes: 'Anterior knee pain (patellofemoral), both knees, worse on stairs and after sitting. No surgery.',
+      injuryList: 'Patellofemoral pain, both knees', medications: 'None', currentMeds: 'None',
+      ohsaKnee: ['knee_valgus'], ohsaFoot: ['feet_flatten'], posturalPattern: 'pronation_distortion', movementQuality: 'fair', slsLeft: 'knee_valgus_l', slsRight: 'knee_valgus_r',
+      ohsaNotes: 'Knees cave in on the overhead squat, feet flatten. Pain 3 out of 10 below parallel.',
+      pushups: '6', plank: '25', sitreach: '9', mile: '17:40', balance: '20', squat1rm: '', bench1rm: '', deadlift1rm: '', pullups: '0',
+      chestM: '41', waistM: '38', hipsM: '45', armM: '13.5', thighM: '26', neckM: '14',
+      finalNotes: 'Start with box squats above parallel and hip hinges. No kneeling, lunges or jumping until the knees settle.',
+      emergName: 'Sample Contact', emergPhone: '555-0101', email: 'penny.demo@example.com', physicianName: 'Dr. Sample (demo)',
+      prevTrainer: 'none', prevTrainerNotes: '', goalShort: 'Train twice a week for 8 weeks with no knee flare-ups.', goalLong: 'Lose 20 pounds and hike a local trail.',
+      goalRank1: 'Pain-free knees', goalRank2: 'Fat loss', goalRank3: 'Energy', calorieAwareness: 'no_idea', mealFrequency: '3', nutritionChallenge: 'late_night',
+      painDetail: 'Knees ache on stairs, 3 out of 10', confidence: '4', exerciseExp: ['tried_quit'], barriersChips: ['past_injury', 'confidence'],
+      suppUse: '', primaryMotivation: ['feel_better', 'health_longevity'], programPhase: 'corrective_first', gripLeft: '26', gripRight: '28', ankleDf: '8', vo2: '', rockport: '', createdAt: iso(21) },
+    { id: 'demo_gail', fname: 'Gail', lname: 'Onepoint (Demo)', age: '47', sex: 'female', height: '66', weight: '214', bf: '41',
+      occupation: 'Teacher (sample)', activity: 'lightly_active', sleep: '6to7', stress: 'moderate',
+      goals: ['fat_loss', 'strength'], special: ['glp1'], sport: '', success: 'Keep my muscle while I lose weight on the medication.', timeline: '9 months',
+      motivation: 'medical', stage: 'action', barriers: 'Low appetite and fatigue on injection days.', trainingAge: '0to6mo', optPhase: '1', style: 'resistance',
+      diet: 'glp1_diet', protein: 'low', supplements: '', conditions: ['prediabetes', 'hypertension'], rhr: '74', bp: '128/82', glucose: '104 fasting', cholesterol: '205',
+      glp1Med: 'semaglutide', glp1MedName: 'semaglutide_wegovy', glp1Dose: '1.7 mg weekly', glp1DoseNew: '1.7 mg weekly', glp1Weeks: '14', glp1Start: ymd(98),
+      injuries: ['no_injuries'], injuryNotes: '', injuryList: '', medications: 'Semaglutide (Wegovy) 1.7 mg weekly, lisinopril', currentMeds: 'Semaglutide (Wegovy) 1.7 mg weekly, lisinopril',
+      ohsaLphc: ['forward_lean'], posturalPattern: 'lower_crossed', movementQuality: 'fair', ohsaNotes: 'Forward lean on the overhead squat. Tires quickly after the second set.',
+      pushups: '4', plank: '20', sitreach: '11', mile: '19:05', balance: '15', pullups: '0',
+      chestM: '44', waistM: '41', hipsM: '48', armM: '14', thighM: '27', neckM: '14.5',
+      finalNotes: 'Priority is lean mass. Strength train twice a week, keep effort moderate on low-appetite days, and check in about nausea and dizziness each session.',
+      emergName: 'Sample Contact', emergPhone: '555-0102', email: 'gail.demo@example.com', physicianName: 'Dr. Example (demo)',
+      prevTrainer: 'some', prevTrainerNotes: 'Group classes a few years ago.', goalShort: 'Strength train twice a week through the next dose increase.', goalLong: 'Reach a healthy weight with my strength intact.',
+      goalRank1: 'Keep muscle', goalRank2: 'Fat loss', goalRank3: 'Lower blood sugar', calorieAwareness: 'under_1200', mealFrequency: '3', nutritionChallenge: 'undereating',
+      painDetail: '', confidence: '5', exerciseExp: ['inconsistent'], barriersChips: ['motivation', 'medical_concern'],
+      suppUse: '', primaryMotivation: ['health_longevity', 'doctor_rec'], programPhase: 'glp1_protocol', gripLeft: '24', gripRight: '25', ankleDf: '10', createdAt: iso(30) },
+    { id: 'demo_walter', fname: 'Walter', lname: 'Fiftyfive (Demo)', age: '63', sex: 'male', height: '70', weight: '188', bf: '27',
+      occupation: 'Retired engineer (sample)', activity: 'lightly_active', sleep: '7to8', stress: 'low',
+      goals: ['functional', 'strength'], special: ['older_adult'], sport: 'Golf', success: 'Carry my grandkids and play 18 holes without being wiped out.', timeline: '12 months',
+      motivation: 'health', stage: 'action', barriers: 'Worried about falling and about blood pressure.', trainingAge: '6to12mo', optPhase: '1', style: 'functional',
+      diet: 'mediterranean', protein: 'moderate', supplements: '', conditions: ['hypertension', 'arthritis'], rhr: '68', bp: '134/84', glucose: '96', cholesterol: '190',
+      glp1Med: 'no', injuries: ['no_injuries'], injuryNotes: 'Mild hand arthritis, no pain in training.', injuryList: '', medications: 'Amlodipine', currentMeds: 'Amlodipine',
+      familyCvd: 'father_55', ohsaLphc: ['forward_lean'], ohsaShoulder: ['arms_fall'], posturalPattern: 'upper_crossed', movementQuality: 'fair', shoulderMob: 'limited_mob',
+      ohsaNotes: 'Arms fall forward on the overhead squat. Single-leg balance 12 seconds each side.',
+      pushups: '10', plank: '30', sitreach: '6', mile: '15:20', balance: '12', pullups: '0',
+      chestM: '42', waistM: '39', hipsM: '41', armM: '13', thighM: '22', neckM: '16',
+      finalNotes: 'Physician cleared for moderate exercise. Watch for dizziness on standing, no breath holding, and progress balance work slowly.',
+      emergName: 'Sample Contact', emergPhone: '555-0103', email: 'walter.demo@example.com', physicianName: 'Dr. Placeholder (demo)',
+      prevTrainer: 'none', prevTrainerNotes: '', goalShort: 'Single-leg balance of 30 seconds each side in 8 weeks.', goalLong: 'Stay independent and active through my 70s.',
+      goalRank1: 'Balance', goalRank2: 'Strength', goalRank3: 'Golf', calorieAwareness: 'no_idea', mealFrequency: '3', nutritionChallenge: 'protein',
+      painDetail: '', confidence: '6', exerciseExp: ['inconsistent'], barriersChips: ['medical_concern'],
+      suppUse: '', primaryMotivation: ['health_longevity'], programPhase: 'phase1', gripLeft: '34', gripRight: '36', ankleDf: '9', createdAt: iso(45) },
+    { id: 'demo_rory', fname: 'Rory', lname: 'Rotator (Demo)', age: '41', sex: 'male', height: '71', weight: '196', bf: '21',
+      occupation: 'Contractor (sample)', activity: 'moderately_active', sleep: '6to7', stress: 'moderate',
+      goals: ['strength', 'functional'], special: ['post_rehab'], sport: 'Recreational softball', success: 'Lift and throw again without worrying about the shoulder.', timeline: '6 months',
+      motivation: 'performance', stage: 'action', barriers: 'Afraid of re-injuring the shoulder.', trainingAge: '2to5yr', optPhase: '2', style: 'resistance',
+      diet: 'high_protein', protein: 'high', supplements: '', conditions: ['none_hx'], rhr: '62', bp: '120/78', glucose: '', cholesterol: '',
+      glp1Med: 'no', injuries: ['shoulder', 'surgery_hx'], injuryNotes: 'Right shoulder, rotator cuff repair 7 months ago, discharged from physical therapy last month.',
+      injuryList: 'Right rotator cuff repair', surgicalDetail: 'Arthroscopic right rotator cuff repair, 7 months ago. Discharged from physical therapy with a home program.',
+      medications: 'None', currentMeds: 'None', shoulderMob: 'asymmetrical', ohsaShoulder: ['arms_fall', 'asymmetry'], posturalPattern: 'upper_crossed', movementQuality: 'good',
+      ohsaNotes: 'Right arm falls forward on the overhead squat. Full range below shoulder height without pain.',
+      pushups: '22', plank: '75', sitreach: '12', mile: '10:30', balance: '30', squat1rm: '255', deadlift1rm: '315', pullups: '4',
+      chestM: '42', waistM: '35', hipsM: '40', armM: '15', thighM: '24', neckM: '16',
+      finalNotes: 'Cleared by the physical therapist for gym training. No overhead pressing yet. Keep the band work from the home program in every warm-up.',
+      emergName: 'Sample Contact', emergPhone: '555-0104', email: 'rory.demo@example.com', physicianName: 'Dr. Stand-In (demo)',
+      prevTrainer: 'moderate', prevTrainerNotes: 'Trained with a coach before the injury.', goalShort: 'Pain-free landmine press with 50 pounds each side.', goalLong: 'Return to softball next season.',
+      goalRank1: 'Shoulder health', goalRank2: 'Strength', goalRank3: 'Softball', calorieAwareness: '2500_3000', mealFrequency: '4_5', nutritionChallenge: 'none',
+      painDetail: '', confidence: '6', exerciseExp: ['consistent_1yr'], barriersChips: ['past_injury'],
+      suppUse: '', primaryMotivation: ['athletic_perf'], programPhase: 'post_rehab_protocol', gripLeft: '48', gripRight: '44', ankleDf: '12', createdAt: iso(20) },
+    { id: 'demo_max', fname: 'Max', lname: 'Hypertrophy (Demo)', age: '28', sex: 'male', height: '69', weight: '172', bf: '15',
+      occupation: 'Software tester (sample)', activity: 'moderately_active', sleep: '7to8', stress: 'low',
+      goals: ['muscle_gain', 'strength'], special: ['none'], sport: '', success: 'Add 8 pounds of muscle and fill out my shirts.', timeline: '12 months',
+      motivation: 'appearance', stage: 'maintenance', barriers: 'Plateaued after two years of random workouts.', trainingAge: '2to5yr', optPhase: '3', style: 'bodybuilding',
+      diet: 'high_protein', protein: 'high', supplements: '', conditions: ['none_hx'], rhr: '58', bp: '116/74', glucose: '', cholesterol: '',
+      glp1Med: 'no', injuries: ['no_injuries'], injuryNotes: '', injuryList: '', medications: 'None', currentMeds: 'None',
+      frequency: '4x', sessionFreq: '4x+', movementQuality: 'excellent',
+      ohsaNotes: 'Clean overhead squat. Slight right hip shift under fatigue.', ohsaLphc: ['hip_shift'],
+      pushups: '40', plank: '120', sitreach: '14', mile: '8:10', balance: '45', squat1rm: '275', bench1rm: '205', deadlift1rm: '335', ohp1rm: '125', pullups: '11', row1rm: '185',
+      chestM: '40', waistM: '31', hipsM: '37', armM: '14.5', thighM: '23', neckM: '15.5',
+      finalNotes: 'Upper and lower split, twice a week each. Track reps in reserve, add load when every set hits the top of the range.',
+      emergName: 'Sample Contact', emergPhone: '555-0105', email: 'max.demo@example.com', physicianName: '', underPhysician: false, physClearanceObtained: false, clearance: 'not_needed',
+      prevTrainer: 'some', prevTrainerNotes: 'Followed online programs.', goalShort: 'Add 2 pounds of lean mass in 8 weeks.', goalLong: 'Add 8 pounds of muscle this year.',
+      goalRank1: 'Muscle', goalRank2: 'Strength', goalRank3: 'Look better', calorieAwareness: '2500_3000', mealFrequency: '4_5', nutritionChallenge: 'consistency',
+      painDetail: '', confidence: '8', exerciseExp: ['consistent_1yr'], barriersChips: ['time'],
+      suppUse: '', primaryMotivation: ['look_better'], programPhase: 'phase3', gripLeft: '50', gripRight: '52', ankleDf: '13', createdAt: iso(60) }
+  ];
+  return list.map(function(c){
+    var out = {};
+    Object.keys(base).forEach(function(k){ out[k] = base[k]; });
+    Object.keys(c).forEach(function(k){ out[k] = c[k]; });
+    out.updatedAt = iso(0);
+    return out;
+  });
+}
+
+function dfDemoLoaded(){
+  try { return JSON.parse(localStorage.getItem(CP_STORAGE_KEY) || '[]').some(function(c){ return c && c.isDemo; }); } catch(e) { return false; }
+}
+
+// Removes demo clients and everything stored under their ids. Real clients are kept.
+function dfDemoClear(){
+  var all; try { all = JSON.parse(localStorage.getItem(CP_STORAGE_KEY) || '[]'); } catch(e) { all = []; }
+  var ids = all.filter(function(c){ return c && (c.isDemo || String(c.id).indexOf(DF_DEMO_PREFIX) === 0); }).map(function(c){ return c.id; });
+  Object.keys(DF_DEMO_PROGRAMS).forEach(function(id){ if (ids.indexOf(id) === -1) ids.push(id); });
+  localStorage.setItem(CP_STORAGE_KEY, JSON.stringify(all.filter(function(c){ return ids.indexOf(c && c.id) === -1; })));
+  // Stores keyed by client id
+  ['drfitness_session_history', 'drfitness_progress_notes', 'drfitness_messages', 'drfitness_checkin_log', 'drfitness_photos'].forEach(function(key){
+    try {
+      var obj = JSON.parse(localStorage.getItem(key) || 'null');
+      if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
+      var changed = false;
+      ids.forEach(function(id){ if (obj[id] !== undefined) { delete obj[id]; changed = true; } });
+      if (changed) localStorage.setItem(key, JSON.stringify(obj));
+    } catch(e) {}
+  });
+  // Scheduled sessions for demo clients
+  try {
+    var sched = JSON.parse(localStorage.getItem('drfitness_schedule') || 'null');
+    if (Array.isArray(sched)) localStorage.setItem('drfitness_schedule', JSON.stringify(sched.filter(function(s){ return !(s && ids.indexOf(s.clientId) !== -1); })));
+  } catch(e) {}
+  // A demo client left active is cleared; a real active client stays.
+  var active = window.cpActiveClient && window.cpActiveClient.id;
+  if (!active) { try { active = (JSON.parse(localStorage.getItem('drfitness_active_client') || 'null') || {}).id; } catch(e) {} }
+  if (active && ids.indexOf(active) !== -1 && typeof clearActiveClient === 'function') clearActiveClient();
+  return ids.length;
+}
+
+function dfDemoLoad(){
+  dfDemoClear();
+  var clients = dfDemoClients();
+  var all; try { all = JSON.parse(localStorage.getItem(CP_STORAGE_KEY) || '[]'); } catch(e) { all = []; }
+  localStorage.setItem(CP_STORAGE_KEY, JSON.stringify(all.concat(clients)));
+  var hist; try { hist = JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY) || '{}') || {}; } catch(e) { hist = {}; }
+  clients.forEach(function(c){
+    var p = DF_DEMO_PROGRAMS[c.id];
+    var text = p.text.join('\n');
+    var days = wccParseWorkout(text).days.length;
+    var type = days > 1 ? days + '-Day Program' : 'Session';
+    var meta = { styleName: p.style, styleId: p.styleId, level: p.level, duration: p.duration, equipment: p.equipment, goal: p.goal, injuries: p.injuries, trainerNotes: '', rotation: false, sessionType: type };
+    hist[c.id] = [{
+      id: 'ses_demo_' + c.id.slice(DF_DEMO_PREFIX.length), isDemo: true,
+      date: new Date(Date.now() - p.daysAgo * 86400000).toISOString(), type: type, style: p.style,
+      content: '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">' + buildDetailView(text) + '</div>',
+      programText: text, meta: meta,
+      questionnaire: { level: p.level, duration: p.duration, equipment: p.equipment, goal: p.goal, injuries: p.injuries, trainerNotes: '' },
+      notes: 'Sample program for the demo.', sent: false, sentDate: null
+    }];
+  });
+  localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(hist));
+  if (typeof renderClients === 'function') renderClients();
+  dfDemoRender('Loaded 5 demo clients, each with a saved program. Open Clients to see them.');
+}
+
+function dfDemoReset(){
+  if (!dfDemoLoaded()) { dfDemoRender('No demo data to remove.'); return; }
+  if (!confirm('Remove the 5 demo clients and their saved programs?\n\nYour own clients are not touched.')) return;
+  dfDemoClear();
+  if (typeof renderClients === 'function') renderClients();
+  dfDemoRender('Demo data removed. Your own clients were not changed.');
+}
+
+function dfDemoRender(msg){
+  var box = document.getElementById('dfDemoSection');
+  if (!box) return;
+  var on = dfDemoLoaded();
+  box.innerHTML = '<div style="margin-top:2rem;border-top:1px solid var(--border2);padding-top:1.5rem;">' +
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">DEMO</div>' +
+    '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:10px;">Load five sample clients with made-up names and one saved program each: a beginner with knee pain, a GLP-1 client, a 55+ client, a post-rehab shoulder client and an intermediate hypertrophy client. Demo clients are marked DEMO. Reset Demo removes only demo data.</p>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">' +
+      '<button type="button" class="wce-btn gold" id="dfDemoLoadBtn" onclick="dfDemoLoad()">' + (on ? 'Reload demo clients' : 'Load demo clients') + '</button>' +
+      '<button type="button" class="wce-btn" id="dfDemoResetBtn" onclick="dfDemoReset()"' + (on ? '' : ' disabled') + '>Reset Demo</button>' +
+      (on ? '<button type="button" class="wce-btn" onclick="if(window.mobileNavTo)mobileNavTo(\'clients\')">Open Clients</button>' : '') +
+    '</div>' +
+    '<div id="dfDemoStatus" role="status" aria-live="polite" style="font-size:0.8rem;color:var(--green);margin-top:8px;">' + (msg ? dfEsc(msg) : '') + '</div>' +
+  '</div>';
+}
+window.dfDemoLoad = dfDemoLoad;
+window.dfDemoReset = dfDemoReset;
+window.dfDemoLoaded = dfDemoLoaded;
+dfDemoRender();
 </script>
 
 </body>
