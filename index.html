@@ -723,7 +723,7 @@ window.wccRecommend = async function(){
     '{"styleId":"<id>","level":"<level>","optPhase":<1-5>,"goals":["<g1>","<g2>"],"days":<1-7>,"rationale":"<2-3 sentence evidence-based explanation of why this approach fits THIS client>"}';
 
   try{
-    var res = await fetch('/.netlify/functions/chat',{
+    var res = await fetch('/api/chat',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:sysPrompt+(window.langSuffix||''),messages:[{role:'user',content:prompt}]})
     });
@@ -1936,7 +1936,7 @@ window.streamChatResult = async function(opts, onChunk){
   try {
     var res;
     try {
-      res = await Promise.race([fetch('/.netlify/functions/chat', {
+      res = await Promise.race([fetch('/api/chat', {
         method:'POST', headers:{'Content-Type':'application/json'},
         signal: ctrl ? ctrl.signal : undefined,
         body: JSON.stringify({
@@ -3159,7 +3159,7 @@ async function nutSend() {
   var nutSys = 'You are an expert nutrition coach assistant for certified personal trainers. You provide evidence-based nutrition guidance within trainer scope of practice. You know NASM, ACE, ISSA, and EPI nutrition guidelines. You always stay within scope of practice — trainers provide general nutrition education, not medical nutrition therapy. When questions require a Registered Dietitian, you say so clearly. You are especially knowledgeable about GLP-1/AOM client nutrition, older adult nutrition, and sports nutrition. Be practical, specific, and actionable. No apostrophes in contractions — use full words.';
 
   try {
-    var res = await fetch('/.netlify/functions/chat', {
+    var res = await fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({system: nutSys, messages: nutMsgs})
@@ -6983,7 +6983,7 @@ async function send(){
   msgs.push({role:'user',content:pfx+text});
   addMsg('user',text);addTyping();
   try{
-    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:SYS+(window.langSuffix||'')+(window.cpClientContext||''),messages:msgs})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json',},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:SYS+(window.langSuffix||'')+(window.cpClientContext||''),messages:msgs})});
     const d=await res.json();removeTyping();
     if(d.content&&d.content[0]){const r=d.content[0].text;msgs.push({role:'assistant',content:r});addMsg('ai',r);}
     else throw new Error('No response');
@@ -9868,7 +9868,7 @@ window.checkSuppInteractions = async function(){
   output.innerHTML = '<div style="color:var(--text3);font-size:0.82rem;">Checking interactions...</div>';
   var prompt = 'Check for interactions between these supplements: '+supps+'\nAnd these medications: '+(meds||'none')+'\n\nFor each combination state: SAFE / USE WITH CAUTION / CONSULT PHYSICIAN. Explain any concerns briefly. End with disclaimer to verify with pharmacist.';
   try{
-    var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:'You are a supplement safety advisor for personal trainers. Provide evidence-based interaction information. Always recommend consulting a physician or pharmacist for medical decisions.',messages:[{role:'user',content:prompt}]})});
+    var res = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:'You are a supplement safety advisor for personal trainers. Provide evidence-based interaction information. Always recommend consulting a physician or pharmacist for medical decisions.',messages:[{role:'user',content:prompt}]})});
     var d = await res.json();
     if(d.content&&d.content[0]){
       var text = d.content[0].text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
@@ -10734,7 +10734,7 @@ window.convoRespond = async function(text) {
       // A stalled request left "Thinking..." on screen forever; give up after 15s and use the built-in question.
       var convoCtrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
       var convoTimer = setTimeout(function(){ if (convoCtrl) convoCtrl.abort(); }, 15000);
-      var res = await fetch('/.netlify/functions/chat',{method:'POST',signal:convoCtrl?convoCtrl.signal:undefined,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
+      var res = await fetch('/api/chat',{method:'POST',signal:convoCtrl?convoCtrl.signal:undefined,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:'You are Dr. Fitness conducting a client intake conversation with a trainer. Be warm, specific, professional. One question only. Short. No apostrophes in contractions.',messages:[{role:'user',content:followUpPrompt}]})});
       var d = await res.json();
       if (d.content && d.content[0]) aiDiv.textContent = d.content[0].text;
       else aiDiv.textContent = step===0 ? 'Tell me more — what specifically are they hoping to achieve?' : 'What is the biggest challenge or barrier you expect with this client?';
@@ -11441,7 +11441,7 @@ console.log('init: floating-chat script start');
     fcMsgsData.push({role:'user',content:pfx+text});
 
     try{
-      var res = await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:window.SYS||(typeof SYS!=='undefined'?SYS:'You are Dr. Fitness, an expert trainer reference AI for certified personal trainers. Be specific, practical, and evidence-based.'),messages:fcMsgsData})});
+      var res = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:window.SYS||(typeof SYS!=='undefined'?SYS:'You are Dr. Fitness, an expert trainer reference AI for certified personal trainers. Be specific, practical, and evidence-based.'),messages:fcMsgsData})});
       var d = await res.json();
       var typEl = document.getElementById('fcTyp');
       if(typEl) typEl.remove();

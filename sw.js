@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drfitness-v25';
+const CACHE_NAME = 'drfitness-v26';
 const ASSETS = [
   '/',
   '/index.html',
@@ -34,7 +34,7 @@ self.addEventListener('activate', event => {
 //  - For everything else, cache-first with network fallback (and update cache
 //    on successful network fetch).
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || event.request.url.includes('/.netlify/functions/')) {
+  if (event.request.method !== 'GET' || event.request.url.includes('/.netlify/functions/') || event.request.url.includes('/api/')) {
     return;
   }
 

@@ -22,9 +22,22 @@ const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://drfitness-trainer.netlify.app')
   .split(',').map(s => s.trim()).filter(Boolean);
 
-// Basic per-IP rate limit (sliding window). State lives in this function
-// instance's memory, so it resets on cold start and is not shared between
-// instances. It stops casual abuse, not a determined attacker.
+// Two rate limits, both 30 requests per minute per IP:
+// 1. Netlify's edge rate limit (config below). Counted by Netlify before the
+//    function runs, so it holds across every function instance and cold start.
+//    Enforcement can lag up to ~10 seconds after the limit is crossed.
+// 2. This in-memory sliding window. It reacts instantly but lives in one
+//    instance's memory, so it resets on cold start and is not shared between
+//    instances. Kept as a fast second layer.
+export const config = {
+  path: '/api/chat',
+  rateLimit: {
+    windowLimit: 30,
+    windowSize: 60,
+    aggregateBy: ['ip', 'domain']
+  }
+};
+
 const RATE_LIMIT = 30;           // requests
 const RATE_WINDOW_MS = 60 * 1000; // per minute
 const hits = new Map();          // ip -> array of request timestamps
@@ -55,6 +68,17 @@ function clientIp(request, context) {
 }
 
 export default async (request, context) => {
+  // The edge rate limit applies to /api/chat only. Refuse the legacy
+  // /.netlify/functions/chat URL so it cannot be used to skip that limit.
+  let pathname = '';
+  try { pathname = new URL(request.url).pathname; } catch (e) {}
+  if (pathname.indexOf('/.netlify/functions/') === 0) {
+    return new Response(JSON.stringify({ error: 'The app was updated. Reload the page to continue.' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   const origin = request.headers.get('origin') || '';
   const allowed = ALLOWED_ORIGINS.includes(origin);
   const CORS = {
