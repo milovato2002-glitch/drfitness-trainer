@@ -6593,22 +6593,42 @@ window.openSidebar=openSidebar;
 window.closeSidebar=closeSidebar;
 
 /* ══ REFERENCE LIBRARY ══ */
+/* Reference Library sections show another tab's content. Copying its
+   innerHTML duplicated every id, so calculators in the copy read and
+   wrote the hidden original. The real content is now moved in while the
+   section is open and moved back when it closes or its own tab opens. */
+var refLibBorrowed = {}; // panelId -> { nodes, marker, btn, body }
+
+function refLibReturn(panelId) {
+  var b = refLibBorrowed[panelId];
+  if (!b) return;
+  b.nodes.forEach(function(n){ b.marker.parentNode.insertBefore(n, b.marker); });
+  b.marker.remove();
+  b.btn.classList.remove('open');
+  b.body.style.display = 'none';
+  delete refLibBorrowed[panelId];
+}
+
 function togRefLib(btn, panelId) {
-  btn.classList.toggle('open');
   var body = btn.nextElementSibling;
-  var isOpen = btn.classList.contains('open');
-  if (isOpen) {
-    // Load content from the original panel
-    var srcPanel = document.querySelector('[data-panel="'+panelId+'"]');
-    if (srcPanel && !body.dataset.loaded) {
-      // Clone the inner content (skip the panel wrapper)
-      var inner = srcPanel.querySelector('.ref-panel, .nut-layout, .calc-wrap, .wl-wrap, .el-wrap, .plbb-wrap, .cp-wrap') || srcPanel;
-      body.innerHTML = inner.innerHTML;
-      body.dataset.loaded = '1';
-    }
-    body.style.display = 'block';
-  } else {
-    body.style.display = 'none';
+  if (refLibBorrowed[panelId]) { refLibReturn(panelId); return; }
+  var srcPanel = document.querySelector('[data-panel="'+panelId+'"]');
+  if (!srcPanel) return;
+  var inner = srcPanel.querySelector('.ref-panel, .nut-layout, .calc-wrap, .wl-wrap, .el-wrap, .plbb-wrap, .cp-wrap');
+  var nodes = inner ? [inner] : Array.prototype.slice.call(srcPanel.childNodes);
+  var marker = document.createComment('reflib:' + panelId);
+  if (nodes[0]) nodes[0].parentNode.insertBefore(marker, nodes[0]); else srcPanel.appendChild(marker);
+  body.innerHTML = '';
+  nodes.forEach(function(n){ body.appendChild(n); });
+  refLibBorrowed[panelId] = { nodes: nodes, marker: marker, btn: btn, body: body };
+  btn.classList.add('open');
+  body.style.display = 'block';
+  // Give the content back as soon as its own tab becomes active.
+  if (!srcPanel._refLibWatch && typeof MutationObserver !== 'undefined') {
+    srcPanel._refLibWatch = new MutationObserver(function(){
+      if (srcPanel.classList.contains('active')) refLibReturn(panelId);
+    });
+    srcPanel._refLibWatch.observe(srcPanel, { attributes: true, attributeFilter: ['class'] });
   }
 }
 window.togRefLib = togRefLib;
