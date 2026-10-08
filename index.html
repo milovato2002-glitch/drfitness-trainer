@@ -25,7 +25,8 @@
   --radius:10px;--radius-sm:6px;
 }
 html{font-size:16px;}
-html{scroll-padding-top:var(--df-chrome-h,115px);}
+/* No scroll anchoring: when the active client bar replaces the empty bar during load, the browser shifted the page about 40px down on phones. */
+html{scroll-padding-top:var(--df-chrome-h,115px);overflow-anchor:none;}
 body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;font-weight:300;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(-55deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 28px);pointer-events:none;z-index:0;}
 
