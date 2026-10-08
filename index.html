@@ -1067,6 +1067,8 @@ function showModal(id){
   var mbn=document.getElementById('mobileBottomNav'); if(mbn) mbn.dataset.prevDisplay=mbn.style.display, mbn.style.display='none';
 }
 window.closeWccModal = function(id){
+  // Save any pending card edit before the workout window closes.
+  if(id==='wccOutputModal' && window.wccEdFlush) wccEdFlush();
   document.getElementById(id).style.display='none';
   // Restore fixed bottom chrome
   var pwa=document.getElementById('pwaInstallBanner'); if(pwa && pwa.dataset.prevDisplay!==undefined) pwa.style.display=pwa.dataset.prevDisplay;
@@ -2165,6 +2167,19 @@ function wccQualitySummaryHtml(job){
     '<ul style="margin:4px 0 0 1.1rem;">' + rows.join('') + '</ul></div>';
 }
 
+// The Quick View / Detail View toggle, both panes and the muscle diagram for a program.
+function wccViewParts(text){
+  // Build Quick View + Detail View toggle
+  var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
+  var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
+  var detailHtml = buildDetailView(text);
+  var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>';
+  // Quick View is the editable card view, filled by wccEdRenderAll below.
+  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'"></div>';
+  var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(wccExerciseNames(text)) : '';
+  return { toggleHtml: toggleHtml, detailHtml: detailHtml, detailContent: detailContent, quickContent: quickContent, diagramHtml: diagramHtml };
+}
+
 function wccRenderFinal(job, text){
   var styleName = job.styleName, injuries = job.injuries;
   window._wccTrackMode = false; // fresh workout starts as clean reference, not tracker
@@ -2193,14 +2208,8 @@ function wccRenderFinal(job, text){
       '<ul style="margin:0.75rem 0 0 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;">'+coachList+'</ul></details></div>';
   }
 
-  // Build Quick View + Detail View toggle
-  var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
-  var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
-  var detailHtml = buildDetailView(text);
-  var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+detailHtml+'</div>';
-  // Quick View is the editable card view, filled by wccEdRenderAll below.
-  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'"></div>';
-  var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(wccExerciseNames(text)) : '';
+  var vp = wccViewParts(text);
+  var toggleHtml = vp.toggleHtml, detailHtml = vp.detailHtml, detailContent = vp.detailContent, quickContent = vp.quickContent, diagramHtml = vp.diagramHtml;
   // Save status + actions row (prepended to output)
   var activeC = window.cpActiveClient;
   var saveStatus;
@@ -2227,8 +2236,98 @@ function wccRenderFinal(job, text){
     var newest = getClientSessions(activeC.id)[0];
     if (newest) wccEd.session = { clientId: activeC.id, id: newest.id };
   }
+  wccEd.meta = wccJobMeta(job);
+  wccEdSaveSession(); // stores the program text with the session so it reopens as editable cards
   wccEdRenderAll();
 }
+
+// What a saved program needs to reopen with the same rules and time budget.
+function wccJobMeta(job){
+  return { styleName: job.styleName, styleId: job.styleId, level: job.level, duration: job.duration, equipment: job.equipment, goal: job.goal, injuries: job.injuries, trainerNotes: job.trainerNotes, rotation: !!job.rotation, sessionType: job.sessionType };
+}
+
+/* ══ OPEN A SAVED PROGRAM AS EDITABLE CARDS ══
+   Library items and client session history open in the same card editor.
+   Edits save back to where the program came from: the library item, or the
+   session in that client's history. */
+function wccOpenSaved(opts){
+  var meta = opts.meta || {}, client = opts.client || null, text = opts.text;
+  var p = wccParseWorkout(text);
+  var job = { styleName: meta.styleName || 'Workout', styleId: meta.styleId || '', level: meta.level || '', duration: meta.duration || '',
+    equipment: meta.equipment || '', goal: meta.goal || '', dayCount: p.days.length || 1, injuries: meta.injuries || '', trainerNotes: meta.trainerNotes || '',
+    rotation: !!meta.rotation, sessionMinutes: parseInt(meta.duration, 10) || 0, client: client, sessionType: meta.sessionType || 'Session',
+    system: ((typeof SYS !== 'undefined') ? SYS : 'You are Dr. Fitness, an expert trainer reference AI.') + (window.langSuffix || ''), days: [] };
+  job.injuryRules = wccActiveInjuryRules(job.injuries, client);
+  job.basePrompt = wccBasePrompt(job);
+  window._wccTrackMode = false;
+  window._wccLastWorkout = { text: text, styleName: job.styleName, level: job.level, duration: job.duration, goal: job.goal, days: job.dayCount, injuries: job.injuries };
+  var vp = wccViewParts(text);
+  var where = opts.libraryId ? 'Saved in your workout library' : 'Saved in ' + wccEsc(client ? (client.fname + ' ' + (client.lname || '')).trim() : 'the client') + '’s session history';
+  var status = '<div style="display:flex;align-items:center;gap:8px;background:rgba(45,198,83,0.08);border:1px solid rgba(45,198,83,0.25);border-radius:var(--radius-sm);padding:8px 14px;font-size:0.8rem;color:var(--green);margin-bottom:1rem;"><span>✓</span><span>' + where + ' · edits save automatically</span></div>';
+  var banner = job.injuries ? '<div style="background:rgba(240,165,0,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.8rem;color:var(--text2);"><strong style="color:var(--gold);">Injury rules apply:</strong> ' + wccEsc(job.injuries) + '</div>' : '';
+  document.getElementById('wccOutputContent').innerHTML = status + banner + vp.diagramHtml + vp.toggleHtml + vp.quickContent + vp.detailContent;
+  wccEditorStart(job, text);
+  wccEd.meta = meta;
+  wccEd.pieces = { banner: banner, swapHtml: '', coachHtml: '' };
+  wccEd.session = opts.session || null;
+  wccEd.libraryId = opts.libraryId || null;
+  wccEdRenderAll();
+  showModal('wccOutputModal');
+}
+
+/* Older sessions were saved as HTML only. Rebuild the program from the
+   Detail View table they contain, or from EX| lines in the text. */
+function wccRecoverProgramText(html){
+  var doc = new DOMParser().parseFromString('<div>' + (html || '') + '</div>', 'text/html');
+  var raw = (doc.body.innerHTML || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d|tr)>/gi, '\n');
+  var plain = new DOMParser().parseFromString('<div>' + raw + '</div>', 'text/html').body.textContent;
+  if (/^\s*EX\|/m.test(plain)) {
+    var lines = plain.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return /^(TITLE:|SUMMARY:|===\s*DAY|##|EX\||COUNT\|)/i.test(l); });
+    var p1 = wccParseWorkout(lines.join('\n'));
+    if (p1.days.length) return wccProgramText(p1);
+  }
+  var tables = doc.querySelectorAll('table');
+  if (!tables.length) return '';
+  var out = [], dayNum = 0, focus = '', sec = 'MAIN', days = [], cur = null;
+  var LBL = { 'warm-up': 'WARMUP', 'main training block': 'MAIN', 'main block': 'MAIN', 'cool-down': 'COOLDOWN' };
+  doc.querySelectorAll('h3, h4, table').forEach(function(el){
+    if (el.tagName === 'H3') { cur = { num: ++dayNum, focus: el.textContent.replace(/^DAY\s*\d+\s*[—-]?\s*/i, '').trim(), WARMUP: [], MAIN: [], COOLDOWN: [], NOTES: [] }; days.push(cur); return; }
+    if (el.tagName === 'H4') { var k = LBL[el.textContent.trim().toLowerCase()]; if (k) sec = k; return; }
+    if (!cur) { cur = { num: ++dayNum, focus: '', WARMUP: [], MAIN: [], COOLDOWN: [], NOTES: [] }; days.push(cur); }
+    el.querySelectorAll('tbody tr').forEach(function(tr){
+      var td = tr.querySelectorAll('td'); if (td.length < 6) return;
+      var v = function(i){ var t = td[i].textContent.trim(); return t === '—' ? '-' : t; };
+      var cueCell = td[5].cloneNode(true), mod = '', swap = '';
+      cueCell.querySelectorAll('span').forEach(function(sp){ var t = sp.textContent.trim(); if (/^⚠\s*Mod:/.test(t)) mod = t.replace(/^⚠\s*Mod:\s*/, ''); else if (/^↺\s*Auto-swap:/.test(t)) swap = t.replace(/^↺\s*Auto-swap:\s*/, ''); sp.remove(); });
+      var cue = cueCell.textContent.trim(); if (cue === '—') cue = '';
+      cur[sec].push({ name: v(0).replace(/^⚠\s*/, ''), sr: v(1), tempo: v(2), rest: v(3), load: v(4), cue: cue, mod: mod, swap: swap });
+    });
+  });
+  days = days.filter(function(d){ return d.WARMUP.length + d.MAIN.length + d.COOLDOWN.length; });
+  if (!days.length) return '';
+  var h2 = doc.querySelector('h2');
+  return wccProgramText({ title: h2 ? h2.textContent.trim() : '', summary: '', days: days });
+}
+function wccProgramText(p){
+  return (p.title ? 'TITLE: ' + p.title + '\n' : '') + (p.summary ? 'SUMMARY: ' + p.summary + '\n' : '') +
+    p.days.map(function(d, i){ return wccSerializeDay(d, i + 1); }).join('\n');
+}
+
+window.wccEditSession = function(clientId, sessionId){
+  var s = (getClientSessions(clientId) || []).find(function(x){ return x.id === sessionId; });
+  if (!s) return;
+  var text = s.programText || wccRecoverProgramText(s.content);
+  if (!text || !wccParseWorkout(text).days.length) { alert('This session was saved before programs could be edited, and its workout could not be read back. Generate a new program to edit it.'); return; }
+  if (typeof cpLoadClients === 'function') cpLoadClients();
+  var client = (typeof cpClients !== 'undefined' ? cpClients : []).find(function(c){ return c.id === clientId; }) || null;
+  // Editing a client's program makes them the active client, so the chat and rules use their profile.
+  if (client && (!window.cpActiveClient || window.cpActiveClient.id !== clientId) && typeof setActiveClient === 'function') setActiveClient(clientId);
+  var q = s.questionnaire || {};
+  var meta = s.meta || { styleName: s.style, level: q.level, duration: q.duration, equipment: q.equipment, goal: q.goal, injuries: q.injuries, trainerNotes: q.trainerNotes, sessionType: s.type };
+  var sh = document.getElementById('sessionHistoryModal'); if (sh) sh.remove();
+  wccOpenSaved({ text: text, meta: meta, client: client, session: { clientId: clientId, id: sessionId } });
+};
+window.wccCanEditSession = function(s){ return !!(s && (s.programText || /EX\||<table/i.test(s.content || ''))); };
 
 /* ══ EDITABLE WORKOUT CARDS ══
    After generation the program lives in one editor state (wccEd). Every
@@ -2364,12 +2463,23 @@ function wccEdCommit(days){
 }
 
 // Keeps the client's saved session in step with the edits (debounced).
-function wccEdQueueSave(){
-  if (!wccEd || !wccEd.session) return;
-  clearTimeout(wccEd.saveTimer);
-  wccEd.saveTimer = setTimeout(wccEdSaveSession, 500);
+// The editor only responds while the workout window is open.
+function wccEdLive(){
+  var m = document.getElementById('wccOutputModal');
+  return !!(wccEd && document.getElementById('wceRoot') && m && m.style.display !== 'none');
 }
-function wccEdSaveSession(){
+window.wccEdFlush = function(){
+  if (!wccEd || !wccEd.saveTimer) return;
+  clearTimeout(wccEd.saveTimer); wccEd.saveTimer = null;
+  wccEdSaveSession(true); wccEdSaveLibrary();
+};
+function wccEdQueueSave(){
+  if (!wccEd || !(wccEd.session || wccEd.libraryId)) return;
+  clearTimeout(wccEd.saveTimer);
+  wccEd.saveTimer = setTimeout(function(){ wccEdSaveSession(true); wccEdSaveLibrary(); }, 500);
+}
+// edited: false when storing the program at creation, true after a change.
+function wccEdSaveSession(edited){
   var e = wccEd;
   if (!e || !e.session || typeof SESSION_HISTORY_KEY === 'undefined') return;
   var all;
@@ -2379,8 +2489,20 @@ function wccEdSaveSession(){
   var pc = e.pieces || {};
   s.content = (pc.banner || '') + (pc.swapHtml || '') +
     '<div style="font-size:0.88rem;color:var(--text2);line-height:1.75;">' + buildDetailView(wccEdText()) + '</div>' + (pc.coachHtml || '');
-  s.editedAt = new Date().toISOString();
+  s.programText = wccEdText();
+  if (e.meta) s.meta = e.meta;
+  if (edited) s.editedAt = new Date().toISOString();
   try { localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(all)); } catch(err) {} // a failure is shown by the storage warning
+}
+// A program opened from the library saves its edits back to that library item.
+function wccEdSaveLibrary(){
+  var e = wccEd;
+  if (!e || !e.libraryId) return;
+  var items = getWorkoutLibrary();
+  var it = items.find(function(x){ return x.id === e.libraryId; });
+  if (!it) return;
+  it.text = wccEdText(); it.days = e.days.length; it.editedAt = new Date().toISOString();
+  saveWorkoutLibrary(items);
 }
 function wccEdUpdateUndo(){
   var b = document.getElementById('wceUndoBtn');
@@ -2764,24 +2886,26 @@ document.addEventListener('keydown', function(e){
 // One set of listeners for all cards (the cards are re-rendered after every change).
 document.addEventListener('click', function(e){
   var span = e.target.closest && e.target.closest('#wceRoot .wce-f');
-  if (span && wccEd) wccEdBeginEdit(span);
+  if (span && wccEdLive()) wccEdBeginEdit(span);
 });
 document.addEventListener('keydown', function(e){
   // Ctrl/Cmd+Z undoes the last workout change, unless the trainer is typing in a field.
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z') && wccEd && document.getElementById('wceRoot') &&
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z') && wccEdLive() &&
       !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '') && !(e.target && e.target.isContentEditable)) {
     e.preventDefault(); wccEdUndo(); return;
   }
   var span = e.target.closest && e.target.closest('#wceRoot .wce-f');
-  if (span && wccEd && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); wccEdBeginEdit(span); }
+  if (span && wccEdLive() && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); wccEdBeginEdit(span); }
 });
 
 // Shared part of every prompt: style, client profile, injury rules and profile rules.
 function wccBasePrompt(job){
   var injuries = job.injuries, goal = job.goal, dayCount = job.dayCount;
+  // A saved program opened for a client uses that client; a library item has none.
+  var who = job.client !== undefined ? job.client : window.cpActiveClient;
   var clientCtx = '';
-  if(window.cpActiveClient && window.cpActiveClient.fname){
-    clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(window.cpActiveClient) : '';
+  if(who && who.fname){
+    clientCtx = (typeof cpBuildClientContext==='function') ? cpBuildClientContext(who) : '';
   }
 
   var injuryInstructions = '';
@@ -2798,7 +2922,7 @@ function wccBasePrompt(job){
       'Either replace it outright with a safe alternative, or append " [MOD: <safe alternative>]" to its cue, and in the cue state briefly WHY (e.g. reduces axial load). Do not prescribe any movement that aggravates a listed injury.\n' +
     '• AGE + SLEEP + STRESS: Adjust total volume, intensity, and rest accordingly. Older age, poor sleep, or high stress → reduce volume, extend rest, expand warm-up, favor lower-risk loading. State the adjustment in ##NOTES.\n' +
     (function(){
-      var pc = window.cpActiveClient ? window.cpActiveClient.currentPain : '';
+      var pc = who ? who.currentPain : '';
       pc = Array.isArray(pc) ? (pc[0]||'') : (pc||''); pc = String(pc).toLowerCase();
       if(pc==='mild') return '• CURRENT PAIN (MILD): Client reports occasional minor discomfort during exercise. Stay in pain-free range of motion, avoid loaded end-range, prioritize controlled tempo, and add "work in a pain-free ROM" to the coaching-cue field of affected exercises.\n';
       if(pc==='moderate') return '• CURRENT PAIN (MODERATE): Client reports pain that limits some activities. Significantly reduce loading on affected patterns, substitute high-risk movements for low-impact alternatives, keep all work strictly pain-free, and add a ##NOTES line recommending physician/PT clearance if pain persists.\n';
@@ -3179,6 +3303,7 @@ window.wccSaveToLibrary = function(){
     goal: w.goal||'',
     injuries: w.injuries||'',
     text: w.text||'',
+    meta: (typeof wccEd !== 'undefined' && wccEd && wccEd.meta) || null,
     date: new Date().toISOString()
   });
   if(saveWorkoutLibrary(items)){
@@ -3225,20 +3350,11 @@ window.openWorkoutLibrary = function(){
 };
 
 window.wlibLoad = function(id){
-  var items = getWorkoutLibrary();
-  var it = items.find(function(x){ return x.id === id; });
+  var it = getWorkoutLibrary().find(function(x){ return x.id === id; });
   if(!it) return;
-  // Reconstruct the output modal using the saved text + the existing renderers.
-  wccEd = null; // a library item is shown read-only; edits apply to a freshly generated program
-  window._wccLastWorkout = { text: it.text, styleName: it.styleName, level: it.level, duration: it.duration, goal: it.goal, days: it.days, injuries: it.injuries };
   var lm = document.getElementById('wlibModal'); if(lm) lm.remove();
-  var viewPref = localStorage.getItem('drfitness_workout_view') || 'quick';
-  var toggleHtml = '<div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;"><button id="wccQuickViewBtn" onclick="setWccView(\'quick\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--gold);'+(viewPref==='quick'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--gold);')+'">QUICK VIEW</button><button id="wccDetailViewBtn" onclick="setWccView(\'detail\')" style="padding:6px 14px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);'+(viewPref==='detail'?'background:var(--gold);color:var(--navy);':'background:transparent;color:var(--text2);')+'">DETAIL VIEW</button></div>';
-  var quickContent = '<div id="wccQuickView" style="'+(viewPref==='quick'?'':'display:none;')+'">' + buildQuickView(it.text, it.styleName) + '</div>';
-  var detailContent = '<div id="wccDetailView" style="'+(viewPref==='detail'?'':'display:none;')+'font-size:0.88rem;color:var(--text2);line-height:1.75;">'+buildDetailView(it.text)+'</div>';
-  var diagramHtml = (typeof buildMuscleDiagramFromText === 'function') ? buildMuscleDiagramFromText(wccExerciseNames(it.text)) : '';
-  document.getElementById('wccOutputContent').innerHTML = toggleHtml + diagramHtml + quickContent + detailContent;
-  showModal('wccOutputModal');
+  // Opens as editable cards; edits save back to this library item.
+  wccOpenSaved({ text: it.text, meta: it.meta || { styleName: it.styleName, level: it.level, duration: it.duration, goal: it.goal, injuries: it.injuries }, client: null, libraryId: it.id });
 };
 
 window.wlibDelete = function(id){
@@ -12293,6 +12409,7 @@ function openSessionHistory(clientId) {
         '<details><summary style="font-size:0.72rem;color:var(--gold);cursor:pointer;margin-bottom:6px;">View full content</summary><div style="font-size:0.8rem;color:var(--text2);line-height:1.7;padding:8px;background:var(--navy2);border-radius:var(--radius-sm);max-height:300px;overflow-y:auto;">'+s.content+'</div></details>' +
         '<div style="margin-top:8px;"><textarea placeholder="Add trainer notes..." onblur="updateSessionNote(\''+clientId+'\',\''+s.id+'\',this.value)" style="width:100%;padding:8px 10px;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.8rem;resize:vertical;min-height:36px;outline:none;" onfocus="this.style.borderColor=\'var(--gold)\'" onblurr="this.style.borderColor=\'var(--border2)\'">'+(s.notes||'')+'</textarea></div>' +
         '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">' +
+          (window.wccCanEditSession && wccCanEditSession(s) ? '<button onclick="wccEditSession(\''+clientId+'\',\''+s.id+'\')" style="padding:5px 12px;background:var(--gold);border:1px solid var(--gold);border-radius:var(--radius-sm);color:var(--navy);font-size:0.7rem;font-weight:700;cursor:pointer;">\u270e Edit workout</button>' : '') +
           '<button onclick="emailSession(\''+clientId+'\',\''+s.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.7rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">EMAIL TO CLIENT</button>' +
           '<button onclick="printSession(\''+s.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:0.7rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">PRINT</button>' +
           '<button onclick="if(confirm(\'Delete this session?\')){ deleteClientSession(\''+clientId+'\',\''+s.id+'\'); document.getElementById(\'sh_'+s.id+'\').remove(); }" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:0.7rem;cursor:pointer;font-family:Barlow Condensed,sans-serif;font-weight:700;">DELETE</button>' +
