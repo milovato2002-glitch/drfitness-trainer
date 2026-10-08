@@ -284,6 +284,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <button class="nav-tab" data-tab="supplements">💊 SUPPLEMENTS</button>
   <button class="nav-tab" data-tab="reflib">📚 REFERENCE</button>
   <button class="nav-tab" data-tab="quickref">⚡ QUICK REF</button>
+  <button class="nav-tab" data-tab="settings">⚙ SETTINGS</button>
   <button class="nav-tab" style="color:var(--gold);border-bottom-color:transparent;" onclick="event.stopPropagation();openClientIntakeEntry()">📋 INTAKE</button>
 </div>
 
@@ -641,6 +642,101 @@ textarea.wce-input{width:100%;min-height:3em;resize:vertical;}
   Storage.prototype._dfWrapped = true;
 })();
 
+/* ══ GYM SETTINGS ══
+   Gym name, logo, trainer name and booking link (Settings tab) replace the
+   names and links that were written into handouts, PDFs, the waiver and
+   the schedule. Gym Mode hides supplement, medication and peptide tools. */
+var DF_SETTINGS_KEY = 'drfitness_settings';
+window.dfSettings = function(){
+  var d = { gymName: '', trainerName: '', bookingLink: '', logo: '', logoW: 0, logoH: 0, gymMode: false };
+  try { var s = JSON.parse(localStorage.getItem(DF_SETTINGS_KEY) || '{}'); for (var k in d) if (s[k] !== undefined) d[k] = s[k]; } catch(e) {}
+  return d;
+};
+window.dfSaveSettings = function(next){
+  var cur = window.dfSettings();
+  for (var k in next) cur[k] = next[k];
+  localStorage.setItem(DF_SETTINGS_KEY, JSON.stringify(cur));
+  window.dfApplySettings();
+  return cur;
+};
+window.dfEsc = function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+// "Gym name · Trainer name", or whichever is set; empty when neither is.
+window.dfBrandLine = function(){ var s = window.dfSettings(); return [s.gymName, s.trainerName].filter(Boolean).join(' · '); };
+window.dfLogoImg = function(style){ var s = window.dfSettings(); return /^data:image\/(png|jpeg);base64,/.test(s.logo) ? '<img src="' + window.dfEsc(s.logo) + '" alt="' + window.dfEsc(s.gymName || 'Gym logo') + '" style="' + (style || 'height:40px;') + '">' : ''; };
+// Names released in the waiver: the gym and the trainer from Settings.
+window.dfWaiverParties = function(){
+  var s = window.dfSettings();
+  var parties = [s.gymName ? window.dfEsc(s.gymName) : 'the facility', s.trainerName ? window.dfEsc(s.trainerName) : 'the trainer'];
+  return parties.join(', ');
+};
+// Fills placeholders (data-df-text), the booking button, and the Gym Mode class.
+window.dfApplySettings = function(){
+  var s = window.dfSettings();
+  document.querySelectorAll('[data-df-text]').forEach(function(el){ el.textContent = s[el.getAttribute('data-df-text')] || el.getAttribute('data-df-fallback') || ''; });
+  var link = document.getElementById('dfBookingLink'), hint = document.getElementById('dfBookingHint');
+  if (link) { if (s.bookingLink) { link.href = s.bookingLink; link.style.display = 'inline-block'; } else link.style.display = 'none'; }
+  if (hint) hint.style.display = s.bookingLink ? 'none' : 'block';
+  if (document.body) document.body.classList.toggle('gym-mode', !!s.gymMode);
+};
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window.dfApplySettings); else window.dfApplySettings();
+
+// Settings tab form.
+var dfPendingLogo = null; // { logo, logoW, logoH } chosen but not yet saved
+window.dfOpenSettings = function(){ if (window.mobileNavTo) window.mobileNavTo('settings'); dfSettingsFill(); };
+function dfSettingsPreview(logo){
+  var box = document.getElementById('dfLogoPreview');
+  if (!box) return;
+  box.innerHTML = logo ? '<img src="' + window.dfEsc(logo) + '" alt="Logo preview" style="max-height:44px;max-width:160px;">' : 'No logo';
+}
+function dfSettingsFill(){
+  var s = window.dfSettings(), f = function(id){ return document.getElementById(id); };
+  if (!f('dfSetGym')) return;
+  f('dfSetGym').value = s.gymName; f('dfSetTrainer').value = s.trainerName; f('dfSetBooking').value = s.bookingLink;
+  f('dfSetGymMode').checked = !!s.gymMode;
+  dfPendingLogo = null; dfSettingsPreview(s.logo);
+}
+window.dfSettingsSave = function(){
+  var f = function(id){ return document.getElementById(id); }, status = f('dfSettingsStatus');
+  var booking = f('dfSetBooking').value.trim();
+  if (booking && !/^https:\/\/[^\s"'<>]+$/i.test(booking)) { status.style.color = 'var(--red)'; status.textContent = 'The booking link must start with https://'; return; }
+  var next = { gymName: f('dfSetGym').value.trim().slice(0, 80), trainerName: f('dfSetTrainer').value.trim().slice(0, 80), bookingLink: booking, gymMode: f('dfSetGymMode').checked };
+  if (dfPendingLogo) { next.logo = dfPendingLogo.logo; next.logoW = dfPendingLogo.logoW; next.logoH = dfPendingLogo.logoH; }
+  try { window.dfSaveSettings(next); } catch(e) { status.style.color = 'var(--red)'; status.textContent = 'Could not save settings in this browser.'; return; }
+  dfPendingLogo = null;
+  status.style.color = 'var(--green)'; status.textContent = '✓ Saved' + (next.gymMode ? ' · Gym Mode on' : '');
+};
+window.dfSettingsRemoveLogo = function(){ dfPendingLogo = { logo: '', logoW: 0, logoH: 0 }; dfSettingsPreview(''); var i = document.getElementById('dfSetLogo'); if (i) i.value = ''; };
+// The logo is scaled to at most 400x160 so it stays small in storage and on documents.
+function dfSettingsLogoChosen(file){
+  var status = document.getElementById('dfSettingsStatus');
+  if (!file) return;
+  if (!/^image\/(png|jpeg)$/.test(file.type)) { status.style.color = 'var(--red)'; status.textContent = 'Use a PNG or JPG logo.'; return; }
+  var reader = new FileReader();
+  reader.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var scale = Math.min(1, 400 / img.width, 160 / img.height);
+      var w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      var data = c.toDataURL(file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9);
+      dfPendingLogo = { logo: data, logoW: w, logoH: h };
+      dfSettingsPreview(data);
+      status.style.color = 'var(--text2)'; status.textContent = 'Logo ready. Save to apply.';
+    };
+    img.onerror = function(){ status.style.color = 'var(--red)'; status.textContent = 'That image could not be read.'; };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+document.addEventListener('DOMContentLoaded', function(){
+  dfSettingsFill();
+  var logo = document.getElementById('dfSetLogo');
+  if (logo) logo.addEventListener('change', function(){ dfSettingsLogoChosen(logo.files && logo.files[0]); });
+  var tab = document.querySelector('.nav-tab[data-tab="settings"]');
+  if (tab) tab.addEventListener('click', dfSettingsFill);
+});
+
 /* ══ STICKY CHROME OFFSETS ══
    The nav and active client bar stuck at fixed tops (65px, 105px) and the
    panels were sized 100vh - 115px. Those numbers only matched one header
@@ -727,7 +823,7 @@ var WCC_COACHES = {
   senior:'ACE Senior Fitness acefitness.org|Mark Lauren youtube.com/@MarkLauren|ACSM senior guidelines acsm.org',
   glp1:'NASM GLP-1 resources nasm.org|Layne Norton — BioLayne youtube.com/@biolayne|Precision Nutrition precisionnutrition.com',
   sport:'NSCA Sport Specific nsca.com|Fergus Connolly|Dan John youtube.com/@DanJohn',
-  deka:'DEKA official dfrfit.com|Dr. Michael Lovato EdD — AILG|Functional fitness community'
+  deka:'DEKA official dfrfit.com|Functional fitness community'
 };
 
 var selectedStyle = null;
@@ -2775,7 +2871,7 @@ window.wccPrintWorkout = function(){
     '@media print{.hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;} th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'+
     '</style></head><body><div class="page">'+
     '<div class="hdr"><h1>'+wccEsc(w.styleName||'Training')+(w.days>1?' \u2014 '+w.days+'-Day Program':' Session')+'</h1>'+
-    '<p>'+wccEsc(clientName)+' \u00b7 Dr. Fitness \u00b7 Dr. Michael Lovato EdD \u00b7 '+date+'</p></div>'+
+    '<p>'+wccEsc(clientName)+' \u00b7 '+wccEsc(dfBrandLine() || 'Dr. Fitness')+' \u00b7 '+date+'</p>'+dfLogoImg('height:44px;float:right;margin-top:-34px;background:#fff;border-radius:4px;padding:2px;')+'</div>'+
     '<div class="meta"><span>Level: '+wccEsc(w.level||'-')+'</span><span>Duration: '+wccEsc(w.duration||'-')+'</span><span>Goal: '+wccEsc(w.goal||'-')+'</span>'+(w.injuries?'<span>Injuries: '+wccEsc(w.injuries)+'</span>':'')+'</div>'+
     body +
     '<div class="foot"><span>Generated by Dr. Fitness Trainer</span><span>Not medical advice. Trainers operate within NASM/ACE scope of practice.</span></div>'+
@@ -2910,10 +3006,17 @@ window.wccDownloadPDF = function(){
   function checkPage(need){ if(y+need > H-M){ doc.addPage(); y=M; } }
   // Header band
   doc.setFillColor(10,22,40); doc.rect(0,0,W,70,'F');
+  // Gym logo from Settings, on a white tile at the right of the header band.
+  var gs = dfSettings();
+  if (/^data:image\/(png|jpeg);base64,/.test(gs.logo) && gs.logoW && gs.logoH) {
+    var lh = 46, lw = Math.min(150, lh * gs.logoW / gs.logoH);
+    lh = lw * gs.logoH / gs.logoW;
+    try { doc.setFillColor(255,255,255); doc.rect(W-M-lw-6, 12, lw+12, lh+0, 'F'); doc.addImage(gs.logo, /jpeg/.test(gs.logo) ? 'JPEG' : 'PNG', W-M-lw, 12, lw, lh); } catch(e) {}
+  }
   doc.setTextColor(240,165,0); doc.setFont('helvetica','bold'); doc.setFontSize(18);
   doc.text((w.styleName||'Training')+(w.days>1?' — '+w.days+'-Day Program':' Session'), M, 34);
   doc.setTextColor(205,214,224); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-  doc.text(clientName+'  •  Dr. Fitness  •  Dr. Michael Lovato EdD  •  '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), M, 52);
+  doc.text(clientName+'  •  '+(dfBrandLine() || 'Dr. Fitness')+'  •  '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), M, 52);
   y = 92;
   // Meta line
   doc.setTextColor(60,60,60); doc.setFontSize(9);
@@ -4160,7 +4263,7 @@ function generateHandout() {
       '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;">' + (keySupplement[goal] || 'Creatine 3-5g/day') + '</p>' +
     '</div>' +
     '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border2);padding-top:0.75rem;margin-top:0.75rem;">' +
-      '<div style="font-size:0.72rem;color:var(--text3);"><strong style="color:var(--text2);">Trainer:</strong> Dr. Michael Lovato EdD &nbsp;|&nbsp; <strong style="color:var(--text2);">Best Fitness</strong></div>' +
+      '<div style="font-size:0.72rem;color:var(--text3);"><strong style="color:var(--text2);">Trainer:</strong> ' + dfEsc(dfSettings().trainerName || '\u2014') + (dfSettings().gymName ? ' &nbsp;|&nbsp; <strong style="color:var(--text2);">' + dfEsc(dfSettings().gymName) + '</strong>' : '') + '</div>' +
       '<div style="font-size:0.62rem;color:var(--text3);max-width:50%;text-align:right;">This is general nutrition education within personal trainer scope of practice. It does not replace medical advice. For individualized meal planning, consult a Registered Dietitian.</div>' +
     '</div>' +
     '</div>';
@@ -4596,7 +4699,7 @@ function buildSuppStack() {
     </div>
     <div style="background:rgba(240,165,0,0.06);border:2px solid var(--gold);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
       <h3 style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.12em;font-size:0.82rem;text-transform:uppercase;margin-bottom:0.6rem;">EDUCATIONAL USE ONLY</h3>
-      <p style="font-size:0.82rem;color:var(--text2);line-height:1.65;">This reference is provided for educational purposes to empower fitness professionals with knowledge. <strong style="color:var(--text);">Dr. Michael P. Lovato EdD is not a physician and is not making any medical recommendations.</strong> Peptides discussed here include both FDA-approved medications and research compounds. Always advise clients to consult a licensed physician before using any peptide or compound. This information is based on published research and is intended to help trainers have informed conversations with clients.</p></div>
+      <p style="font-size:0.82rem;color:var(--text2);line-height:1.65;">This reference is provided for educational purposes to empower fitness professionals with knowledge. <strong style="color:var(--text);"><span data-df-text="trainerName" data-df-fallback="The trainer using this reference">The trainer using this reference</span> is not a physician and is not making any medical recommendations.</strong> Peptides discussed here include both FDA-approved medications and research compounds. Always advise clients to consult a licensed physician before using any peptide or compound. This information is based on published research and is intended to help trainers have informed conversations with clients.</p></div>
     <div style="background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
       <h3 style="color:var(--red);font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;font-size:0.82rem;text-transform:uppercase;margin-bottom:0.6rem;">⚕️ Scope of Practice Disclaimer</h3>
       <p style="font-size:0.82rem;color:var(--text2);line-height:1.65;"><strong style="color:var(--text);">Personal trainers cannot recommend, prescribe, or guide clients on peptide use.</strong> This information is strictly for trainer education — to understand what clients may be asking about and when to refer to a physician. All peptide decisions must be made under physician supervision. Most peptides listed here are <strong style="color:var(--text);">not FDA-approved for human use</strong> and are classified as research chemicals.</p>
@@ -4655,7 +4758,7 @@ var PEPTIDE_DB=[
 {name:'Argireline',sub:'Acetyl Hexapeptide-3',cat:'Topical Skincare',route:'Topical OTC',status:'Pilot studies',desc:'Topical botox-like effect reducing expression lines.',mechanism:'Inhibits neurotransmitter release at surface level reducing muscle contraction.',research:'Pilot studies show 30% reduction in wrinkle depth at 10% concentration.',benefits:'Expression wrinkle reduction, non-invasive',risks:'Cosmetic use only. Not a Botox replacement.',wada:'N/A — cosmetic',trainer:'OTC adjunct between professional treatments.'},
 {name:'SNAP-8',sub:'Acetyl Octapeptide-3',cat:'Topical Skincare',route:'Topical OTC',status:'Studies available',desc:'Extended version of Argireline with stronger wrinkle reduction.',mechanism:'8-amino acid version with enhanced SNARE complex inhibition.',research:'Studies suggest superior results to Argireline alone.',benefits:'Stronger wrinkle reduction than Argireline',risks:'Cosmetic use only.',wada:'N/A — cosmetic',trainer:'Premium formulations use this over standard Argireline.'},
 {name:'Syn-Coll',sub:'Palmitoyl Tripeptide-5',cat:'Topical Skincare',route:'Topical OTC',status:'Cosmetic studies',desc:'Collagen synthesis via TGF-beta activation.',mechanism:'Activates TGF-beta pathway for collagen production.',research:'Cosmetic studies support skin firmness improvement.',benefits:'Skin firmness, collagen production, texture improvement',risks:'Generally safe topically.',wada:'N/A — cosmetic',trainer:'Good for general skin firmness.'},
-{name:'GLP-1 Skin Protocol',sub:'Post-Weight-Loss Skin Care',cat:'Topical Skincare',route:'Protocol',status:'Evidence-based protocol',desc:'Complete skin care approach for GLP-1 and rapid weight loss clients experiencing skin laxity.',mechanism:'Resistance training builds muscle under skin. Protein supports collagen synthesis. Topical peptides treat surface. Professional treatments enhance results.',research:'Combination approach supported by dermatology and exercise science literature.',benefits:'Improved skin elasticity, reduced laxity, confidence support',risks:'Skin continues remodeling for 1-2 years after weight stabilization. Patience required.',wada:'N/A',trainer:'Trainers can recommend resistance training, protein optimization, collagen supplementation, and hydration. Refer to licensed esthetician for professional treatments. Debora Lovato — Licensed Esthetician, Laser Certified — specializes in post-weight-loss skin care.'}
+{name:'GLP-1 Skin Protocol',sub:'Post-Weight-Loss Skin Care',cat:'Topical Skincare',route:'Protocol',status:'Evidence-based protocol',desc:'Complete skin care approach for GLP-1 and rapid weight loss clients experiencing skin laxity.',mechanism:'Resistance training builds muscle under skin. Protein supports collagen synthesis. Topical peptides treat surface. Professional treatments enhance results.',research:'Combination approach supported by dermatology and exercise science literature.',benefits:'Improved skin elasticity, reduced laxity, confidence support',risks:'Skin continues remodeling for 1-2 years after weight stabilization. Patience required.',wada:'N/A',trainer:'Trainers can recommend resistance training, protein optimization, collagen supplementation, and hydration. Refer to licensed esthetician for professional treatments.'}
 ];
 
 // Render peptide grid
@@ -7235,12 +7338,12 @@ function filterPeptides() {
   <div class="plbb-content" data-plbb="certifications">
 
     <div class="plbb-section">
-      <div class="plbb-section-hdr">Strategic Recommendations for Dr. Lovato / Best Fitness Trainers</div>
+      <div class="plbb-section-hdr">Certification Recommendations for Trainers</div>
       <div class="cert-highlight">
-        <h4>🎯 Priority Picks — Highest ROI for this context</h4>
-        <p><strong>Pick 1 — NASM Physique & Bodybuilding Coach (PBC):</strong> Stacks directly on existing NASM CPT/EdD background. NPC/IFBB Pro League endorsed. Gives 1.9 CEUs toward NASM renewal. Currently ~$539 (frequently 30–50% off). Logical, credible, immediately marketable to Best Fitness clients wanting contest prep or advanced aesthetics.<br><br>
-        <strong>Pick 2 — USPA Coach Level 1 + 2:</strong> Level 1 is fully online/self-paced. Level 2 is an in-person workshop. Earns 2 NSCA CEUs. Positions you with real competitive powerlifting authority. Growing sport — 2025 saw record USPA meet registrations. Complements the strength science background you already have.<br><br>
-        <strong>Pick 3 — NSCA CSCS (Long-term):</strong> Highest-tier strength cert in the industry. Required for most college/pro S&C positions. Requires bachelor's degree (you have EdD — far exceeds requirement). Exam fee: $340 (NSCA member) / $475 (non-member). Pass rate ~56% — take it seriously. Strengthens AILG government contracting proposals for S&C services.</p>
+        <h4>🎯 Priority Picks — Highest ROI for a gym-floor trainer</h4>
+        <p><strong>Pick 1 — NASM Physique & Bodybuilding Coach (PBC):</strong> Builds directly on a NASM CPT. NPC/IFBB Pro League endorsed. Gives 1.9 CEUs toward NASM renewal. Currently ~$539 (frequently 30–50% off). Credible and immediately marketable to clients wanting contest prep or advanced aesthetics.<br><br>
+        <strong>Pick 2 — USPA Coach Level 1 + 2:</strong> Level 1 is fully online/self-paced. Level 2 is an in-person workshop. Earns 2 NSCA CEUs. Positions a trainer with real competitive powerlifting authority. Growing sport — 2025 saw record USPA meet registrations. Complements a strength science background.<br><br>
+        <strong>Pick 3 — NSCA CSCS (Long-term):</strong> Highest-tier strength cert in the industry. Required for most college/pro S&C positions. Requires a bachelor's degree. Exam fee: $340 (NSCA member) / $475 (non-member). Pass rate ~56% — take it seriously. Strengthens proposals for team or institutional strength and conditioning contracts.</p>
       </div>
     </div>
 
@@ -7378,12 +7481,40 @@ function filterPeptides() {
     <div id="schedCalendar" style="margin-bottom:1.5rem;"></div>
     <!-- Session List -->
     <div id="schedList" style="display:flex;flex-direction:column;gap:8px;"></div>
-    <!-- Calendly -->
+    <!-- Booking link (Settings) -->
     <div style="margin-top:2rem;border-top:1px solid var(--border2);padding-top:1.5rem;">
       <div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">EXTERNAL BOOKING</div>
-      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;">Allow clients to self-book by sharing your Calendly link</p>
-      <a href="https://calendly.com/milovato2002" target="_blank" style="display:inline-block;padding:10px 24px;background:var(--gold);color:var(--navy);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;text-decoration:none;">Open Calendly Booking Page</a>
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;">Allow clients to self-book by sharing your booking link.</p><p id="dfBookingHint" style="font-size:0.8rem;color:var(--text3);margin-bottom:8px;">Add your booking link (Calendly, Acuity, Mindbody or similar) in <a href="#" onclick="event.preventDefault();dfOpenSettings()" style="color:var(--gold);">Settings</a>.</p>
+      <a id="dfBookingLink" href="#" target="_blank" rel="noopener" style="display:none;padding:10px 24px;background:var(--gold);color:var(--navy);border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.85rem;font-weight:700;text-decoration:none;">Open Booking Page</a>
     </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS TAB ══ -->
+<div class="panel" data-panel="settings">
+  <div class="ref-panel" style="max-width:760px;margin:0 auto;padding:2rem 1.5rem;">
+    <h2 style="font-family:Bebas Neue,sans-serif;font-size:2rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.3rem;">SETTINGS</h2>
+    <p style="font-size:0.88rem;color:var(--text2);margin-bottom:1.5rem;">Your gym's details appear on handouts, PDFs, printed workouts, nutrition plans, the waiver and the booking button. Settings are stored in this browser.</p>
+    <form id="dfSettingsForm" novalidate onsubmit="event.preventDefault();dfSettingsSave();" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="calc-field"><label for="dfSetGym">Gym name</label><input type="text" id="dfSetGym" maxlength="80" placeholder="e.g. Northside Strength Club" autocomplete="organization"></div>
+      <div class="calc-field"><label for="dfSetTrainer">Trainer name and credentials</label><input type="text" id="dfSetTrainer" maxlength="80" placeholder="e.g. Jordan Lee, NASM-CPT" autocomplete="name"></div>
+      <div class="calc-field"><label for="dfSetBooking">Booking link</label><input type="url" id="dfSetBooking" maxlength="300" placeholder="https://calendly.com/your-name" inputmode="url"><div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Calendly, Acuity, Mindbody or any https link. Shown on the Schedule tab.</div></div>
+      <div class="calc-field"><label for="dfSetLogo">Logo (PNG or JPG)</label>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div id="dfLogoPreview" style="min-width:64px;min-height:44px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;padding:4px;color:#888;font-size:0.7rem;">No logo</div>
+          <input type="file" id="dfSetLogo" accept="image/png,image/jpeg" style="max-width:100%;">
+          <button type="button" class="wce-btn" id="dfLogoRemove" onclick="dfSettingsRemoveLogo()">Remove logo</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Resized to fit on documents. Appears on printed workouts and nutrition plans.</div>
+      </div>
+      <label style="display:flex;gap:12px;align-items:flex-start;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;">
+        <input type="checkbox" id="dfSetGymMode" style="width:22px;height:22px;accent-color:var(--gold);flex-shrink:0;margin-top:2px;">
+        <span><strong style="font-family:Barlow Condensed,sans-serif;letter-spacing:0.06em;color:var(--text);font-size:0.95rem;">GYM MODE</strong><br>
+        <span style="font-size:0.8rem;color:var(--text2);line-height:1.5;">For gyms whose trainers should not advise on supplements or medications. Hides the supplement and medication interaction checker, the peptide library, and dosed supplement stacks in nutrition plans and handouts. Physician and physical therapist referral reminders stay.</span></span>
+      </label>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><button type="submit" class="wce-btn gold">Save settings</button><span id="dfSettingsStatus" role="status" aria-live="polite" style="font-size:0.8rem;color:var(--green);"></span></div>
+    </form>
+    <div id="dfDemoSection"></div>
   </div>
 </div>
 
@@ -12151,7 +12282,7 @@ window.printSession = function(sessionId) {
 /* ══ EMAIL SYSTEM ══ */
 function buildMailtoLink(toEmail, clientName, style, type, content) {
   var date = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-  var trainerName = 'Dr. Michael P. Lovato EdD';
+  var trainerName = dfSettings().trainerName || 'Your trainer';
   if (window.cpActiveClient && window.cpActiveClient.trainerName) trainerName = window.cpActiveClient.trainerName;
   var plainContent = (content||'').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
   var subject = 'Your Training Session from Dr. Fitness — ' + date;
@@ -12432,6 +12563,7 @@ console.log('init: floating-chat complete');
     <button onclick="mobileNavTo('calcs')" class="qp-chip">Calculators</button>
     <button onclick="mobileNavTo('reflib')" class="qp-chip">Reference</button>
     <button onclick="mobileNavTo('quickref')" class="qp-chip">Quick Ref</button>
+    <button onclick="mobileNavTo('settings')" class="qp-chip">Settings</button>
     <button onclick="openPricingModal()" class="qp-chip" style="color:var(--gold);border-color:var(--gold);">Pricing</button>
   </div>
 </nav>
@@ -12659,7 +12791,7 @@ function openWaiverModal(clientId) {
         '<h4 style="font-weight:700;color:var(--gold);margin:0 0 0.4rem;">1. ASSUMPTION OF RISK</h4>' +
         '<p>I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided through Dr. Fitness.</p>' +
         '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">2. RELEASE OF LIABILITY</h4>' +
-        '<p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, Dr. Michael P. Lovato EdD, and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
+        '<p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, ' + dfWaiverParties() + ', and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
         '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">3. SCOPE OF PRACTICE ACKNOWLEDGMENT</h4>' +
         '<p>I understand that Dr. Fitness trainers are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.</p>' +
         '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">4. MEDICAL CLEARANCE ACKNOWLEDGMENT</h4>' +
@@ -12711,7 +12843,7 @@ function printWaiver(clientId) {
   w.document.write('<html><head><title>Waiver — ' + c.fname + ' ' + (c.lname||'') + '</title><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;color:#222;}h1{text-align:center;font-size:1.3rem;margin-bottom:0.2rem;}h2{text-align:center;font-size:0.8rem;color:#666;margin-bottom:2rem;}h3{font-size:0.95rem;margin:1.2rem 0 0.3rem;}p{font-size:0.88rem;margin-bottom:0.5rem;}.sig{margin-top:2rem;border-top:1px solid #ccc;padding-top:1rem;}.sig-line{display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.88rem;}.sig-line strong{font-weight:700;}</style></head><body>' +
     '<h1>DR. FITNESS</h1><h2>PARTICIPANT WAIVER, RELEASE OF LIABILITY, AND INFORMED CONSENT</h2>' +
     '<h3>1. ASSUMPTION OF RISK</h3><p>I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided through Dr. Fitness.</p>' +
-    '<h3>2. RELEASE OF LIABILITY</h3><p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, Dr. Michael P. Lovato EdD, and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
+    '<h3>2. RELEASE OF LIABILITY</h3><p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, ' + dfWaiverParties() + ', and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
     '<h3>3. SCOPE OF PRACTICE ACKNOWLEDGMENT</h3><p>I understand that Dr. Fitness trainers are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.</p>' +
     '<h3>4. MEDICAL CLEARANCE ACKNOWLEDGMENT</h3><p>I confirm that I have consulted with or do not require consultation with a licensed physician prior to beginning this exercise program. I agree to inform my trainer of any changes to my health status.</p>' +
     (hasGlp1 ? '<h3>5. GLP-1 AND MEDICATION ACKNOWLEDGMENT</h3><p>I understand that exercise programming for clients using GLP-1 or other weight management medications is adapted for muscle preservation and metabolic health. I confirm I am working with a physician supervising my medication use.</p>' : '') +
@@ -13757,7 +13889,7 @@ window.openNutritionPlanGenerator = function(startSection) {
     '<div class="npt-card">' +
       '<div style="background:linear-gradient(135deg,#0e3d2f,#0a2a1e);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;">' +
         '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#fff;letter-spacing:0.04em;">' + ctx.goalLabel + ' — Nutrition Plan</div>' +
-        '<div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:2px;">' + ctx.fname + ' ' + ctx.lname + ' · Dr. Fitness · Best Fitness Gyms · Dr. Michael Lovato EdD</div>' +
+        '<div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:2px;">' + ctx.fname + ' ' + ctx.lname + ' · ' + dfEsc(dfBrandLine() || 'Dr. Fitness') + '</div>' +
       '</div>' +
       '<div class="npt-h2">Client Profile</div>' +
       '<table class="npt-table">' +
@@ -13860,7 +13992,7 @@ window.openNutritionPlanGenerator = function(startSection) {
       '<div id="nptCoachOutput" style="display:none;"><div class="npt-ai-output" id="nptCoachContent"></div></div>' +
     '</div>' +
     '<div style="margin-top:1.5rem;padding:1rem 1.25rem;background:rgba(240,165,0,0.04);border:1px solid var(--border);border-radius:var(--radius);font-size:0.72rem;color:var(--text3);line-height:1.6;">' +
-      '<strong style="color:var(--text2);">Dr. Fitness — Scope of Practice Notice:</strong> This nutrition plan is an evidence-based educational reference for certified personal trainers. It does not replace medical advice, diagnosis, or treatment. Refer clients with medical nutrition needs to a Registered Dietitian. Calorie estimates are accurate within ±150-200 kcal. Always recommend clients discuss supplement use with their physician. — Dr. Michael Lovato EdD · Best Fitness Gyms' +
+      '<strong style="color:var(--text2);">Dr. Fitness — Scope of Practice Notice:</strong> This nutrition plan is an evidence-based educational reference for certified personal trainers. It does not replace medical advice, diagnosis, or treatment. Refer clients with medical nutrition needs to a Registered Dietitian. Calorie estimates are accurate within ±150-200 kcal. Always recommend clients discuss supplement use with their physician.' + (dfBrandLine() ? ' \u2014 ' + dfEsc(dfBrandLine()) : '') +
     '</div>' +
     '<div style="margin-top:1rem;text-align:center;">' +
       '<button onclick="downloadNutritionPlanPDF()" style="padding:14px 32px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;">⬇ DOWNLOAD COMPLETE PDF</button>' +
@@ -14401,7 +14533,7 @@ window.downloadNutritionPlanPDF = function() {
     '@media print{.section-break{page-break-before:always;}}' +
     '</style></head><body><div class="page">' +
 
-    '<div class="header"><div class="brand">Best Fitness · Dr. Michael Lovato, EdD</div><h1>' + (ctx.goalLabel||'Nutrition').toUpperCase() + ' — MACRO PLAN</h1><p>' + ctx.fname + ' ' + ctx.lname + '  ·  ' + ctx.age + ' y/o  ·  ' + ctx.weight + ' lbs  ·  ' + date + '</p></div>' +
+    '<div class="header">' + dfLogoImg('height:40px;float:right;') + '<div class="brand">' + dfEsc(dfBrandLine() || 'Dr. Fitness') + '</div><h1>' + (ctx.goalLabel||'Nutrition').toUpperCase() + ' — MACRO PLAN</h1><p>' + ctx.fname + ' ' + ctx.lname + '  ·  ' + ctx.age + ' y/o  ·  ' + ctx.weight + ' lbs  ·  ' + date + '</p></div>' +
 
     '<h2>Client Profile</h2>' +
     '<table><tr><th>Age</th><td>' + ctx.age + ' years</td><th>Height</th><td>' + heightStr + ' (' + ctx.heightCm + ' cm)</td></tr>' +
@@ -14434,11 +14566,11 @@ window.downloadNutritionPlanPDF = function() {
 
     '<div class="section-break"><div class="header"><h1>Sample Training Day Meal Plan</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + ctx.mealsPerDay + ' Meals · ' + ctx.calTarget + ' kcal target</p></div>' + mealContent + '</div>' +
 
-    '<div class="section-break"><div class="header"><h1>Supplement Stack & Coaching Notes</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Best Fitness Gyms · ' + date + '</p></div><h2>Supplement Recommendations</h2>' + suppContent + '<h2>Coaching Notes & Guidelines</h2>' + coachContent + '</div>' +
+    '<div class="section-break"><div class="header"><h1>Supplement Stack & Coaching Notes</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · ' + dfEsc(dfSettings().gymName || 'Dr. Fitness') + ' · ' + date + '</p></div><h2>Supplement Recommendations</h2>' + suppContent + '<h2>Coaching Notes & Guidelines</h2>' + coachContent + '</div>' +
 
     (window._nptGrocery ? '<div class="section-break"><div class="header"><h1>Grocery List & Shopping Guide</h1><p>' + ctx.fname + ' ' + ctx.lname + ' · Weekly shopping · ' + date + '</p></div>' + window.nptMdToHtml(window._nptGrocery) + '</div>' : '') +
 
-    '<div class="footer"><span>Dr. Fitness · Dr. Michael Lovato EdD · Best Fitness Gyms</span><span>Confidential Client Document · ' + date + '</span></div>' +
+    '<div class="footer"><span>Dr. Fitness' + (dfBrandLine() ? ' · ' + dfEsc(dfBrandLine()) : '') + '</span><span>Confidential Client Document · ' + date + '</span></div>' +
     '</div></body></html>');
   w.document.close();
   setTimeout(function(){ w.print(); }, 600);
