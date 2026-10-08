@@ -652,7 +652,7 @@ textarea.wce-input{width:100%;min-height:3em;resize:vertical;}
    the schedule. Gym Mode hides supplement, medication and peptide tools. */
 var DF_SETTINGS_KEY = 'drfitness_settings';
 window.dfSettings = function(){
-  var d = { gymName: '', trainerName: '', bookingLink: '', logo: '', logoW: 0, logoH: 0, gymMode: false };
+  var d = { gymName: '', trainerName: '', bookingLink: '', logo: '', logoW: 0, logoH: 0, gymMode: false, legalName: '', waiverText: '' };
   try { var s = JSON.parse(localStorage.getItem(DF_SETTINGS_KEY) || '{}'); for (var k in d) if (s[k] !== undefined) d[k] = s[k]; } catch(e) {}
   return d;
 };
@@ -667,11 +667,51 @@ window.dfEsc = function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp
 // "Gym name · Trainer name", or whichever is set; empty when neither is.
 window.dfBrandLine = function(){ var s = window.dfSettings(); return [s.gymName, s.trainerName].filter(Boolean).join(' · '); };
 window.dfLogoImg = function(style){ var s = window.dfSettings(); return /^data:image\/(png|jpeg);base64,/.test(s.logo) ? '<img src="' + window.dfEsc(s.logo) + '" alt="' + window.dfEsc(s.gymName || 'Gym logo') + '" style="' + (style || 'height:40px;') + '">' : ''; };
-// Names released in the waiver: the gym and the trainer from Settings.
-window.dfWaiverParties = function(){
-  var s = window.dfSettings();
-  var parties = [s.gymName ? window.dfEsc(s.gymName) : 'the facility', s.trainerName ? window.dfEsc(s.trainerName) : 'the trainer'];
-  return parties.join(', ');
+/* Waiver. Each gym supplies its own waiver text and legal name in Settings.
+   Until it does, a sample waiver is used and clearly marked as a sample.
+   {GYM} in the text is replaced with the legal name. */
+var DF_WAIVER_SAMPLE_NOTE = 'Sample only, have your attorney review before use.';
+var DF_WAIVER_SAMPLE = [
+  { h: 'ASSUMPTION OF RISK', p: 'I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided by {GYM}.' },
+  { h: 'RELEASE OF LIABILITY', p: 'I hereby release, discharge, and covenant not to sue {GYM}, its owners, trainers, employees and agents from any and all claims, demands, or causes of action arising from exercise programming or nutritional guidance provided by {GYM}.' },
+  { h: 'SCOPE OF PRACTICE ACKNOWLEDGMENT', p: 'I understand that the trainers at {GYM} are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.' },
+  { h: 'MEDICAL CLEARANCE ACKNOWLEDGMENT', p: 'I confirm that I have consulted with or do not require consultation with a licensed physician prior to beginning this exercise program. I agree to inform my trainer of any changes to my health status.' },
+  { h: 'GLP-1 AND MEDICATION ACKNOWLEDGMENT', glp1: true, p: 'I understand that exercise programming for clients using GLP-1 or other weight management medications is adapted for muscle preservation and metabolic health. I confirm I am working with a physician supervising my medication use.' },
+  { h: 'PHOTO AND PROGRESS CONSENT', p: 'I consent to the storage of my fitness assessment data, progress measurements, and optional progress photos by {GYM} for the purpose of tracking my fitness progress. This data will not be shared without my permission.' },
+  { h: 'EMERGENCY CONTACT CONFIRMATION', p: 'I confirm that accurate emergency contact information has been provided in my client profile.' }
+];
+// The name released in the waiver: the legal name, else the gym name.
+window.dfWaiverLegalName = function(){ var s = window.dfSettings(); return s.legalName || s.gymName || 'the facility'; };
+// The sample as plain text, for the Settings starting point.
+window.dfWaiverSampleText = function(){
+  return DF_WAIVER_SAMPLE.map(function(x, i){ return (i + 1) + '. ' + x.h + (x.glp1 ? ' (only for clients on GLP-1 medication)' : '') + '\n' + x.p; }).join('\n\n');
+};
+// Waiver for one client: { sample, title, sections: [{h, p}] } with {GYM} filled in.
+window.dfWaiverDoc = function(client){
+  var s = window.dfSettings(), gym = window.dfWaiverLegalName();
+  var fill = function(t){ return String(t).replace(/\{GYM\}/gi, gym); };
+  var title = s.gymName || s.legalName || '';
+  // Sample text saved unchanged still counts as the sample.
+  if (s.waiverText && s.waiverText.trim() && s.waiverText.trim() !== window.dfWaiverSampleText()) {
+    // Paragraphs are separated by blank lines. A short first line with no lowercase letters is a heading.
+    var sections = s.waiverText.replace(/\r/g, '').split(/\n\s*\n/).map(function(par){
+      var lines = par.trim().split('\n'), first = lines[0].trim();
+      if (lines.length > 1 && first.length <= 90 && !/[a-z]/.test(first)) return { h: fill(first), p: fill(lines.slice(1).join(' ').trim()) };
+      return { h: '', p: fill(lines.join(' ').trim()) };
+    }).filter(function(x){ return x.h || x.p; });
+    return { sample: false, title: title, sections: sections };
+  }
+  var glp1 = !!(client && client.glp1Med && client.glp1Med !== 'no');
+  var n = 0;
+  return { sample: true, title: title, sections: DF_WAIVER_SAMPLE.filter(function(x){ return !x.glp1 || glp1; }).map(function(x){ n++; return { h: n + '. ' + x.h, p: fill(x.p) }; }) };
+};
+// Waiver body HTML. print: plain styles for the printed copy.
+window.dfWaiverHtml = function(doc, print){
+  var esc = window.dfEsc;
+  var hs = print ? '' : ' style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;"';
+  var note = doc.sample ? (print ? '<p class="sample-note"><strong>SAMPLE WAIVER.</strong> ' + DF_WAIVER_SAMPLE_NOTE + '</p>'
+    : '<div class="df-waiver-sample" style="background:rgba(240,165,0,0.1);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:12px;color:var(--gold);font-size:0.8rem;"><strong>SAMPLE WAIVER.</strong> ' + DF_WAIVER_SAMPLE_NOTE + ' Add your own waiver in Settings.</div>') : '';
+  return note + doc.sections.map(function(x){ return (x.h ? (print ? '<h3>' : '<h4' + hs + '>') + esc(x.h) + (print ? '</h3>' : '</h4>') : '') + '<p>' + esc(x.p) + '</p>'; }).join('');
 };
 // Fills placeholders (data-df-text), the booking button, and the Gym Mode class.
 window.dfApplySettings = function(){
@@ -735,6 +775,7 @@ function dfSettingsFill(){
   var s = window.dfSettings(), f = function(id){ return document.getElementById(id); };
   if (!f('dfSetGym')) return;
   f('dfSetGym').value = s.gymName; f('dfSetTrainer').value = s.trainerName; f('dfSetBooking').value = s.bookingLink;
+  f('dfSetLegal').value = s.legalName; f('dfSetWaiver').value = s.waiverText; dfWaiverStateText();
   f('dfSetGymMode').checked = !!s.gymMode;
   dfPendingLogo = null; dfSettingsPreview(s.logo);
 }
@@ -742,11 +783,24 @@ window.dfSettingsSave = function(){
   var f = function(id){ return document.getElementById(id); }, status = f('dfSettingsStatus');
   var booking = f('dfSetBooking').value.trim();
   if (booking && !/^https:\/\/[^\s"'<>]+$/i.test(booking)) { status.style.color = 'var(--red)'; status.textContent = 'The booking link must start with https://'; return; }
-  var next = { gymName: f('dfSetGym').value.trim().slice(0, 80), trainerName: f('dfSetTrainer').value.trim().slice(0, 80), bookingLink: booking, gymMode: f('dfSetGymMode').checked };
+  var next = { gymName: f('dfSetGym').value.trim().slice(0, 80), trainerName: f('dfSetTrainer').value.trim().slice(0, 80), bookingLink: booking, gymMode: f('dfSetGymMode').checked,
+    legalName: f('dfSetLegal').value.trim().slice(0, 120), waiverText: f('dfSetWaiver').value.trim().slice(0, 20000) };
   if (dfPendingLogo) { next.logo = dfPendingLogo.logo; next.logoW = dfPendingLogo.logoW; next.logoH = dfPendingLogo.logoH; }
   try { window.dfSaveSettings(next); } catch(e) { status.style.color = 'var(--red)'; status.textContent = 'Could not save settings in this browser.'; return; }
   dfPendingLogo = null;
   status.style.color = 'var(--green)'; status.textContent = '✓ Saved' + (next.gymMode ? ' · Gym Mode on' : '');
+  dfWaiverStateText();
+};
+function dfWaiverStateText(){
+  var el = document.getElementById('dfWaiverState'); if (!el) return;
+  el.textContent = window.dfSettings().waiverText ? 'Clients see your waiver.' : 'Clients see the sample waiver (sample only).';
+}
+// Puts the sample in the box as a starting point. It is used only after the trainer saves.
+window.dfSettingsUseSample = function(){
+  var t = document.getElementById('dfSetWaiver');
+  if (t.value.trim() && !confirm('Replace the waiver text in the box with the sample?')) return;
+  t.value = dfWaiverSampleText();
+  var st = document.getElementById('dfWaiverState'); if (st) st.textContent = 'Sample copied in. Edit it with your attorney, then save.';
 };
 window.dfSettingsRemoveLogo = function(){ dfPendingLogo = { logo: '', logoW: 0, logoH: 0 }; dfSettingsPreview(''); var i = document.getElementById('dfSetLogo'); if (i) i.value = ''; };
 // The logo is scaled to at most 400x160 so it stays small in storage and on documents.
@@ -7664,6 +7718,12 @@ function filterPeptides() {
     <form id="dfSettingsForm" novalidate onsubmit="event.preventDefault();dfSettingsSave();" style="display:flex;flex-direction:column;gap:14px;">
       <div class="calc-field"><label for="dfSetGym">Gym name</label><input type="text" id="dfSetGym" maxlength="80" placeholder="e.g. Northside Strength Club" autocomplete="organization"></div>
       <div class="calc-field"><label for="dfSetTrainer">Trainer name and credentials</label><input type="text" id="dfSetTrainer" maxlength="80" placeholder="e.g. Jordan Lee, NASM-CPT" autocomplete="name"></div>
+      <div class="calc-field"><label for="dfSetLegal">Gym legal name (for the waiver)</label><input type="text" id="dfSetLegal" maxlength="120" placeholder="e.g. Northside Strength Club LLC"><div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">The business released in the waiver. Leave blank to use the gym name.</div></div>
+      <div class="calc-field"><label for="dfSetWaiver">Waiver text</label>
+        <textarea id="dfSetWaiver" rows="8" maxlength="20000" placeholder="Paste the waiver your attorney approved. Leave blank to use the sample waiver." style="width:100%;min-height:150px;padding:10px 12px;background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:Barlow,sans-serif;font-size:0.85rem;line-height:1.5;resize:vertical;"></textarea>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;line-height:1.5;">Separate sections with a blank line. A first line in capitals becomes the section heading. {GYM} is replaced with the legal name. While this is blank, clients see a sample waiver marked “Sample only, have your attorney review before use.”</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"><button type="button" class="wce-btn" id="dfWaiverSampleBtn" onclick="dfSettingsUseSample()">Start from the sample</button><span id="dfWaiverState" style="font-size:0.75rem;color:var(--text3);align-self:center;"></span></div>
+      </div>
       <div class="calc-field"><label for="dfSetBooking">Booking link</label><input type="url" id="dfSetBooking" maxlength="300" placeholder="https://calendly.com/your-name" inputmode="url"><div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Calendly, Acuity, Mindbody or any https link. Shown on the Schedule tab.</div></div>
       <div class="calc-field"><label for="dfSetLogo">Logo (PNG or JPG)</label>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -12946,8 +13006,7 @@ function openWaiverModal(clientId) {
   cpLoadClients();
   var c = cpClients.find(function(x){return x.id===clientId;});
   if (!c) return;
-  var hasGlp1 = c.glp1Med && c.glp1Med !== 'no';
-  var glp1Section = hasGlp1 ? '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">5. GLP-1 AND MEDICATION ACKNOWLEDGMENT</h4><p>I understand that exercise programming for clients using GLP-1 or other weight management medications is adapted for muscle preservation and metabolic health. I confirm I am working with a physician supervising my medication use.</p>' : '';
+  var doc = dfWaiverDoc(c);
   var modal = document.createElement('div');
   modal.id = 'waiverModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
@@ -12958,21 +13017,9 @@ function openWaiverModal(clientId) {
       '<button onclick="document.getElementById(\'waiverModal\').remove()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;">X</button>' +
     '</div>' +
     '<div style="padding:1.5rem;max-height:50vh;overflow-y:auto;border-bottom:1px solid var(--border2);">' +
-      '<div style="text-align:center;margin-bottom:1.5rem;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);">DR. FITNESS</div><div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase;">Participant Waiver, Release of Liability, and Informed Consent</div></div>' +
+      '<div style="text-align:center;margin-bottom:1.5rem;">' + (doc.title ? '<div style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:var(--gold);">' + dfEsc(doc.title) + '</div>' : '') + '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase;">Participant Waiver, Release of Liability, and Informed Consent</div></div>' +
       '<div style="font-size:0.82rem;color:var(--text2);line-height:1.75;">' +
-        '<h4 style="font-weight:700;color:var(--gold);margin:0 0 0.4rem;">1. ASSUMPTION OF RISK</h4>' +
-        '<p>I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided through Dr. Fitness.</p>' +
-        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">2. RELEASE OF LIABILITY</h4>' +
-        '<p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, ' + dfWaiverParties() + ', and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
-        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">3. SCOPE OF PRACTICE ACKNOWLEDGMENT</h4>' +
-        '<p>I understand that Dr. Fitness trainers are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.</p>' +
-        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">4. MEDICAL CLEARANCE ACKNOWLEDGMENT</h4>' +
-        '<p>I confirm that I have consulted with or do not require consultation with a licensed physician prior to beginning this exercise program. I agree to inform my trainer of any changes to my health status.</p>' +
-        glp1Section +
-        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">' + (hasGlp1?'6':'5') + '. PHOTO AND PROGRESS CONSENT</h4>' +
-        '<p>I consent to the storage of my fitness assessment data, progress measurements, and optional progress photos within Dr. Fitness for the purpose of tracking my fitness progress. This data is stored securely and will not be shared without my permission.</p>' +
-        '<h4 style="font-weight:700;color:var(--gold);margin:1rem 0 0.4rem;">' + (hasGlp1?'7':'6') + '. EMERGENCY CONTACT CONFIRMATION</h4>' +
-        '<p>I confirm that accurate emergency contact information has been provided in my client profile.</p>' +
+        dfWaiverHtml(doc) +
       '</div>' +
     '</div>' +
     '<div style="padding:1.5rem;">' +
@@ -12999,6 +13046,8 @@ function signWaiver(clientId) {
   cpClients[idx].waiverSigned = true;
   cpClients[idx].waiverDate = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   cpClients[idx].waiverSignedBy = name;
+  // The text the client agreed to, so a later change in Settings does not change a signed waiver.
+  cpClients[idx].waiverSigned_doc = dfWaiverDoc(cpClients[idx]);
   cpSaveClients();
   document.getElementById('waiverModal').remove();
   renderClients();
@@ -13010,18 +13059,12 @@ function printWaiver(clientId) {
   cpLoadClients();
   var c = cpClients.find(function(x){return x.id===clientId;});
   if (!c) return;
-  var hasGlp1 = c.glp1Med && c.glp1Med !== 'no';
+  var doc = c.waiverSigned_doc || dfWaiverDoc(c);
   var w = window.open('','_blank');
-  w.document.write('<html><head><title>Waiver — ' + c.fname + ' ' + (c.lname||'') + '</title><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;color:#222;}h1{text-align:center;font-size:1.3rem;margin-bottom:0.2rem;}h2{text-align:center;font-size:0.8rem;color:#666;margin-bottom:2rem;}h3{font-size:0.95rem;margin:1.2rem 0 0.3rem;}p{font-size:0.88rem;margin-bottom:0.5rem;}.sig{margin-top:2rem;border-top:1px solid #ccc;padding-top:1rem;}.sig-line{display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.88rem;}.sig-line strong{font-weight:700;}</style></head><body>' +
-    '<h1>DR. FITNESS</h1><h2>PARTICIPANT WAIVER, RELEASE OF LIABILITY, AND INFORMED CONSENT</h2>' +
-    '<h3>1. ASSUMPTION OF RISK</h3><p>I understand that physical exercise involves certain inherent risks including but not limited to muscle soreness, strain, injury, or in rare cases more serious medical events. I voluntarily assume all risks associated with participation in exercise programming provided through Dr. Fitness.</p>' +
-    '<h3>2. RELEASE OF LIABILITY</h3><p>I hereby release, discharge, and covenant not to sue Dr. Fitness, AILG LLC, ' + dfWaiverParties() + ', and any associated trainers from any and all claims, demands, or causes of action arising from exercise programming, nutritional guidance, or supplement education provided through this platform.</p>' +
-    '<h3>3. SCOPE OF PRACTICE ACKNOWLEDGMENT</h3><p>I understand that Dr. Fitness trainers are certified fitness professionals and not licensed physicians, registered dietitians, or medical practitioners. Programming and nutritional guidance provided is for educational and fitness purposes only and does not constitute medical advice.</p>' +
-    '<h3>4. MEDICAL CLEARANCE ACKNOWLEDGMENT</h3><p>I confirm that I have consulted with or do not require consultation with a licensed physician prior to beginning this exercise program. I agree to inform my trainer of any changes to my health status.</p>' +
-    (hasGlp1 ? '<h3>5. GLP-1 AND MEDICATION ACKNOWLEDGMENT</h3><p>I understand that exercise programming for clients using GLP-1 or other weight management medications is adapted for muscle preservation and metabolic health. I confirm I am working with a physician supervising my medication use.</p>' : '') +
-    '<h3>' + (hasGlp1?'6':'5') + '. PHOTO AND PROGRESS CONSENT</h3><p>I consent to the storage of my fitness assessment data, progress measurements, and optional progress photos within Dr. Fitness for the purpose of tracking my fitness progress.</p>' +
-    '<h3>' + (hasGlp1?'7':'6') + '. EMERGENCY CONTACT CONFIRMATION</h3><p>I confirm that accurate emergency contact information has been provided in my client profile.</p>' +
-    '<div class="sig"><div class="sig-line"><span>Client Name: <strong>' + (c.waiverSignedBy||'') + '</strong></span><span>Date: <strong>' + (c.waiverDate||'') + '</strong></span></div><div class="sig-line"><span>Trainer Witness: <strong>Confirmed</strong></span></div></div></body></html>');
+  w.document.write('<html><head><title>Waiver — ' + dfEsc(c.fname + ' ' + (c.lname||'')) + '</title><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;color:#222;}h1{text-align:center;font-size:1.3rem;margin-bottom:0.2rem;}h2{text-align:center;font-size:0.8rem;color:#666;margin-bottom:2rem;}h3{font-size:0.95rem;margin:1.2rem 0 0.3rem;}p{font-size:0.88rem;margin-bottom:0.5rem;}.sample-note{border:2px solid #b07800;padding:8px 12px;color:#7a5200;}.sig{margin-top:2rem;border-top:1px solid #ccc;padding-top:1rem;}.sig-line{display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.88rem;}.sig-line strong{font-weight:700;}</style></head><body>' +
+    (doc.title ? '<h1>' + dfEsc(doc.title) + '</h1>' : '') + '<h2>PARTICIPANT WAIVER, RELEASE OF LIABILITY, AND INFORMED CONSENT</h2>' +
+    dfWaiverHtml(doc, true) +
+    '<div class="sig"><div class="sig-line"><span>Client Name: <strong>' + dfEsc(c.waiverSignedBy||'') + '</strong></span><span>Date: <strong>' + dfEsc(c.waiverDate||'') + '</strong></span></div><div class="sig-line"><span>Trainer Witness: <strong>Confirmed</strong></span></div></div></body></html>');
   w.document.close();
   setTimeout(function(){w.print();},500);
 }
