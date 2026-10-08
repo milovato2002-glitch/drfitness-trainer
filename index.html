@@ -2797,6 +2797,7 @@ window.wlibDelete = function(id){
           <div class="handout-field"><label>Client Name</label><input type="text" id="ho-name" placeholder="Client first name"></div>
           <div class="handout-field"><label>Primary Goal</label><select id="ho-goal"><option value="fat_loss">Fat Loss</option><option value="muscle_gain">Muscle Gain</option><option value="maintenance">Maintenance</option><option value="glp1">GLP-1 Client</option><option value="older_adult">Older Adult 55+</option><option value="athletic">Athletic Performance</option></select></div>
           <div class="handout-field"><label>Body Weight (lbs)</label><input type="number" id="ho-weight" placeholder="e.g. 175"></div>
+          <div class="handout-field"><label>Height (inches)</label><input type="number" id="ho-height" placeholder="e.g. 66" min="48" max="90"></div>
           <div class="handout-field"><label>Sex (for calorie calc)</label><select id="ho-sex"><option value="m">Male</option><option value="f">Female</option></select></div>
           <div class="handout-field"><label>Age</label><input type="number" id="ho-age" placeholder="e.g. 35" min="16" max="100"></div>
           <div class="handout-field"><label>Activity Level</label><select id="ho-activity"><option value="sedentary">Sedentary</option><option value="light">Lightly Active</option><option value="moderate" selected>Moderately Active</option><option value="very">Very Active</option></select></div>
@@ -3029,14 +3030,17 @@ function generateHandout() {
   var goalLabels = {fat_loss:'Fat Loss',muscle_gain:'Muscle Gain',maintenance:'Maintenance',glp1:'GLP-1 Client',older_adult:'Older Adult 55+',athletic:'Athletic Performance'};
   var activityFactors = {sedentary:1.2,light:1.375,moderate:1.55,very:1.725};
   var kg = weight * 0.453592;
-  var cm = 170; // default height estimate
+  // Height was hardcoded at 170 cm. Without a real height there is no calorie target.
+  var heightIn = parseFloat((document.getElementById('ho-height') || {}).value) || 0;
+  var cm = heightIn * 2.54;
 
   var protMin = goal === 'glp1' ? 1.8 : goal === 'older_adult' ? 1.6 : 1.6;
   var protMax = goal === 'glp1' ? 2.4 : goal === 'older_adult' ? 2.0 : 2.2;
   var protTarget = Math.round(kg * ((protMin + protMax) / 2));
 
-  var rmr = kg > 0 ? (sex === 'm' ? Math.round((10 * kg) + (6.25 * cm) - (5 * age) + 5) : Math.round((10 * kg) + (6.25 * cm) - (5 * age) - 161)) : 0;
-  var tdee = kg > 0 ? Math.round(rmr * (activityFactors[activity] || 1.55)) : 0;
+  var hasCalories = kg > 0 && cm > 0;
+  var rmr = hasCalories ? (sex === 'm' ? Math.round((10 * kg) + (6.25 * cm) - (5 * age) + 5) : Math.round((10 * kg) + (6.25 * cm) - (5 * age) - 161)) : 0;
+  var tdee = hasCalories ? Math.round(rmr * (activityFactors[activity] || 1.55)) : 0;
   var calTarget = goal === 'fat_loss' ? tdee - 400 : goal === 'muscle_gain' ? tdee + 300 : goal === 'glp1' ? Math.min(tdee, 1400) : tdee;
   var hydrationOz = weight > 0 ? Math.round(weight * 0.5) : 64;
 
@@ -3078,7 +3082,7 @@ function generateHandout() {
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem;">' +
       '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--gold);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--gold);">' + goalLabels[goal] + '</div><div style="font-size:0.65rem;color:var(--text3);">GOAL</div></div>' +
-      (kg > 0 ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid #60a5fa;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#60a5fa;">' + calTarget + '</div><div style="font-size:0.65rem;color:var(--text3);">DAILY KCAL</div></div>' : '') +
+      (hasCalories ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid #60a5fa;"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#60a5fa;">' + calTarget + '</div><div style="font-size:0.65rem;color:var(--text3);">DAILY KCAL</div></div>' : '') +
       (kg > 0 ? '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--green);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--green);">' + protTarget + 'g</div><div style="font-size:0.65rem;color:var(--text3);">DAILY PROTEIN</div></div>' : '') +
       '<div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:0.75rem;text-align:center;border-top:2px solid var(--teal);"><div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:var(--teal);">' + hydrationOz + 'oz</div><div style="font-size:0.65rem;color:var(--text3);">DAILY WATER</div></div>' +
     '</div>' +
