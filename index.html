@@ -1782,6 +1782,12 @@ async function wccRunDay(job, idx){
       day.status = 'incomplete';
       day.problems = ['The connection closed before the AI finished this day.'];
     } else {
+      // Rotation days carry their label no matter how the AI wrote the day line
+      // (it wrote "Lower Body" with no label, or "Home 2: Home - Upper Body").
+      if (d && job.rotation) {
+        d.focus = wccRotationLabel(idx) + ': ' + d.focus.replace(/^(\s*(gym|home)\s*\d*\s*[:–—-]?\s*)+/i, '');
+        d.label = 'Day ' + d.num + ' — ' + d.focus;
+      }
       // Swap anything that breaks an injury rule before checking the day.
       day.swaps = wccApplyInjuryRules(d, wccDayRules(job, idx));
       var problems = [];
