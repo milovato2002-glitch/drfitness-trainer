@@ -14808,7 +14808,7 @@ console.log('init: nutrition + enhanced client context complete — ALL INIT DON
 
 <script>
 /* ══ DEMO CLIENTS ══
-   Settings > Demo loads five sample clients with obviously made-up names,
+   Settings > Demo loads five sample clients, marked (Demo), with
    complete profiles and one saved program each. Everything they create is
    marked isDemo (or keyed by a demo_ client id), so Reset Demo removes only
    demo data and never touches real clients. */
@@ -15034,7 +15034,7 @@ function dfDemoClients(){
     welcomeComplete: true, profileComplete: true
   };
   var list = [
-    { id: 'demo_penny', fname: 'Penny', lname: 'Patella (Demo)', age: '34', sex: 'female', height: '64', weight: '182', bf: '36',
+    { id: 'demo_penny', fname: 'Megan', lname: 'Rivera (Demo)', age: '34', sex: 'female', height: '64', weight: '182', bf: '36',
       occupation: 'Office manager (sample)', activity: 'lightly_active', sleep: '6to7', stress: 'moderate',
       goals: ['fat_loss', 'general'], special: ['beginner_decond'], sport: '', success: 'Walk up the stairs at work without knee pain and lose 20 pounds.', timeline: '6 months',
       motivation: 'health', stage: 'preparation', barriers: 'Knee pain made past gym attempts stop after a few weeks.', trainingAge: 'none', optPhase: '1', style: 'resistance',
@@ -15046,12 +15046,12 @@ function dfDemoClients(){
       pushups: '6', plank: '25', sitreach: '9', mile: '17:40', balance: '20', squat1rm: '', bench1rm: '', deadlift1rm: '', pullups: '0',
       chestM: '41', waistM: '38', hipsM: '45', armM: '13.5', thighM: '26', neckM: '14',
       finalNotes: 'Start with box squats above parallel and hip hinges. No kneeling, lunges or jumping until the knees settle.',
-      emergName: 'Sample Contact', emergPhone: '555-0101', email: 'penny.demo@example.com', physicianName: 'Dr. Sample (demo)',
+      emergName: 'Sample Contact', emergPhone: '555-0101', email: 'megan.rivera.demo@example.com', physicianName: 'Dr. Anita Shah (demo)',
       prevTrainer: 'none', prevTrainerNotes: '', goalShort: 'Train twice a week for 8 weeks with no knee flare-ups.', goalLong: 'Lose 20 pounds and hike a local trail.',
       goalRank1: 'Pain-free knees', goalRank2: 'Fat loss', goalRank3: 'Energy', calorieAwareness: 'no_idea', mealFrequency: '3', nutritionChallenge: 'late_night',
       painDetail: 'Knees ache on stairs, 3 out of 10', confidence: '4', exerciseExp: ['tried_quit'], barriersChips: ['past_injury', 'confidence'],
       suppUse: '', primaryMotivation: ['feel_better', 'health_longevity'], programPhase: 'corrective_first', gripLeft: '26', gripRight: '28', ankleDf: '8', vo2: '', rockport: '', createdAt: iso(21) },
-    { id: 'demo_gail', fname: 'Gail', lname: 'Onepoint (Demo)', age: '47', sex: 'female', height: '66', weight: '214', bf: '41',
+    { id: 'demo_gail', fname: 'Denise', lname: 'Carter (Demo)', age: '47', sex: 'female', height: '66', weight: '214', bf: '41',
       occupation: 'Teacher (sample)', activity: 'lightly_active', sleep: '6to7', stress: 'moderate',
       goals: ['fat_loss', 'strength'], special: ['glp1'], sport: '', success: 'Keep my muscle while I lose weight on the medication.', timeline: '9 months',
       motivation: 'medical', stage: 'action', barriers: 'Low appetite and fatigue on injection days.', trainingAge: '0to6mo', optPhase: '1', style: 'resistance',
@@ -15062,12 +15062,12 @@ function dfDemoClients(){
       pushups: '4', plank: '20', sitreach: '11', mile: '19:05', balance: '15', pullups: '0',
       chestM: '44', waistM: '41', hipsM: '48', armM: '14', thighM: '27', neckM: '14.5',
       finalNotes: 'Priority is lean mass. Strength train twice a week, keep effort moderate on low-appetite days, and check in about nausea and dizziness each session.',
-      emergName: 'Sample Contact', emergPhone: '555-0102', email: 'gail.demo@example.com', physicianName: 'Dr. Example (demo)',
+      emergName: 'Sample Contact', emergPhone: '555-0102', email: 'denise.carter.demo@example.com', physicianName: 'Dr. Paul Morgan (demo)',
       prevTrainer: 'some', prevTrainerNotes: 'Group classes a few years ago.', goalShort: 'Strength train twice a week through the next dose increase.', goalLong: 'Reach a healthy weight with my strength intact.',
       goalRank1: 'Keep muscle', goalRank2: 'Fat loss', goalRank3: 'Lower blood sugar', calorieAwareness: 'under_1200', mealFrequency: '3', nutritionChallenge: 'undereating',
       painDetail: '', confidence: '5', exerciseExp: ['inconsistent'], barriersChips: ['motivation', 'medical_concern'],
       suppUse: '', primaryMotivation: ['health_longevity', 'doctor_rec'], programPhase: 'glp1_protocol', gripLeft: '24', gripRight: '25', ankleDf: '10', createdAt: iso(30) },
-    { id: 'demo_walter', fname: 'Walter', lname: 'Fiftyfive (Demo)', age: '63', sex: 'male', height: '70', weight: '188', bf: '27',
+    { id: 'demo_walter', fname: 'Robert', lname: 'Hayes (Demo)', age: '63', sex: 'male', height: '70', weight: '188', bf: '27',
       occupation: 'Retired engineer (sample)', activity: 'lightly_active', sleep: '7to8', stress: 'low',
       goals: ['functional', 'strength'], special: ['older_adult'], sport: 'Golf', success: 'Carry my grandkids and play 18 holes without being wiped out.', timeline: '12 months',
       motivation: 'health', stage: 'action', barriers: 'Worried about falling and about blood pressure.', trainingAge: '6to12mo', optPhase: '1', style: 'functional',
@@ -15078,12 +15078,12 @@ function dfDemoClients(){
       pushups: '10', plank: '30', sitreach: '6', mile: '15:20', balance: '12', pullups: '0',
       chestM: '42', waistM: '39', hipsM: '41', armM: '13', thighM: '22', neckM: '16',
       finalNotes: 'Physician cleared for moderate exercise. Watch for dizziness on standing, no breath holding, and progress balance work slowly.',
-      emergName: 'Sample Contact', emergPhone: '555-0103', email: 'walter.demo@example.com', physicianName: 'Dr. Placeholder (demo)',
+      emergName: 'Sample Contact', emergPhone: '555-0103', email: 'robert.hayes.demo@example.com', physicianName: 'Dr. Linda Brooks (demo)',
       prevTrainer: 'none', prevTrainerNotes: '', goalShort: 'Single-leg balance of 30 seconds each side in 8 weeks.', goalLong: 'Stay independent and active through my 70s.',
       goalRank1: 'Balance', goalRank2: 'Strength', goalRank3: 'Golf', calorieAwareness: 'no_idea', mealFrequency: '3', nutritionChallenge: 'protein',
       painDetail: '', confidence: '6', exerciseExp: ['inconsistent'], barriersChips: ['medical_concern'],
       suppUse: '', primaryMotivation: ['health_longevity'], programPhase: 'phase1', gripLeft: '34', gripRight: '36', ankleDf: '9', createdAt: iso(45) },
-    { id: 'demo_rory', fname: 'Rory', lname: 'Rotator (Demo)', age: '41', sex: 'male', height: '71', weight: '196', bf: '21',
+    { id: 'demo_rory', fname: 'Marcus', lname: 'Bell (Demo)', age: '41', sex: 'male', height: '71', weight: '196', bf: '21',
       occupation: 'Contractor (sample)', activity: 'moderately_active', sleep: '6to7', stress: 'moderate',
       goals: ['strength', 'functional'], special: ['post_rehab'], sport: 'Recreational softball', success: 'Lift and throw again without worrying about the shoulder.', timeline: '6 months',
       motivation: 'performance', stage: 'action', barriers: 'Afraid of re-injuring the shoulder.', trainingAge: '2to5yr', optPhase: '2', style: 'resistance',
@@ -15095,12 +15095,12 @@ function dfDemoClients(){
       pushups: '22', plank: '75', sitreach: '12', mile: '10:30', balance: '30', squat1rm: '255', deadlift1rm: '315', pullups: '4',
       chestM: '42', waistM: '35', hipsM: '40', armM: '15', thighM: '24', neckM: '16',
       finalNotes: 'Cleared by the physical therapist for gym training. No overhead pressing yet. Keep the band work from the home program in every warm-up.',
-      emergName: 'Sample Contact', emergPhone: '555-0104', email: 'rory.demo@example.com', physicianName: 'Dr. Stand-In (demo)',
+      emergName: 'Sample Contact', emergPhone: '555-0104', email: 'marcus.bell.demo@example.com', physicianName: 'Dr. Kevin Ortiz (demo)',
       prevTrainer: 'moderate', prevTrainerNotes: 'Trained with a coach before the injury.', goalShort: 'Pain-free landmine press with 50 pounds each side.', goalLong: 'Return to softball next season.',
       goalRank1: 'Shoulder health', goalRank2: 'Strength', goalRank3: 'Softball', calorieAwareness: '2500_3000', mealFrequency: '4_5', nutritionChallenge: 'none',
       painDetail: '', confidence: '6', exerciseExp: ['consistent_1yr'], barriersChips: ['past_injury'],
       suppUse: '', primaryMotivation: ['athletic_perf'], programPhase: 'post_rehab_protocol', gripLeft: '48', gripRight: '44', ankleDf: '12', createdAt: iso(20) },
-    { id: 'demo_max', fname: 'Max', lname: 'Hypertrophy (Demo)', age: '28', sex: 'male', height: '69', weight: '172', bf: '15',
+    { id: 'demo_max', fname: 'Tyler', lname: 'Nguyen (Demo)', age: '28', sex: 'male', height: '69', weight: '172', bf: '15',
       occupation: 'Software tester (sample)', activity: 'moderately_active', sleep: '7to8', stress: 'low',
       goals: ['muscle_gain', 'strength'], special: ['none'], sport: '', success: 'Add 8 pounds of muscle and fill out my shirts.', timeline: '12 months',
       motivation: 'appearance', stage: 'maintenance', barriers: 'Plateaued after two years of random workouts.', trainingAge: '2to5yr', optPhase: '3', style: 'bodybuilding',
@@ -15111,7 +15111,7 @@ function dfDemoClients(){
       pushups: '40', plank: '120', sitreach: '14', mile: '8:10', balance: '45', squat1rm: '275', bench1rm: '205', deadlift1rm: '335', ohp1rm: '125', pullups: '11', row1rm: '185',
       chestM: '40', waistM: '31', hipsM: '37', armM: '14.5', thighM: '23', neckM: '15.5',
       finalNotes: 'Upper and lower split, twice a week each. Track reps in reserve, add load when every set hits the top of the range.',
-      emergName: 'Sample Contact', emergPhone: '555-0105', email: 'max.demo@example.com', physicianName: '', underPhysician: false, physClearanceObtained: false, clearance: 'not_needed',
+      emergName: 'Sample Contact', emergPhone: '555-0105', email: 'tyler.nguyen.demo@example.com', physicianName: '', underPhysician: false, physClearanceObtained: false, clearance: 'not_needed',
       prevTrainer: 'some', prevTrainerNotes: 'Followed online programs.', goalShort: 'Add 2 pounds of lean mass in 8 weeks.', goalLong: 'Add 8 pounds of muscle this year.',
       goalRank1: 'Muscle', goalRank2: 'Strength', goalRank3: 'Look better', calorieAwareness: '2500_3000', mealFrequency: '4_5', nutritionChallenge: 'consistency',
       painDetail: '', confidence: '8', exerciseExp: ['consistent_1yr'], barriersChips: ['time'],
@@ -15198,7 +15198,7 @@ function dfDemoRender(msg){
   var on = dfDemoLoaded();
   box.innerHTML = '<div style="margin-top:2rem;border-top:1px solid var(--border2);padding-top:1.5rem;">' +
     '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">DEMO</div>' +
-    '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:10px;">Load five sample clients with made-up names and one saved program each: a beginner with knee pain, a GLP-1 client, a 55+ client, a post-rehab shoulder client and an intermediate hypertrophy client. Demo clients are marked DEMO. Reset Demo removes only demo data.</p>' +
+    '<p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:10px;">Load five sample clients, marked (Demo), with one saved program each: a beginner with knee pain, a GLP-1 client, a 55+ client, a post-rehab shoulder client and an intermediate hypertrophy client. Demo clients are marked DEMO. Reset Demo removes only demo data.</p>' +
     '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">' +
       '<button type="button" class="wce-btn gold" id="dfDemoLoadBtn" onclick="dfDemoLoad()">' + (on ? 'Reload demo clients' : 'Load demo clients') + '</button>' +
       '<button type="button" class="wce-btn" id="dfDemoResetBtn" onclick="dfDemoReset()"' + (on ? '' : ' disabled') + '>Reset Demo</button>' +
