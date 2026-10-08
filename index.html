@@ -25,6 +25,7 @@
   --radius:10px;--radius-sm:6px;
 }
 html{font-size:16px;}
+html{scroll-padding-top:var(--df-chrome-h,115px);}
 body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;font-weight:300;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(-55deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 28px);pointer-events:none;z-index:0;}
 
@@ -47,7 +48,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(10,22,40,0.97);backdrop
 
 
 /* NAV */
-.nav-tabs{display:flex;overflow-x:auto;scrollbar-width:none;background:var(--navy2);border-bottom:1px solid var(--border2);padding:0 0.75rem;position:sticky;top:65px;z-index:90;flex-wrap:nowrap;}
+.nav-tabs{display:flex;overflow-x:auto;scrollbar-width:none;background:var(--navy2);border-bottom:1px solid var(--border2);padding:0 0.75rem;position:sticky;top:var(--df-header-h,65px);z-index:90;flex-wrap:nowrap;}
 .nav-tabs::-webkit-scrollbar{display:none;}
 .nav-tab{white-space:nowrap;padding:0.8rem 1.1rem;border:none;background:transparent;color:var(--text3);font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;flex-shrink:0;}
 .nav-tab:hover{color:var(--text);}
@@ -58,7 +59,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 .panel.active{display:flex;}
 
 /* CHAT */
-.chat-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 125px);}
+.chat-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--df-chrome-h,115px) - 10px);}
 /* Sidebar: overlay drawer — hidden by default */
 .qa-sidebar{position:fixed;left:-280px;top:0;bottom:0;width:260px;z-index:200;background:var(--navy2);border-right:2px solid var(--gold);overflow-y:auto;padding:1.25rem 1rem;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;transition:left 0.28s cubic-bezier(0.4,0,0.2,1);}
 .qa-sidebar.open{left:0;box-shadow:6px 0 40px rgba(0,0,0,0.6);}
@@ -286,7 +287,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 </div>
 
 <!-- ACTIVE CLIENT BANNER -->
-<div id="activeClientBanner" style="display:none;background:rgba(240,165,0,0.06);border-bottom:1px solid var(--border);border-left:3px solid var(--gold);padding:10px 1.5rem;align-items:center;gap:12px;font-size:0.82rem;position:sticky;top:105px;z-index:89;">
+<div id="activeClientBanner" style="display:none;background:rgba(240,165,0,0.06);border-bottom:1px solid var(--border);border-left:3px solid var(--gold);padding:10px 1.5rem;align-items:center;gap:12px;font-size:0.82rem;position:sticky;top:calc(var(--df-header-h,65px) + var(--df-nav-h,40px));z-index:89;">
   <div id="acbAvatar" style="width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:0.7rem;font-weight:700;flex-shrink:0;"></div>
   <span style="color:var(--text2);">Active Client:</span>
   <strong id="acbName" style="color:var(--text);font-weight:600;"></strong>
@@ -294,14 +295,14 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
   <a href="#" id="acbChangeLink" onclick="event.preventDefault();document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=clients]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=clients]').classList.add('active');" style="color:var(--gold);font-size:0.72rem;margin-left:auto;text-decoration:none;white-space:nowrap;">Change Client</a>
   <button onclick="clearActiveClient()" style="background:transparent;border:none;color:var(--text3);font-size:0.72rem;cursor:pointer;white-space:nowrap;">✕ Clear</button>
 </div>
-<div id="activeClientBannerEmpty" style="display:none;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border2);padding:8px 1.5rem;font-size:0.76rem;color:var(--text3);position:sticky;top:105px;z-index:89;">
+<div id="activeClientBannerEmpty" style="display:none;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border2);padding:8px 1.5rem;font-size:0.76rem;color:var(--text3);position:sticky;top:calc(var(--df-header-h,65px) + var(--df-nav-h,40px));z-index:89;">
   No active client selected — <a href="#" onclick="event.preventDefault();document.querySelectorAll('.nav-tab').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-tab=clients]').classList.add('active');document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});document.querySelector('[data-panel=clients]').classList.add('active');" style="color:var(--gold);text-decoration:none;">select a client</a> to personalize AI responses
 </div>
 
 <main>
 
 <!-- ══ ASK PANEL ══ -->
-<div class="panel active" data-panel="ask" style="height:calc(100vh - 115px);">
+<div class="panel active" data-panel="ask" style="height:calc(100vh - var(--df-chrome-h,115px));">
   <!-- SIDEBAR OVERLAY -->
   <div class="qa-sidebar-overlay" id="qaSidebarOverlay" onclick="closeSidebar()"></div>
   <aside class="qa-sidebar" id="qaSidebar">
@@ -582,6 +583,43 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
     catch(err) { warn(key, err); throw err; }
   };
   Storage.prototype._dfWrapped = true;
+})();
+
+/* ══ STICKY CHROME OFFSETS ══
+   The nav and active client bar stuck at fixed tops (65px, 105px) and the
+   panels were sized 100vh - 115px. Those numbers only matched one header
+   height, so on Build Session the bars overlapped each other and page
+   text whenever the header was taller, the nav was hidden on phones, or
+   the client bar was showing. Measure the real heights instead. */
+(function(){
+  function visibleHeight(el){
+    return el && getComputedStyle(el).display !== 'none' ? el.getBoundingClientRect().height : 0;
+  }
+  function update(){
+    var header = document.querySelector('header');
+    if (!header) return;
+    var hh = visibleHeight(header);
+    var nh = visibleHeight(document.querySelector('.nav-tabs'));
+    var bh = visibleHeight(document.getElementById('activeClientBanner')) + visibleHeight(document.getElementById('activeClientBannerEmpty'));
+    var root = document.documentElement.style;
+    root.setProperty('--df-header-h', hh + 'px');
+    root.setProperty('--df-nav-h', nh + 'px');
+    root.setProperty('--df-chrome-h', (hh + nh + bh) + 'px');
+  }
+  function start(){
+    update();
+    if (typeof ResizeObserver !== 'undefined') {
+      var ro = new ResizeObserver(update);
+      ['header', '.nav-tabs', '#activeClientBanner', '#activeClientBannerEmpty'].forEach(function(sel){ var el = document.querySelector(sel); if (el) ro.observe(el); });
+    }
+    // The client bars are shown and hidden by toggling their inline display.
+    if (typeof MutationObserver !== 'undefined') {
+      var mo = new MutationObserver(update);
+      ['activeClientBanner', 'activeClientBannerEmpty'].forEach(function(id){ var el = document.getElementById(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ['style', 'class'] }); });
+    }
+    window.addEventListener('resize', update);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
 
@@ -2457,7 +2495,7 @@ window.wlibDelete = function(id){
 <!-- ══ NUTRITION HUB ══ -->
 <div class="panel" data-panel="nutrition">
 <style>
-.nut-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 115px);}
+.nut-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--df-chrome-h,115px));}
 .nut-sidebar{width:220px;flex-shrink:0;border-right:1px solid var(--border2);overflow-y:auto;padding:0.6rem;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin;}
 .nut-section{font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);padding:0.5rem 0.25rem 0.15rem;margin-top:4px;}
 .nut-btn{width:100%;padding:7px 9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:'Barlow',sans-serif;font-size:0.76rem;font-weight:400;text-align:left;cursor:pointer;transition:all 0.12s;line-height:1.3;}
@@ -6370,7 +6408,7 @@ function filterPeptides() {
 
 <!-- ══ MESSAGES TAB ══ -->
 <div class="panel" data-panel="messages">
-  <div style="display:flex;height:calc(100vh - 125px);">
+  <div style="display:flex;height:calc(100vh - var(--df-chrome-h,115px) - 10px);">
     <!-- Conversation List -->
     <div id="msgListPanel" style="width:280px;flex-shrink:0;border-right:1px solid var(--border2);overflow-y:auto;padding:0.75rem;display:flex;flex-direction:column;gap:4px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">Messages</h3><button onclick="newMsgConversation()" style="padding:5px 10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-size:0.72rem;font-weight:700;cursor:pointer;">+ NEW</button></div>
