@@ -2185,6 +2185,7 @@ function wccEdRenderAll(){
     (wccEd.summary ? '<div style="font-size:0.8rem;color:var(--text2);margin-top:6px;line-height:1.5;">' + wccEsc(wccEd.summary) + '</div>' : '') +
     '<div style="font-size:0.72rem;color:var(--text3);margin-top:6px;">Tap any field to edit it.</div></div>';
   var toolbar = '<div class="wce-toolbar" id="wceToolbar">' +
+    '<button class="wce-btn" type="button" id="wceUndoBtn" onclick="wccEdUndo()" disabled>↶ Undo</button>' +
     '<button class="wce-btn" type="button" onclick="wccToggleTrackMode()">▷ Track live session</button></div>';
   root.innerHTML = '<div id="wceRoot">' + head + toolbar + wccEd.days.map(function(_, i){ return '<div class="wce-day" data-day-block="' + i + '">' + wccEdDayHtml(i) + '</div>'; }).join('') + '</div>';
 }
@@ -2202,7 +2203,23 @@ function wccEdCommit(days){
   (days || e.days.map(function(_, i){ return i; })).forEach(wccEdRenderDay);
   var dv = document.getElementById('wccDetailView');
   if (dv) dv.innerHTML = buildDetailView(text);
+  wccEdUpdateUndo();
 }
+function wccEdUpdateUndo(){
+  var b = document.getElementById('wceUndoBtn');
+  if (!b || !wccEd) return;
+  var last = wccEd.undo[wccEd.undo.length - 1];
+  b.disabled = !last;
+  b.textContent = '↶ Undo' + (last ? ' ' + last.label : '');
+}
+// Reverts the last change (edits, moves, adds, deletes, fits and chat changes).
+window.wccEdUndo = function(){
+  if (!wccEd || !wccEd.undo.length) return;
+  var s = wccEd.undo.pop();
+  wccEd.title = s.title; wccEd.summary = s.summary; wccEd.days = s.days;
+  wccEd.msgs = {};
+  wccEdCommit();
+};
 window.wccEdText = function(){ return wccEd ? wccEdText() : ''; };
 
 // Saves the current program so the next change can be undone.
@@ -2336,6 +2353,11 @@ document.addEventListener('click', function(e){
   if (span && wccEd) wccEdBeginEdit(span);
 });
 document.addEventListener('keydown', function(e){
+  // Ctrl/Cmd+Z undoes the last workout change, unless the trainer is typing in a field.
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z') && wccEd && document.getElementById('wceRoot') &&
+      !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '') && !(e.target && e.target.isContentEditable)) {
+    e.preventDefault(); wccEdUndo(); return;
+  }
   var span = e.target.closest && e.target.closest('#wceRoot .wce-f');
   if (span && wccEd && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); wccEdBeginEdit(span); }
 });
