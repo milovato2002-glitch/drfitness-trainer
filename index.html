@@ -1460,10 +1460,40 @@ function wccFixBeginnerLoad(day){
   });
   return fixes;
 }
+// Holds, stretches and planks are prescribed in seconds; lifts in reps.
+var WCC_HOLD = /\b(planks?|holds?|stretch(es)?|wall sits?|dead hangs?|isometric|hollow body|l-sit|static|child'?s pose|pigeon)\b/i;
+var WCC_DYNAMIC = /\b(dynamic|world'?s greatest|walking|leg swings?|arm circles?|cat[- ]cow|inchworms?|rotations?|swings?|march(ing)?|circles?|flow|sweeps?)\b/i;
+var WCC_LIFT = /\b(press|row|squats?|deadlifts?|rdl|curls?|extensions?|raises?|pull-?downs?|pull-?ups?|chin-?ups?|lunges?|thrusts?|fl(y|ye|ies)|pull-throughs?|step-?ups?|kickbacks?|pushdowns?|push-?ups?|dips?|shrugs?|cleans?|snatch(es)?|bridges?)\b/i;
+var WCC_TIME_UNIT = /\d\s*(s|sec|secs|seconds|min|mins|minutes)\b/i;
+var WCC_REP_UNIT = /(x\s*\d+(\s*[-–]\s*\d+)?(?!\s*(s|sec|secs|seconds|min|mins|minutes)\b))|\breps?\b/i;
+function wccFixUnits(day){
+  var fixes = [];
+  WCC_SECTIONS.forEach(function(k){
+    day[k].forEach(function(ex){
+      var n = wccNormName(ex.name), sr = String(ex.sr || '');
+      if (!sr || sr === '-') return;
+      var sets = (sr.match(/^\s*(\d+)\s*x/i) || [0, '1'])[1];
+      var side = /(each side|each leg|each arm|per side|per leg|per arm|\/side|e\/s|\beach)\b/i.exec(sr);
+      var sideTxt = side ? (side[0].charAt(0) === '/' ? '' : ' ') + side[0] : '';
+      var isHold = WCC_HOLD.test(n) && !WCC_DYNAMIC.test(n);
+      if (isHold && !WCC_TIME_UNIT.test(sr) && WCC_REP_UNIT.test(sr)) {
+        var secs = /dead hang/i.test(n) ? 20 : 30;
+        ex.sr = sets + 'x' + secs + 's' + sideTxt;
+        fixes.push(ex.name + ': "' + sr + '" changed to ' + ex.sr + ' (holds and stretches are timed)');
+      } else if (!isHold && WCC_LIFT.test(n) && WCC_TIME_UNIT.test(sr) && !/\bx\s*\d+\s*(?!\d|s|sec|min)/i.test(sr.replace(WCC_TIME_UNIT, ''))) {
+        ex.sr = sets + 'x10' + sideTxt;
+        fixes.push(ex.name + ': "' + sr + '" changed to ' + ex.sr + ' (lifts are counted in reps)');
+      }
+    });
+  });
+  return fixes;
+}
+
 function wccApplyQualityRules(day, job, idx){
   var fixes = [];
   if (!day) return fixes;
   if (/beginner/i.test(job.level)) fixes = fixes.concat(wccFixBeginnerLoad(day));
+  fixes = fixes.concat(wccFixUnits(day));
   return fixes;
 }
 window.wccApplyQualityRules = wccApplyQualityRules;
