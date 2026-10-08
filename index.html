@@ -166,6 +166,9 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 .accord-hdr.open svg{transform:rotate(180deg);}
 .accord-body{display:none;padding:0.25rem 1.1rem 1rem;font-size:0.82rem;color:var(--text2);line-height:1.7;}
 .accord-body.open{display:block;}
+/* Quick Ref stacks: visibility comes only from .open, which tog() toggles */
+.accord-body.accord-stack{flex-direction:column;gap:6px;padding-top:8px;}
+.accord-body.accord-stack.open{display:flex;}
 .accord-body ul{margin-left:1rem;display:flex;flex-direction:column;gap:4px;margin-top:4px;}
 .accord-body strong{color:var(--gold);font-weight:600;}
 .sub-lbl{font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:0.8rem 0 0.25rem;display:block;}
@@ -6463,7 +6466,7 @@ function filterPeptides() {
     <p style="font-size:0.88rem;color:var(--text2);margin-bottom:1.5rem;">Fast-access queries. Click any item to send it directly to DR. FITNESS AI.</p>
     <div style="display:flex;flex-direction:column;gap:8px;">
       <div class="accord"><button class="accord-hdr open" onclick="tog(this)">🩹 INJURY MODS <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <div class="accord-body open" style="display:flex;flex-direction:column;gap:6px;padding-top:8px;">
+        <div class="accord-body accord-stack open">
           <button class="qa-btn inj" data-p="My client has knee pain when squatting. What modifications can I make to keep them training safely?">Knee pain — squat mods</button>
           <button class="qa-btn inj" data-p="Client has lower back pain during deadlifts. What are the safest modifications and exercise swaps?">Low back pain — deadlift</button>
           <button class="qa-btn inj" data-p="Client has shoulder impingement. What movements to avoid and what substitutes?">Shoulder impingement</button>
@@ -6471,7 +6474,7 @@ function filterPeptides() {
         </div>
       </div>
       <div class="accord"><button class="accord-hdr" onclick="tog(this)">🥗 NUTRITION <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <div class="accord-body" style="display:none;flex-direction:column;gap:6px;padding-top:8px;">
+        <div class="accord-body accord-stack">
           <button class="qa-btn nut" data-p="What are the protein recommendations for a GLP-1/AOM client trying to preserve muscle during weight loss?">GLP-1 protein targets</button>
           <button class="qa-btn nut" data-p="Give me pre-workout and post-workout nutrition guidelines for a general fat loss client.">Pre/post workout nutrition</button>
           <button class="qa-btn nut" data-p="What are daily hydration recommendations for a client training 4-5 days per week?">Hydration guidelines</button>
@@ -6479,7 +6482,7 @@ function filterPeptides() {
         </div>
       </div>
       <div class="accord"><button class="accord-hdr" onclick="tog(this)">🏋️ WORKOUTS <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <div class="accord-body" style="display:none;flex-direction:column;gap:6px;padding-top:8px;">
+        <div class="accord-body accord-stack">
           <button class="qa-btn wrk" data-p="Generate a complete 60-minute beginner resistance training session for NASM OPT Phase 1 Stabilization Endurance.">Beginner OPT Phase 1</button>
           <button class="qa-btn wrk" data-p="Build a 50-minute intermediate full-body workout for OPT Phase 3 Muscular Development.">Intermediate OPT Phase 3</button>
           <button class="qa-btn wrk" data-p="Design a 45-minute circuit training session for a general weight loss client.">Weight loss circuit</button>
@@ -6488,7 +6491,7 @@ function filterPeptides() {
         </div>
       </div>
       <div class="accord"><button class="accord-hdr" onclick="tog(this)">🏅 OLYMPIC LIFTING AND RECOVERY <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <div class="accord-body" style="display:none;flex-direction:column;gap:6px;padding-top:8px;">
+        <div class="accord-body accord-stack">
           <button class="qa-btn oli" data-p="Explain the snatch coaching model phases. How do I teach the snatch to a novice lifter step by step?">Snatch coaching model</button>
           <button class="qa-btn oli" data-p="What are the most common errors in the snatch start position and second pull, and how do I correct them?">Snatch common errors and cues</button>
           <button class="qa-btn rec" data-p="What does the research say about cold water immersion (CWI) and contrast water therapy (CWT) for recovery?">CWI and CWT protocols</button>
