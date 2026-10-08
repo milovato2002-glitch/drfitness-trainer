@@ -38,6 +38,31 @@ export const config = {
   }
 };
 
+// Images (meal photos) are allowed in messages, within these limits. The app
+// shrinks photos to about 650 KB before sending, so real requests are well under.
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BASE64_CHARS = 2500000; // about 1.9 MB per image
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+// Returns [status, message] for an image the function will not forward, or null.
+function imageProblem(messages) {
+  if (!Array.isArray(messages)) return null;
+  let count = 0;
+  for (const m of messages) {
+    if (!m || !Array.isArray(m.content)) continue;
+    for (const block of m.content) {
+      if (!block || block.type !== 'image') continue;
+      count++;
+      const src = block.source || {};
+      if (src.type !== 'base64' || typeof src.data !== 'string') return [400, 'Images must be sent as base64 data.'];
+      if (!IMAGE_TYPES.includes(src.media_type)) return [400, 'Image type not supported. Use JPG, PNG, WebP or GIF.'];
+      if (src.data.length > MAX_IMAGE_BASE64_CHARS) return [413, 'Image too large. Reload the page and try again.'];
+    }
+  }
+  if (count > MAX_IMAGES) return [400, 'Too many images in one request.'];
+  return null;
+}
+
 const RATE_LIMIT = 30;           // requests
 const RATE_WINDOW_MS = 60 * 1000; // per minute
 const hits = new Map();          // ip -> array of request timestamps
@@ -128,6 +153,14 @@ export default async (request, context) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return new Response(JSON.stringify({ error: 'Invalid JSON body.' }), {
       status: 400,
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+
+  const badImage = imageProblem(body.messages);
+  if (badImage) {
+    return new Response(JSON.stringify({ error: badImage[1] }), {
+      status: badImage[0],
       headers: { ...CORS, 'Content-Type': 'application/json' }
     });
   }
