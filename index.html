@@ -2279,7 +2279,19 @@ function wccEdCheckDay(di){
   if (/beginner/i.test(job.level)) wccFixBeginnerLoad(day).forEach(function(f){ notes.push({ text: f }); });
   wccFixUnits(day).forEach(function(f){ notes.push({ text: f }); });
   WCC_SECTIONS.forEach(function(k){ day[k].forEach(function(ex){ if (!ex._id) ex._id = 'e' + (wccEdNextId++); }); });
-  return notes;
+  return notes.concat(wccEdDupNotes(day));
+}
+
+// Warns when the same exercise appears twice in a day (seen live: swapping the RDL
+// for a leg curl on a day that already had one). A warning, not a fix: it may be intended.
+function wccEdDupNotes(day){
+  var seen = {}, dups = [];
+  WCC_SECTIONS.forEach(function(k){ day[k].forEach(function(ex){
+    var key = wccNormName(ex.name).toLowerCase().replace(/^([a-z]\d|superset\s*[a-z])\s*[:.)–—-]\s*/i, '');
+    if (seen[key] && dups.indexOf(ex.name) === -1) dups.push(ex.name);
+    seen[key] = true;
+  }); });
+  return dups.map(function(n){ return { warn: true, text: n + ' appears twice on this day. Change or delete one if that was not intended.' }; });
 }
 
 function wccEdFieldValue(ex, f){
@@ -2448,6 +2460,7 @@ window.wccEdChat = async function(){
       // Same rules as generation, including the time budget.
       var notes = wccApplyInjuryRules(nd, wccDayRules(job, i)).map(function(s){ return { warn: true, text: s.from + ' breaks the ' + s.injury + ' rule (' + s.reason + '), so it was replaced with ' + s.to + '.' }; });
       notes = notes.concat(wccApplyQualityRules(nd, job, i).map(function(f){ return { text: f }; }));
+      notes = notes.concat(wccEdDupNotes(nd));
       // Unchanged exercises keep their identity; everything else is marked as changed.
       var changed = 0, kept = {};
       WCC_SECTIONS.forEach(function(k){ nd[k].forEach(function(ex){
