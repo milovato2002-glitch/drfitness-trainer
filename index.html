@@ -278,7 +278,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 
 <div class="nav-tabs" id="mainNavTabs">
   <button class="nav-tab" data-tab="clients">👤 CLIENTS<span id="navAlertBadge" class="alert-count-badge" style="display:none;">0</span></button>
-  <button class="nav-tab" data-tab="messages">💬 MESSAGES</button>
+  <button class="nav-tab" data-tab="messages">💬 MESSAGES <span style="font-size:0.6rem;border:1px solid currentColor;border-radius:8px;padding:0 5px;margin-left:2px;">SOON</span></button>
   <button class="nav-tab active" data-tab="ask">⚡ BUILD SESSION</button>
   <button class="nav-tab" data-tab="schedule">📅 SCHEDULE</button>
   <button class="nav-tab" data-tab="nutrition">🥗 NUTRITION</button>
@@ -7487,7 +7487,16 @@ function filterPeptides() {
 
 <!-- ══ MESSAGES TAB ══ -->
 <div class="panel" data-panel="messages">
-  <div style="display:flex;height:calc(100vh - var(--df-chrome-h,115px) - 10px);">
+  <!-- Messages typed here were only stored in this browser and never reached a client. -->
+  <div class="ref-panel" style="max-width:640px;margin:0 auto;padding:2.5rem 1.5rem;">
+    <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.5rem 1.25rem;text-align:center;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;" aria-hidden="true">💬</div>
+      <h2 style="font-family:Bebas Neue,sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:0.4rem;">Coming soon: client messaging</h2>
+      <p style="font-size:0.88rem;color:var(--text2);line-height:1.6;margin-bottom:1rem;">Messaging is not live yet. Messages written here were saved only in this browser and never reached a client, so this screen is turned off until real client messaging is built.</p>
+      <p style="font-size:0.82rem;color:var(--text3);line-height:1.6;">To send a client their workout today, open the workout and use <strong style="color:var(--text2);">Copy for Client</strong> or <strong style="color:var(--text2);">Download PDF</strong>, then send it from your own phone or email.</p>
+    </div>
+  </div>
+  <div hidden style="display:none;height:calc(100vh - var(--df-chrome-h,115px) - 10px);">
     <!-- Conversation List -->
     <div id="msgListPanel" style="width:280px;flex-shrink:0;border-right:1px solid var(--border2);overflow-y:auto;padding:0.75rem;display:flex;flex-direction:column;gap:4px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><h3 style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:var(--gold);">Messages</h3><button onclick="newMsgConversation()" style="padding:5px 10px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-size:0.72rem;font-weight:700;cursor:pointer;">+ NEW</button></div>
@@ -12598,7 +12607,7 @@ console.log('init: floating-chat complete');
   <div style="display:flex;justify-content:space-around;align-items:center;">
     <button onclick="mobileNavTo('ask')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">⚡</span>Build</button>
     <button onclick="mobileNavTo('clients')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">👤</span>Clients</button>
-    <button onclick="mobileNavTo('messages')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">💬</span>Messages</button>
+    <button onclick="mobileNavTo('messages')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">💬</span>Messages (soon)</button>
     <button onclick="mobileNavTo('schedule')" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">📅</span>Schedule</button>
     <button onclick="document.getElementById('mobileMoreMenu').style.display=document.getElementById('mobileMoreMenu').style.display==='flex'?'none':'flex'" class="mob-nav-btn" style="background:transparent;border:none;color:var(--text3);font-size:0.6rem;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;"><span style="font-size:1.2rem;">☰</span>More</button>
   </div>
