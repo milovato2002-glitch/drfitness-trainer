@@ -2150,6 +2150,7 @@ function wccEdCardHtml(ex){
     '</div>' +
     '<div class="wce-actions">' +
       (tut.url && tut.url !== '#' ? '<a class="wce-icon video" href="' + wccEsc(tut.url) + '" target="_blank" rel="noopener" title="Watch form video">▶ FORM</a>' : '') +
+      '<button class="wce-icon" type="button" onclick="wccEdDelete(\'' + ex._id + '\')" aria-label="Delete ' + wccEsc(ex.name) + '" title="Delete">✕</button>' +
     '</div>' +
   '</div>';
 }
@@ -2166,7 +2167,8 @@ function wccEdDayHtml(di){
     '<div class="wce-daymsg" data-day-msg="' + di + '">' + msgs.map(function(m){ return '<div class="wce-msg' + (m.warn ? ' warn' : '') + '">' + wccEsc(m.text) + '</div>'; }).join('') + '</div>';
   WCC_SECTIONS.forEach(function(k){
     html += '<div class="wce-sec">' + WCC_SEC_LABEL[k] + '</div>' +
-      '<div class="wce-list" data-day="' + di + '" data-sec="' + k + '">' + d[k].map(wccEdCardHtml).join('') + '</div>';
+      '<div class="wce-list" data-day="' + di + '" data-sec="' + k + '">' + d[k].map(wccEdCardHtml).join('') + '</div>' +
+      '<div class="wce-add" data-add="' + di + ':' + k + '"><button class="wce-btn" type="button" onclick="wccEdShowAdd(' + di + ',\'' + k + '\')">+ Add exercise</button></div>';
   });
   if (d.NOTES.length) {
     html += '<div class="wce-sec">Trainer Notes</div><div style="background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.8rem;color:var(--text2);line-height:1.6;">' +
@@ -2285,6 +2287,48 @@ window.wccEdFit = function(di){
   wccEdSetMsgs(di, fixes.map(function(t){ return { text: t + '. Undo to put them back.' }; }));
   wccEdCommit([di]);
 };
+
+window.wccEdDelete = function(id){
+  var loc = wccEd && wccEdFind(id);
+  if (!loc) return;
+  wccEdSnapshot('delete ' + loc.ex.name);
+  loc.list.splice(loc.idx, 1);
+  wccEdSetMsgs(loc.di, [{ text: 'Removed ' + loc.ex.name + '. Undo to put it back.' }]);
+  wccEdCommit([loc.di]);
+};
+
+// Opens a small name box at the end of a section.
+window.wccEdShowAdd = function(di, sec){
+  var box = document.querySelector('[data-add="' + di + ':' + sec + '"]');
+  if (!box) return;
+  box.innerHTML = '<input class="wce-input" type="text" maxlength="80" placeholder="Exercise name" aria-label="New exercise name">' +
+    '<button class="wce-btn gold" type="button">Add</button><button class="wce-btn" type="button">Cancel</button>';
+  var input = box.querySelector('input'), btns = box.querySelectorAll('button');
+  var go = function(){ var v = input.value.trim(); if (v) wccEdAdd(di, sec, v); else wccEdRenderDay(di); };
+  btns[0].onclick = go;
+  btns[1].onclick = function(){ wccEdRenderDay(di); };
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') { e.preventDefault(); go(); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); wccEdRenderDay(di); }
+  });
+  input.focus();
+};
+
+// Defaults for a new exercise, by section.
+function wccEdNewExercise(name, sec){
+  var beginner = /beginner/i.test(wccEd.job.level);
+  if (sec === 'WARMUP') return { name: name, sr: '1x10', tempo: '-', rest: '-', load: 'Bodyweight', cue: '' };
+  if (sec === 'COOLDOWN') return { name: name, sr: '1x30s', tempo: '-', rest: '-', load: '-', cue: '' };
+  return { name: name, sr: '3x10', tempo: '2-1-2', rest: '60s', load: beginner ? 'RPE 5-6' : 'RPE 6-7', cue: '' };
+}
+function wccEdAdd(di, sec, name){
+  wccEdSnapshot('add ' + name);
+  var ex = wccEdCopyEx(wccEdNewExercise(name, sec));
+  wccEd.days[di][sec].push(ex);
+  var notes = wccEdCheckDay(di);
+  wccEdSetMsgs(di, [{ text: 'Added ' + name + ' to ' + WCC_SEC_LABEL[sec] + '. Tap its fields to adjust.' }].concat(notes));
+  wccEdCommit([di]);
+}
 
 // One set of listeners for all cards (the cards are re-rendered after every change).
 document.addEventListener('click', function(e){
