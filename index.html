@@ -605,17 +605,19 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
     root.setProperty('--df-header-h', hh + 'px');
     root.setProperty('--df-nav-h', nh + 'px');
     root.setProperty('--df-chrome-h', (hh + nh + bh) + 'px');
+    // Phones: the install banner sits just above the bottom nav instead of on top of it.
+    root.setProperty('--df-bottomnav-h', visibleHeight(document.getElementById('mobileBottomNav')) + 'px');
   }
   function start(){
     update();
     if (typeof ResizeObserver !== 'undefined') {
       var ro = new ResizeObserver(update);
-      ['header', '.nav-tabs', '#activeClientBanner', '#activeClientBannerEmpty'].forEach(function(sel){ var el = document.querySelector(sel); if (el) ro.observe(el); });
+      ['header', '.nav-tabs', '#activeClientBanner', '#activeClientBannerEmpty', '#mobileBottomNav'].forEach(function(sel){ var el = document.querySelector(sel); if (el) ro.observe(el); });
     }
-    // The client bars are shown and hidden by toggling their inline display.
+    // The client bars and bottom nav are shown and hidden by toggling their inline display.
     if (typeof MutationObserver !== 'undefined') {
       var mo = new MutationObserver(update);
-      ['activeClientBanner', 'activeClientBannerEmpty'].forEach(function(id){ var el = document.getElementById(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ['style', 'class'] }); });
+      ['activeClientBanner', 'activeClientBannerEmpty', 'mobileBottomNav'].forEach(function(id){ var el = document.getElementById(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ['style', 'class'] }); });
     }
     window.addEventListener('resize', update);
   }
@@ -11546,7 +11548,7 @@ console.log('init: floating-chat complete');
 </nav>
 
 <!-- PWA INSTALL BANNER -->
-<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:600;background:rgba(240,165,0,0.1);border-top:2px solid var(--gold);padding:12px 1.5rem;display:flex;align-items:center;justify-content:space-between;">
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:var(--df-bottomnav-h,0px);left:0;right:0;z-index:600;background:var(--navy2);border-top:2px solid var(--gold);padding:12px 1.5rem;align-items:center;gap:10px;justify-content:space-between;">
   <span style="font-size:0.82rem;color:var(--text2);">Install Dr. Fitness on your home screen for instant access</span>
   <div style="display:flex;gap:8px;"><button id="pwaInstallBtn" onclick="installPWA()" style="padding:8px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:Barlow Condensed,sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;">Install App</button><button onclick="dismissPWA()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:0.78rem;">Dismiss</button></div>
 </div>
