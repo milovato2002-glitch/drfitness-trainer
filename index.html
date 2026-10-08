@@ -532,7 +532,9 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 /* ══ Editable workout cards ══ */
 .wce-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;}
 .wce-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:0.74rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;}
-.wce-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
+/* Hover only where a pointer can hover: on touch screens :hover sticks after a tap
+   and turned the gold button's label gold-on-gold. */
+@media(hover:hover){.wce-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}.wce-btn.gold:hover:not(:disabled){background:var(--gold2);border-color:var(--gold2);color:var(--navy);}}
 .wce-btn:disabled{opacity:0.4;cursor:default;}
 .wce-btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy);}
 .wce-day{margin:1.25rem 0 0.5rem;}
@@ -555,7 +557,8 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 .wce-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:0.78rem;color:var(--text3);align-items:baseline;}
 .wce-meta b{font-weight:600;color:var(--text3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;margin-right:3px;}
 .wce-f{display:inline-block;min-width:1.5em;min-height:24px;padding:1px 5px;border-radius:4px;border:1px dashed transparent;color:var(--text);cursor:text;}
-.wce-f:hover,.wce-f:focus-visible{border-color:var(--border);outline:none;}
+.wce-f:focus-visible{border-color:var(--border);outline:none;}
+@media(hover:hover){.wce-f:hover{border-color:var(--border);}}
 .wce-f.empty{color:var(--text3);font-style:italic;}
 .wce-f.sr{color:var(--gold);font-weight:600;}
 .wce-cue{display:block;margin-top:4px;font-size:0.8rem;color:var(--text2);line-height:1.45;}
@@ -566,7 +569,7 @@ main{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;}
 textarea.wce-input{width:100%;min-height:3em;resize:vertical;}
 .wce-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
 .wce-icon{min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:14px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:0.85rem;cursor:pointer;text-decoration:none;}
-.wce-icon:hover{border-color:var(--red);color:var(--red);}
+@media(hover:hover){.wce-icon:hover{border-color:var(--red);color:var(--red);}}
 .wce-icon.video{border-color:rgba(230,57,70,0.35);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:0.66rem;font-weight:700;padding:0 8px;}
 .wce-add{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
 .wce-add input{flex:1;min-width:140px;}
@@ -2193,7 +2196,15 @@ function wccEdRenderAll(){
   var toolbar = '<div class="wce-toolbar" id="wceToolbar">' +
     '<button class="wce-btn" type="button" id="wceUndoBtn" onclick="wccEdUndo()" disabled>↶ Undo</button>' +
     '<button class="wce-btn" type="button" onclick="wccToggleTrackMode()">▷ Track live session</button></div>';
-  root.innerHTML = '<div id="wceRoot">' + head + toolbar + wccEd.days.map(function(_, i){ return '<div class="wce-day" data-day-block="' + i + '">' + wccEdDayHtml(i) + '</div>'; }).join('') + '</div>';
+  var chat = '<div class="wce-chat">' +
+    '<label for="wceChatInput" class="wce-sec" style="display:block;margin-top:0;">Ask for a change</label>' +
+    '<textarea id="wceChatInput" maxlength="400" placeholder="e.g. swap the RDL for a leg curl · make Day 2 shorter · add a core finisher to Day 3"></textarea>' +
+    '<div class="wce-toolbar" style="margin-top:6px;"><button class="wce-btn gold" type="button" id="wceChatSend" onclick="wccEdChat()">Apply change</button>' +
+    '<span id="wceChatStatus" style="font-size:0.78rem;color:var(--text2);" role="status" aria-live="polite"></span></div></div>';
+  root.innerHTML = '<div id="wceRoot">' + head + toolbar + wccEd.days.map(function(_, i){ return '<div class="wce-day" data-day-block="' + i + '">' + wccEdDayHtml(i) + '</div>'; }).join('') + chat + '</div>';
+  wccEdUpdateUndo();
+  var ci = document.getElementById('wceChatInput');
+  if (ci) ci.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); wccEdChat(); } });
 }
 function wccEdRenderDay(di){
   var el = document.querySelector('[data-day-block="' + di + '"]');
@@ -2373,6 +2384,103 @@ function wccEdAdd(di, sec, name){
   wccEdSetMsgs(di, [{ text: 'Added ' + name + ' to ' + WCC_SEC_LABEL[sec] + '. Tap its fields to adjust.' }].concat(notes));
   wccEdCommit([di]);
 }
+
+/* ── Chat changes ──
+   The trainer describes a change; the AI gets the current program (with
+   every edit so far) and returns only the days it changed. Each returned
+   day must pass the structure check, then goes through the same pipeline
+   as generation: injury and home-day swaps, beginner RPE, units, warm-up
+   size and the time budget. Only those days re-render, and the cards that
+   changed are highlighted. One Undo reverts the whole change. */
+function wccEdChatContract(request){
+  var job = wccEd.job, N = wccEd.days.length;
+  var home = job.rotation ? wccEd.days.map(function(_, i){ return i; }).filter(function(i){ return wccIsHomeDay(job, i); }).map(function(i){ return i + 1; }) : [];
+  return '\n\nCURRENT PROGRAM (the latest version, including the trainer’s own edits):\n' + wccEdText() +
+    '\n\nTRAINER REQUEST: ' + request + '\n' +
+    '\nTHIS REQUEST: change the program as asked and nothing else. Return ONLY the days you changed, each written out in full. ' +
+    'Keep every exercise you were not asked to change exactly as it is (same name, sets and reps, tempo, rest, load and cue) and keep each day’s focus unless asked. ' +
+    'If the request needs no change or cannot be done safely for this client, reply with exactly one line: NO_CHANGE: <short reason>.\n' +
+    (home.length ? 'Days ' + home.join(', ') + ' are home days. ' + WCC_HOME_RULE.prompt + '\n' : '') +
+    (job.sessionMinutes ? 'Every day must still fit in ' + job.sessionMinutes + ' minutes including rest.\n' : '') +
+    '\nOUTPUT FORMAT, FOLLOW EXACTLY (it overrides every other formatting instruction above):\n' +
+    'For each changed day: a line ===DAY <number>=== <day focus>, then ##WARMUP, ##MAIN, ##COOLDOWN, ##NOTES on their own lines. ' +
+    'Every exercise is one line: EX|<name>|<sets>x<reps>|<tempo>|<rest>|<load guidance>|<one coaching cue>, with exactly 6 fields after EX| and a single dash for a field that does not apply. ' +
+    'Holds and stretches are timed (2x30s); lifts are in reps (3x10). Under ##NOTES plain prose lines only. ' +
+    'End each day with COUNT|<warm-up exercises>|<main exercises>|<cool-down exercises>. No TITLE or SUMMARY lines, no markdown, nothing outside this structure. Day numbers are 1 to ' + N + '.';
+}
+function wccEdSig(ex){ return [ex.name, ex.sr, ex.tempo, ex.rest, ex.load, ex.cue, ex.mod].map(function(x){ return String(x || '').trim().toLowerCase(); }).join('|'); }
+
+window.wccEdChat = async function(){
+  var input = document.getElementById('wceChatInput'), btn = document.getElementById('wceChatSend'), status = document.getElementById('wceChatStatus');
+  var request = input ? input.value.trim() : '';
+  if (!wccEd || !request || wccEd.chatBusy) return;
+  var job = wccEd.job, e = wccEd;
+  e.chatBusy = true;
+  if (btn) btn.disabled = true;
+  var say = function(t, warn){ var s = document.getElementById('wceChatStatus'); if (s) { s.textContent = t; s.style.color = warn ? 'var(--red)' : 'var(--text2)'; } };
+  say('Working on it…');
+  try {
+    var r = await window.streamChatResult({ max_tokens: 3500, timeoutMs: 60000, system: job.system,
+      messages: [{ role: 'user', content: job.basePrompt + wccEdChatContract(request) }] });
+    if (wccEd !== e) return; // a new program replaced this one meanwhile
+    if (r.stopReason === 'max_tokens') throw new Error('The answer was cut off at the length limit. Try a smaller change.');
+    if (!r.stopReason) throw new Error('The connection closed before the answer finished. Try again.');
+    var nc = r.text.match(/^\s*NO_CHANGE:\s*(.*)$/im);
+    if (nc && !/^\s*===\s*DAY/im.test(r.text)) { say('No change made: ' + nc[1].trim()); return; }
+    var p = wccParseWorkout(r.text);
+    if (!p.days.length) throw new Error('The answer did not contain a day in the workout format. Nothing was changed.');
+    var seen = {};
+    p.days.forEach(function(d){
+      if (!(d.num >= 1 && d.num <= e.days.length) || seen[d.num]) throw new Error('The answer had an invalid or repeated day number (' + d.num + '). Nothing was changed.');
+      seen[d.num] = true;
+      var probs = wccValidateDay(d);
+      if (probs.length) throw new Error('Day ' + d.num + ' came back incomplete (' + probs.join('; ') + '). Nothing was changed.');
+    });
+    wccEdSnapshot('chat change');
+    var changedDays = [], summary = [];
+    p.days.forEach(function(d){
+      var i = d.num - 1, old = e.days[i];
+      var oldBySig = {};
+      WCC_SECTIONS.forEach(function(k){ old[k].forEach(function(ex){ (oldBySig[wccEdSig(ex)] = oldBySig[wccEdSig(ex)] || []).push(ex._id); }); });
+      var nd = wccEdCopyDay(d);
+      if (job.rotation) nd.focus = wccRotationLabel(i) + ': ' + nd.focus.replace(/^(\s*(gym|home)\s*\d*\s*[:–—-]?\s*)+/i, '').replace(/\s*\((gym|home)\)\s*$/i, '');
+      nd.num = i + 1;
+      // Same rules as generation, including the time budget.
+      var notes = wccApplyInjuryRules(nd, wccDayRules(job, i)).map(function(s){ return { warn: true, text: s.from + ' breaks the ' + s.injury + ' rule (' + s.reason + '), so it was replaced with ' + s.to + '.' }; });
+      notes = notes.concat(wccApplyQualityRules(nd, job, i).map(function(f){ return { text: f }; }));
+      // Unchanged exercises keep their identity; everything else is marked as changed.
+      var changed = 0, kept = {};
+      WCC_SECTIONS.forEach(function(k){ nd[k].forEach(function(ex){
+        var ids = oldBySig[wccEdSig(ex)];
+        var reuse = ids && ids.find(function(x){ return !kept[x]; });
+        if (reuse) { ex._id = reuse; kept[reuse] = true; } else { ex._id = 'e' + (wccEdNextId++); ex._changed = true; changed++; }
+      }); });
+      var removed = Object.keys(oldBySig).reduce(function(a, s){ return a + oldBySig[s].filter(function(x){ return !kept[x]; }).length; }, 0);
+      e.days[i] = nd;
+      changedDays.push(i);
+      var line = 'Day ' + (i + 1) + ': ' + changed + ' card' + (changed === 1 ? '' : 's') + ' changed' + (removed > changed ? ', ' + (removed - changed) + ' removed' : '');
+      summary.push(line);
+      wccEdSetMsgs(i, [{ text: 'Changed by your request: ' + line.replace(/^Day \d+: /, '') + '. Undo to revert.' }].concat(notes));
+    });
+    wccEdCommit(changedDays);
+    // Highlight the changed cards, then drop the marker so later renders do not flash again.
+    changedDays.forEach(function(i){ WCC_SECTIONS.forEach(function(k){ e.days[i][k].forEach(function(ex){
+      if (!ex._changed) return;
+      var c = document.querySelector('#wceRoot .wce-card[data-id="' + ex._id + '"]');
+      if (c) c.classList.add('changed');
+      delete ex._changed;
+    }); }); });
+    var first = document.querySelector('[data-day-block="' + changedDays[0] + '"]');
+    if (first && first.scrollIntoView) first.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    if (input) input.value = '';
+    say('Done. ' + summary.join('; ') + '.');
+  } catch(err) {
+    say(err.message, true);
+  } finally {
+    e.chatBusy = false;
+    var b = document.getElementById('wceChatSend'); if (b) b.disabled = false;
+  }
+};
 
 /* ── Moving cards ──
    Pointer events cover mouse and touch with one code path. The handle has
