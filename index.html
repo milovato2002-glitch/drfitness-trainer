@@ -1815,7 +1815,26 @@ async function wccRunDay(job, idx){
   if (window._wccJob === job) wccRenderProgress(job);
 }
 
+// Main exercises per day for a session length; every day gets the same target.
+function wccMainTarget(minutes){ return !minutes ? 5 : minutes <= 30 ? 4 : minutes <= 45 ? 5 : 6; }
+// Keeps every day's main block within one exercise of the smallest day by trimming from the end.
+function wccBalanceMainBlocks(job){
+  var fixes = [], days = job.days.filter(function(d){ return d.parsed; });
+  if (days.length < 2) return fixes;
+  var min = Math.min.apply(null, days.map(function(d){ return d.parsed.MAIN.length; }));
+  days.forEach(function(d){
+    var removed = [];
+    while (d.parsed.MAIN.length > min + 1) removed.push(d.parsed.MAIN.pop().name);
+    if (removed.length) {
+      d.parsed.minutes = wccDayMinutes(d.parsed); d.minutes = d.parsed.minutes;
+      fixes.push('Day ' + d.num + ': main block trimmed to ' + d.parsed.MAIN.length + ' exercises to stay within one of the other days (removed ' + removed.join(', ') + ')');
+    }
+  });
+  return fixes;
+}
+
 function wccFinishJob(job){
+  if (job.days.every(function(d){ return d.status === 'done'; })) job.balanceFixes = wccBalanceMainBlocks(job);
   if (!job.days.every(function(d){ return d.status === 'done'; })) { wccRenderProgress(job); return; }
   var text = 'TITLE: ' + (job.title || (job.styleName + (job.dayCount > 1 ? ' ' + job.dayCount + '-Day Program' : ' Session'))) + '\n' +
     (job.summary ? 'SUMMARY: ' + job.summary + '\n' : '') +
@@ -2049,7 +2068,7 @@ function wccBasePrompt(job){
 function wccPlanContract(job){
   var N = job.dayCount;
   return '\n\nTHIS REQUEST: Plan the ' + N + '-day program only. Do not write the workouts yet.\n' +
-    'For each day choose its focus and its 5 or 6 main-block exercises, one exercise per item (never two exercises combined into one item). No exercise may appear on more than one day. ' +
+    'For each day choose its focus and exactly ' + wccMainTarget(job.sessionMinutes) + ' main-block exercises (the same number every day; a lighter day uses lighter loading, not fewer exercises), one exercise per item (never two exercises combined into one item). No exercise may appear on more than one day. ' +
     (N >= 5 ? 'Make one day a lighter recovery day. ' : '') +
     'Every exercise must respect the contraindications above.\n' +
     (job.rotation ? 'SCHEDULE: this is a rotation done in order, not fixed weekdays: ' + job.days.map(function(d, i){ return 'day ' + (i + 1) + ' = ' + wccRotationLabel(i); }).join(', ') + '. ' + WCC_HOME_RULE.prompt + ' Gym days use the equipment listed above.\n' : '') +
